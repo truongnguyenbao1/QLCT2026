@@ -1,0 +1,452 @@
+// lib/features/room_management/presentation/pages/rooms_list_page.dart
+import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../../core/constants/app_colors.dart';
+import '../../../../core/di/injection.dart';
+import '../../../../core/utils/formatters.dart';
+import '../../../../features/auth/presentation/bloc/auth_bloc.dart';
+import '../../../../features/auth/presentation/bloc/auth_state.dart';
+import '../../../../shared/navigation/app_router.dart';
+import '../../../../shared/widgets/app_button.dart';
+import '../../domain/entities/room.dart';
+import '../bloc/room_bloc.dart';
+
+class RoomsListPage extends StatelessWidget {
+  const RoomsListPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider<RoomBloc>(
+      create: (_) {
+        final authState = context.read<AuthBloc>().state;
+        final propertyId = authState is AuthAuthenticated
+            ? authState.user.propertyId ?? ''
+            : '';
+        return getIt<RoomBloc>()..add(LoadRoomsEvent(propertyId));
+      },
+      child: const _RoomsListView(),
+    );
+  }
+}
+
+class _RoomsListView extends StatelessWidget {
+  const _RoomsListView();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Quản lý Phòng'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search_rounded),
+            onPressed: () {/* TODO: Search */},
+          ),
+        ],
+      ),
+      body: BlocConsumer<RoomBloc, RoomState>(
+        listener: (context, state) {
+          if (state is RoomError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: AppColors.error,
+              ),
+            );
+          } else if (state is RoomActionSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: AppColors.success,
+              ),
+            );
+          }
+        },
+        builder: (context, state) {
+          if (state is RoomsLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (state is RoomsLoaded || state is RoomActionSuccess) {
+            final rooms = state is RoomsLoaded
+                ? state.filteredRooms
+                : (state as RoomActionSuccess).rooms;
+            final allRooms = state is RoomsLoaded ? state.rooms : rooms;
+            final activeFilter =
+                state is RoomsLoaded ? state.activeFilter : null;
+
+            return Column(
+              children: [
+                // ── Stats Row ──────────────────────────────────────────
+                if (state is RoomsLoaded)
+                  _StatsBar(
+                    total: state.rooms.length,
+                    empty: state.emptyCount,
+                    occupied: state.occupiedCount,
+                    maintenance: state.maintenanceCount,
+                  ),
+
+                // ── Filter Chips ───────────────────────────────────────
+                _FilterRow(
+                  activeFilter: activeFilter,
+                  onFilter: (status) {
+                    context.read<RoomBloc>().add(FilterRoomsEvent(status));
+                  },
+                ),
+
+                // ── Room Grid ──────────────────────────────────────────
+                Expanded(
+                  child: rooms.isEmpty
+                      ? _EmptyState(hasRooms: allRooms.isNotEmpty)
+                      : GridView.builder(
+                          padding: const EdgeInsets.all(16),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            childAspectRatio: 0.85,
+                            crossAxisSpacing: 12,
+                            mainAxisSpacing: 12,
+                          ),
+                          itemCount: rooms.length,
+                          itemBuilder: (context, index) {
+                            return _RoomCard(room: rooms[index])
+                                .animate()
+                                .fadeIn(
+                                  delay: Duration(milliseconds: 50 * index),
+                                  duration: 300.ms,
+                                )
+                                .slideY(begin: 0.1);
+                          },
+                        ),
+                ),
+              ],
+            );
+          }
+
+          return const Center(child: CircularProgressIndicator());
+        },
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.go('/rooms/add'),
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('Thêm phòng'),
+      ),
+    );
+  }
+}
+
+// ── Stats Bar Widget ──────────────────────────────────────────────────────
+class _StatsBar extends StatelessWidget {
+  final int total, empty, occupied, maintenance;
+  const _StatsBar({
+    required this.total,
+    required this.empty,
+    required this.occupied,
+    required this.maintenance,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: Row(
+        children: [
+          _StatChip(count: total, label: 'Tổng', color: AppColors.primary),
+          const SizedBox(width: 8),
+          _StatChip(
+              count: empty, label: 'Trống', color: AppColors.roomEmpty),
+          const SizedBox(width: 8),
+          _StatChip(
+              count: occupied,
+              label: 'Đang thuê',
+              color: AppColors.roomOccupied),
+          const SizedBox(width: 8),
+          _StatChip(
+              count: maintenance,
+              label: 'Bảo trì',
+              color: AppColors.roomMaintenance),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatChip extends StatelessWidget {
+  final int count;
+  final String label;
+  final Color color;
+  const _StatChip(
+      {required this.count, required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Column(
+          children: [
+            Text(
+              '$count',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: color,
+              ),
+            ),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                color: color,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Filter Row Widget ─────────────────────────────────────────────────────
+class _FilterRow extends StatelessWidget {
+  final RoomStatus? activeFilter;
+  final Function(RoomStatus?) onFilter;
+  const _FilterRow({required this.activeFilter, required this.onFilter});
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          _FilterChip(
+              label: 'Tất cả',
+              isActive: activeFilter == null,
+              onTap: () => onFilter(null)),
+          const SizedBox(width: 8),
+          _FilterChip(
+              label: '🟢 Còn trống',
+              isActive: activeFilter == RoomStatus.empty,
+              onTap: () => onFilter(RoomStatus.empty)),
+          const SizedBox(width: 8),
+          _FilterChip(
+              label: '🔵 Đang thuê',
+              isActive: activeFilter == RoomStatus.occupied,
+              onTap: () => onFilter(RoomStatus.occupied)),
+          const SizedBox(width: 8),
+          _FilterChip(
+              label: '🟠 Bảo trì',
+              isActive: activeFilter == RoomStatus.maintenance,
+              onTap: () => onFilter(RoomStatus.maintenance)),
+        ],
+      ),
+    );
+  }
+}
+
+class _FilterChip extends StatelessWidget {
+  final String label;
+  final bool isActive;
+  final VoidCallback onTap;
+  const _FilterChip(
+      {required this.label, required this.isActive, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isActive ? AppColors.primary : AppColors.surfaceVariant,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isActive ? Colors.white : AppColors.textSecondary,
+            fontWeight: FontWeight.w500,
+            fontSize: 13,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Room Card Widget ──────────────────────────────────────────────────────
+class _RoomCard extends StatelessWidget {
+  final Room room;
+  const _RoomCard({required this.room});
+
+  @override
+  Widget build(BuildContext context) {
+    final statusColor = _statusColor(room.status);
+    final theme = Theme.of(context);
+
+    return GestureDetector(
+      onTap: () => context.go('/rooms/${room.id}'),
+      child: Container(
+        decoration: BoxDecoration(
+          color: theme.cardTheme.color,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header with status indicator
+            Container(
+              height: 80,
+              decoration: BoxDecoration(
+                color: statusColor.withOpacity(0.12),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(16),
+                ),
+              ),
+              child: Stack(
+                children: [
+                  Center(
+                    child: Icon(
+                      Icons.meeting_room_rounded,
+                      size: 40,
+                      color: statusColor,
+                    ),
+                  ),
+                  Positioned(
+                    top: 10,
+                    right: 10,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: statusColor,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        room.status.displayName,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Phòng ${room.roomNumber}',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    AppFormatters.formatCurrency(room.rentPrice),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(Icons.straighten, size: 12,
+                          color: AppColors.textTertiary),
+                      const SizedBox(width: 4),
+                      Text(
+                        AppFormatters.formatArea(room.area),
+                        style: theme.textTheme.bodySmall,
+                      ),
+                      const SizedBox(width: 8),
+                      const Icon(Icons.layers_rounded, size: 12,
+                          color: AppColors.textTertiary),
+                      const SizedBox(width: 4),
+                      Text(
+                        'T${room.floor}',
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Color _statusColor(RoomStatus status) {
+    switch (status) {
+      case RoomStatus.empty:
+        return AppColors.roomEmpty;
+      case RoomStatus.occupied:
+        return AppColors.roomOccupied;
+      case RoomStatus.maintenance:
+        return AppColors.roomMaintenance;
+    }
+  }
+}
+
+// ── Empty State Widget ────────────────────────────────────────────────────
+class _EmptyState extends StatelessWidget {
+  final bool hasRooms;
+  const _EmptyState({required this.hasRooms});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            hasRooms
+                ? Icons.filter_alt_off_rounded
+                : Icons.home_work_outlined,
+            size: 72,
+            color: AppColors.textDisabled,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            hasRooms ? 'Không có phòng nào với bộ lọc này' : 'Chưa có phòng nào',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+          ),
+          if (!hasRooms) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Nhấn nút + để thêm phòng đầu tiên',
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall
+                  ?.copyWith(color: AppColors.textTertiary),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
