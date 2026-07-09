@@ -6,6 +6,7 @@ import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/privacy_policy_page.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/auth/presentation/bloc/auth_state.dart';
+import 'dart:async';
 import '../../features/auth/presentation/bloc/auth_event.dart';
 import '../../features/dashboard/presentation/pages/dashboard_page.dart';
 import '../../features/room_management/presentation/pages/rooms_list_page.dart';
@@ -38,24 +39,54 @@ class AppRoutes {
   static const String payment = '/invoices/:invoiceId/payment';
 }
 
+// ── GoRouter Refresh Stream ───────────────────────────────────────────────
+class GoRouterRefreshStream extends ChangeNotifier {
+  GoRouterRefreshStream(Stream<dynamic> stream) {
+    notifyListeners();
+    _subscription = stream.asBroadcastStream().listen(
+      (dynamic _) => notifyListeners(),
+    );
+  }
+
+  late final StreamSubscription<dynamic> _subscription;
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+}
+
 class AppRouter {
-  static GoRouter router(AuthState authState) {
+  static GoRouter createRouter(AuthBloc authBloc) {
     return GoRouter(
       initialLocation: AppRoutes.dashboard,
       debugLogDiagnostics: true,
+      refreshListenable: GoRouterRefreshStream(authBloc.stream),
       redirect: (context, state) {
+        final authState = authBloc.state;
         final isLoggedIn = authState is AuthAuthenticated;
         final isLoginPage = state.matchedLocation == AppRoutes.login;
         final isPrivacyPage =
             state.matchedLocation == AppRoutes.privacyPolicy;
 
+        // Nếu đang kiểm tra phiên đăng nhập thì không redirect vội
+        if (authState is AuthInitial || authState is AuthLoading) {
+          return null;
+        }
+
+        // Cần đồng ý điều khoản nhưng lại chưa ở trang privacy
+        if (authState is AuthNeedPrivacyAcceptance && !isPrivacyPage) {
+          return AppRoutes.privacyPolicy;
+        }
+
         // Chưa đăng nhập → chuyển đến login
-        if (!isLoggedIn && !isLoginPage && !isPrivacyPage) {
+        if (!isLoggedIn && !isLoginPage && !isPrivacyPage && authState is! AuthNeedPrivacyAcceptance) {
           return AppRoutes.login;
         }
 
-        // Đã đăng nhập mà vào login → chuyển về dashboard
-        if (isLoggedIn && isLoginPage) {
+        // Đã đăng nhập mà vào login hoặc privacy → chuyển về dashboard
+        if (isLoggedIn && (isLoginPage || isPrivacyPage)) {
           return AppRoutes.dashboard;
         }
 

@@ -65,31 +65,41 @@ Future<void> main() async {
   runApp(const QuanLyNhaTroApp());
 }
 
-class QuanLyNhaTroApp extends StatelessWidget {
+class QuanLyNhaTroApp extends StatefulWidget {
   const QuanLyNhaTroApp({super.key});
 
   @override
+  State<QuanLyNhaTroApp> createState() => _QuanLyNhaTroAppState();
+}
+
+class _QuanLyNhaTroAppState extends State<QuanLyNhaTroApp> {
+  late final _authBloc = getIt<AuthBloc>()..add(const AuthCheckSessionEvent());
+  late final _router = AppRouter.createRouter(_authBloc);
+
+  @override
+  void dispose() {
+    _authBloc.close();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return BlocProvider<AuthBloc>(
-      create: (_) => getIt<AuthBloc>()..add(const AuthCheckSessionEvent()),
-      child: BlocBuilder<AuthBloc, AuthState>(
-        builder: (context, authState) {
-          return MaterialApp.router(
-            title: 'Quản lý Nhà trọ',
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
-            themeMode: ThemeMode.system,
-            routerConfig: AppRouter.router(authState),
-            builder: (context, child) {
-              return MediaQuery(
-                // Tắt text scaling để UI không bị vỡ layout
-                data: MediaQuery.of(context).copyWith(
-                  textScaler: const TextScaler.linear(1.0),
-                ),
-                child: child!,
-              );
-            },
+    return BlocProvider<AuthBloc>.value(
+      value: _authBloc,
+      child: MaterialApp.router(
+        title: 'Quản lý Nhà trọ',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: ThemeMode.system,
+        routerConfig: _router,
+        builder: (context, child) {
+          return MediaQuery(
+            // Tắt text scaling để UI không bị vỡ layout
+            data: MediaQuery.of(context).copyWith(
+              textScaler: const TextScaler.linear(1.0),
+            ),
+            child: child!,
           );
         },
       ),
