@@ -54,9 +54,12 @@ class _PrivacyPolicyPageState extends State<PrivacyPolicyPage> {
         }
       },
       child: Scaffold(
+        backgroundColor: Colors.white,
         appBar: AppBar(
-          title: const Text('Chính sách Bảo mật'),
+          backgroundColor: Colors.white,
+          title: const Text('Chính sách Bảo mật', style: TextStyle(color: Colors.black)),
           centerTitle: true,
+          iconTheme: const IconThemeData(color: Colors.black),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () {
@@ -80,8 +83,9 @@ class _PrivacyPolicyPageState extends State<PrivacyPolicyPage> {
                   Expanded(
                     child: Text(
                       'Vui lòng đọc kỹ và cuộn xuống cuối để đồng ý tiếp tục.',
-                      style: theme.textTheme.bodySmall?.copyWith(
+                      style: theme.textTheme.bodyMedium?.copyWith(
                         color: AppColors.info,
+                        fontSize: 16,
                       ),
                     ),
                   ),
@@ -157,9 +161,10 @@ class _PrivacyPolicyPageState extends State<PrivacyPolicyPage> {
           ),
           child: Text(
             '⚖️ Chính sách này tuân thủ Nghị định 13/2023/NĐ-CP về bảo vệ dữ liệu cá nhân và Thông tư 40/2021/TT-BTC về kê khai thuế hộ kinh doanh.',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: AppColors.warning,
                   fontStyle: FontStyle.italic,
+                  fontSize: 16,
                 ),
           ),
         ),
@@ -176,17 +181,19 @@ class _PrivacyPolicyPageState extends State<PrivacyPolicyPage> {
         children: [
           Text(
             title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.w600,
+            style: const TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.w700,
+              fontSize: 22,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             content,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: AppColors.textSecondary,
+            style: const TextStyle(
+              color: Colors.black87,
               height: 1.6,
+              fontSize: 18,
             ),
           ),
         ],
@@ -198,7 +205,7 @@ class _PrivacyPolicyPageState extends State<PrivacyPolicyPage> {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
       decoration: BoxDecoration(
-        color: theme.scaffoldBackgroundColor,
+        color: Colors.white,
         border: Border(
           top: BorderSide(color: AppColors.border),
         ),
@@ -233,10 +240,11 @@ class _PrivacyPolicyPageState extends State<PrivacyPolicyPage> {
                   Expanded(
                     child: Text(
                       'Tôi đã đọc và đồng ý với Chính sách Bảo mật. Thông tin CCCD của tôi chỉ dùng cho mục đích khai báo tạm trú và quản lý hợp đồng.',
-                      style: theme.textTheme.bodySmall?.copyWith(
+                      style: theme.textTheme.bodyMedium?.copyWith(
                         color: _hasScrolledToBottom
-                            ? AppColors.textPrimary
-                            : AppColors.textDisabled,
+                            ? Colors.black
+                            : Colors.grey,
+                        fontSize: 16,
                       ),
                     ),
                   ),
@@ -248,9 +256,10 @@ class _PrivacyPolicyPageState extends State<PrivacyPolicyPage> {
             const SizedBox(height: 4),
             Text(
               '↓ Cuộn xuống để đọc hết chính sách',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: AppColors.textTertiary,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: Colors.black54,
                 fontStyle: FontStyle.italic,
+                fontSize: 16,
               ),
             ),
           ],

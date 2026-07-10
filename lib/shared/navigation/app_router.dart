@@ -81,7 +81,7 @@ class AppRouter {
         }
 
         // Chưa đăng nhập → chuyển đến login
-        if (!isLoggedIn && !isLoginPage && !isPrivacyPage && authState is! AuthNeedPrivacyAcceptance) {
+        if (!isLoggedIn && !isLoginPage && authState is! AuthNeedPrivacyAcceptance) {
           return AppRoutes.login;
         }
 
