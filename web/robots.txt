@@ -1,0 +1,12 @@
+# robots.txt — Cho phép Google và các bot crawl toàn bộ website
+User-agent: *
+Allow: /
+
+# Ngăn crawl các trang nội bộ không cần SEO
+Disallow: /dashboard
+Disallow: /rooms
+Disallow: /tenants
+Disallow: /invoices
+
+# Đường dẫn sitemap để Google biết cấu trúc trang
+Sitemap: https://app.tnb.io.vn/sitemap.xml

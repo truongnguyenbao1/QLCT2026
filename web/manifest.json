@@ -1,13 +1,15 @@
 {
-    "name": "quanlynhatro",
-    "short_name": "quanlynhatro",
+    "name": "Quản lý Nhà trọ",
+    "short_name": "Nhà trọ",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#FFFFFF",
+    "theme_color": "#1565C0",
+    "description": "Phần mềm quản lý nhà trọ, phòng trọ chuyên nghiệp. Quản lý hợp đồng, hóa đơn tiền điện nước, khách thuê và thanh toán một cách tự động, tiện lợi.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
+    "lang": "vi",
+    "categories": ["business", "productivity"],
     "icons": [
         {
             "src": "icons/Icon-192.png",
