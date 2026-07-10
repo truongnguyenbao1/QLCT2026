@@ -37,6 +37,9 @@ Future<void> main() async {
     publishableKey: AppConstants.supabaseAnonKey,
   );
 
+  // Xoá phiên đăng nhập cũ để yêu cầu đăng nhập lại mỗi lần mở app
+  await Supabase.instance.client.auth.signOut();
+
   // Khởi tạo Hive (local cache)
   await Hive.initFlutter();
 
