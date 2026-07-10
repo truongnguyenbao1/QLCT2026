@@ -37,8 +37,13 @@ Future<void> main() async {
     publishableKey: AppConstants.supabaseAnonKey,
   );
 
-  // Xoá phiên đăng nhập cũ để yêu cầu đăng nhập lại mỗi lần mở app
-  await Supabase.instance.client.auth.signOut();
+  // Xoá phiên đăng nhập cũ khỏi localStorage của trình duyệt (không cần mạng)
+  // để đảm bảo mỗi lần mở lại trang web đều phải đăng nhập lại.
+  try {
+    await Supabase.instance.client.auth.signOut(scope: SignOutScope.local);
+  } catch (_) {
+    // Bỏ qua lỗi nếu không có phiên nào tồn tại
+  }
 
   // Khởi tạo Hive (local cache)
   await Hive.initFlutter();
