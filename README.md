@@ -6,7 +6,7 @@ Dự án ứng dụng quản lý nhà trọ quy mô vừa và nhỏ, hỗ trợ 
 
 ## 📊 BÁO CÁO TIẾN ĐỘ DỰ ÁN
 
-*Cập nhật lần cuối: 08/07/2026*
+*Cập nhật lần cuối: 12/07/2026*
 
 ### 🟢 ĐÃ HOÀN THÀNH (Done)
 
@@ -21,7 +21,11 @@ Dự án ứng dụng quản lý nhà trọ quy mô vừa và nhỏ, hỗ trợ 
 - [x] Thiết lập giao diện ứng dụng (`AppTheme` - Material 3 Light/Dark).
 - [x] Cấu hình điều hướng (`AppRouter` bằng go_router với bảo vệ route chưa đăng nhập).
 
-**2. Tính năng Xác thực & Phân quyền (Auth Feature)**
+**2. Thiết lập Cơ sở dữ liệu (Database Setup)**
+- [x] Thiết kế và khởi tạo hoàn chỉnh CSDL Supabase với các bảng tiếng Việt đồng bộ: `nhatro`, `phong`, `khachthue`, `thuephong`, `hoadon`, `chitiethoadon`, `chiso`, `nhatky_hethong`, `thongbao`, `tailieudinhkem`, `thuchi`.
+- [x] Thiết lập Trigger tự động cập nhật `updated_at` và tạo các Index tối ưu hóa tốc độ truy vấn liên kết.
+
+**3. Tính năng Xác thực & Phân quyền (Auth Feature)**
 - [x] Tầng Domain & Data (Entities, Models, Repository, RemoteDataSource với Supabase).
 - [x] Các Use cases: Đăng nhập, Đăng xuất, Kiểm tra phiên, Chấp nhận chính sách.
 - [x] State Management: `AuthBloc`.
@@ -29,16 +33,25 @@ Dự án ứng dụng quản lý nhà trọ quy mô vừa và nhỏ, hỗ trợ 
   - [x] Trang Đăng nhập (`LoginPage`).
   - [x] Trang Chính sách bảo mật bắt buộc (`PrivacyPolicyPage` tuân thủ quy định pháp luật).
 
-**3. Tính năng Quản lý Phòng (Room Management Feature)**
+**4. Tính năng Quản lý Phòng (Room Management Feature)**
 - [x] Tầng Domain & Data (Room Entity, RoomModel, Repository, RemoteDataSource).
 - [x] Use cases: Thêm, Sửa, Xóa, Lấy danh sách phòng.
 - [x] State Management: `RoomBloc`.
 - [x] Giao diện (UI):
-  - [x] Màn hình Danh sách phòng (`RoomsListPage`) với lưới, thanh thống kê và bộ lọc trạng thái.
+  - [x] Màn hình Danh sách phòng (`RoomsListPage`) với lưới, thanh thống kê và bộ lọc trạng thái. Chỉ cho phép Chủ trọ/Admin thêm phòng.
   - [x] Màn hình Chi tiết phòng (`RoomDetailPage`).
-  - [x] Màn hình Thêm/Sửa phòng (`AddEditRoomPage`).
+  - [x] Màn hình Thêm/Sửa phòng (`AddEditRoomPage`) tích hợp bảo mật kiểm tra vai trò chủ trọ/admin và tự động lấy `property_id` từ phiên đăng nhập.
 
-**4. Tính năng Quản lý Hóa đơn (Invoice Feature)**
+**5. Tính năng Quản lý Khách thuê (Tenant Management Feature)**
+- [x] Tầng Domain & Data (Tenant Entity, TenantModel, Repository, RemoteDataSource).
+- [x] Bảo mật nâng cao: CCCD được mã hóa đầu cuối tại ứng dụng qua AES-256 và tự động giải mã khi tải danh sách.
+- [x] Sử dụng thuật toán tra cứu dữ liệu CCCD cũ đã giải mã để tự động điền (autofill) thông tin khách cũ quay lại thuê phòng.
+- [x] **Xác thực mật khẩu đăng nhập**: Chủ trọ/admin bắt buộc phải xác thực lại bằng mật khẩu đăng nhập của mình để lưu thông tin khách thuê (bảo mật nghiêm ngặt thông tin CCCD).
+- [x] Giao diện (UI):
+  - [x] Màn hình Danh sách khách thuê (`TenantListPage`) giới hạn quyền truy cập chỉ cho chủ trọ/admin.
+  - [x] Màn hình Thêm/Sửa thông tin khách thuê (`AddEditTenantPage`) hoàn chỉnh, hỗ trợ chọn phòng trống, chọn hạn hợp đồng và xác thực mật khẩu.
+
+**6. Tính năng Quản lý Hóa đơn (Invoice Feature)**
 - [x] Tầng Domain & Data (Invoice Entity, InvoiceModel, Repository, RemoteDataSource, Usecases).
 - [x] Logic phức tạp: Tự động tính tiền điện, nước, trạng thái hóa đơn, xác nhận song phương, ghi Audit log.
 - [x] State Management: `InvoiceBloc`.
@@ -48,13 +61,13 @@ Dự án ứng dụng quản lý nhà trọ quy mô vừa và nhỏ, hỗ trợ 
   - [x] Màn hình Tạo/Chốt hóa đơn hàng tháng (`CreateInvoicePage`).
   - [x] Màn hình Thanh toán qua mã VietQR (`PaymentPage`).
 
-**5. Khởi tạo Bảng điều khiển (Dashboard) & Khách thuê (Tenant Management)**
-- [x] Tạo Domain & Data layer cho Dashboard và Tenant Management.
+**7. Khởi tạo Bảng điều khiển (Dashboard)**
+- [x] Tạo Domain & Data layer cho Dashboard.
 - [x] Thiết lập State Management (BLoC) và Use cases.
-- [x] Khởi tạo khung giao diện (DashboardPage, TenantListPage, AddEditTenantPage).
+- [x] Khởi tạo khung giao diện (DashboardPage).
 - [x] Sửa toàn bộ lỗi biên dịch và kết nối thành công Supabase.
 
-**6. Triển khai Web (Web Deployment)**
+**8. Triển khai Web (Web Deployment)**
 - [x] Thay đổi thông tin SEO cơ bản (Title, Description) trong `web/index.html`.
 - [x] Tạo cấu hình `vercel.json` phục vụ cho việc Single Page Application routing (rewrites).
 - [x] Build thành công phiên bản web (`build/web`).
@@ -63,7 +76,6 @@ Dự án ứng dụng quản lý nhà trọ quy mô vừa và nhỏ, hỗ trợ 
 
 ### 🟡 ĐANG DANG DỞ (In Progress)
 
-- [ ] Hoàn thiện Form thêm/sửa chi tiết cho Khách thuê.
 - [ ] Ẩn danh hóa dữ liệu CCCD (Anonymize) khi hết hạn hợp đồng.
 - [ ] Tích hợp biểu đồ thực tế cho Dashboard (`fl_chart`).
 
