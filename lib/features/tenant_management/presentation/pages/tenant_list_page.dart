@@ -4,6 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../shared/navigation/app_router.dart';
+import '../../../../features/auth/presentation/bloc/auth_bloc.dart';
+import '../../../../features/auth/presentation/bloc/auth_state.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../bloc/tenant_bloc.dart';
 
 class TenantListPage extends StatelessWidget {
@@ -11,8 +14,38 @@ class TenantListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final authState = context.watch<AuthBloc>().state;
+    if (authState is! AuthAuthenticated || !authState.user.isOwner) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Truy cập bị từ chối')),
+        body: const Center(
+          child: Padding(
+            padding: EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.gpp_bad_rounded, size: 72, color: Colors.red),
+                SizedBox(height: 16),
+                Text(
+                  'Quyền truy cập bị từ chối',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Chức năng này chỉ dành cho chủ trọ/admin.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return BlocProvider(
-      create: (_) => getIt<TenantBloc>()..add(const LoadTenantsEvent()),
+      create: (_) => getIt<TenantBloc>()
+        ..add(LoadTenantsEvent(propertyId: authState.user.propertyId)),
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Khách thuê'),

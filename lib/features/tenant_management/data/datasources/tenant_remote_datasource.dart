@@ -34,8 +34,20 @@ class TenantRemoteDataSourceImpl implements TenantRemoteDataSource {
         .order('full_name', ascending: true);
 
     final data = await query as List<dynamic>;
-    return data
-        .map((e) => TenantModel.fromJson(e as Map<String, dynamic>))
+    final List<TenantModel> tenants = [];
+    for (var e in data) {
+      final map = Map<String, dynamic>.from(e as Map<String, dynamic>);
+      if (map['cccd_number'] != null && (map['cccd_number'] as String).isNotEmpty) {
+        try {
+          map['cccd_number'] = await _encryptionService.decryptText(map['cccd_number'] as String);
+        } catch (_) {
+          // Fallback if decryption fails (e.g. key mismatch)
+        }
+      }
+      tenants.add(TenantModel.fromJson(map));
+    }
+
+    return tenants
         .where((t) {
           if (propertyId != null && t.propertyId != propertyId) return false;
           if (roomId != null && t.roomId != roomId) return false;
@@ -52,7 +64,14 @@ class TenantRemoteDataSourceImpl implements TenantRemoteDataSource {
         .select()
         .eq('id', tenantId)
         .single();
-    return TenantModel.fromJson(data);
+    
+    final map = Map<String, dynamic>.from(data);
+    if (map['cccd_number'] != null && (map['cccd_number'] as String).isNotEmpty) {
+      try {
+        map['cccd_number'] = await _encryptionService.decryptText(map['cccd_number'] as String);
+      } catch (_) {}
+    }
+    return TenantModel.fromJson(map);
   }
 
   @override
