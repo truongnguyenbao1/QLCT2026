@@ -24,6 +24,9 @@ class RoomRemoteDataSourceImpl implements RoomRemoteDataSource {
   @override
   Future<List<RoomModel>> getRooms(String propertyId) async {
     try {
+      if (propertyId.isEmpty) {
+        return [];
+      }
       final data = await _client
           .from(AppConstants.tableRooms)
           .select()
@@ -109,6 +112,9 @@ class RoomRemoteDataSourceImpl implements RoomRemoteDataSource {
   Future<List<RoomModel>> getRoomsByStatus(
       String propertyId, RoomStatus status) async {
     try {
+      if (propertyId.isEmpty) {
+        return [];
+      }
       final data = await _client
           .from(AppConstants.tableRooms)
           .select()
@@ -124,6 +130,9 @@ class RoomRemoteDataSourceImpl implements RoomRemoteDataSource {
 
   @override
   Stream<List<RoomModel>> watchRooms(String propertyId) {
+    if (propertyId.isEmpty) {
+      return Stream.value([]);
+    }
     return _client
         .from(AppConstants.tableRooms)
         .stream(primaryKey: ['id'])

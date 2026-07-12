@@ -12,6 +12,7 @@ import '../../features/dashboard/presentation/pages/dashboard_page.dart';
 import '../../features/room_management/presentation/pages/rooms_list_page.dart';
 import '../../features/room_management/presentation/pages/add_edit_room_page.dart';
 import '../../features/room_management/presentation/pages/room_detail_page.dart';
+import '../../features/room_management/presentation/bloc/room_bloc.dart';
 import '../../features/tenant_management/presentation/pages/tenant_list_page.dart';
 import '../../features/tenant_management/presentation/pages/add_edit_tenant_page.dart';
 import '../../features/invoice/presentation/pages/invoice_list_page.dart';
@@ -116,7 +117,7 @@ class AppRouter {
               builder: (context, state) => const DashboardPage(),
             ),
 
-            // Rooms
+// Rooms
             GoRoute(
               path: AppRoutes.rooms,
               name: 'rooms',
@@ -125,7 +126,16 @@ class AppRouter {
                 GoRoute(
                   path: 'add',
                   name: 'addRoom',
-                  builder: (context, state) => const AddEditRoomPage(),
+                  builder: (context, state) {
+                    final authState = context.read<AuthBloc>().state;
+                    final propertyId = authState is AuthAuthenticated
+                        ? authState.user.propertyId ?? ''
+                        : '';
+                    return BlocProvider<RoomBloc>(
+                      create: (_) => getIt<RoomBloc>()..add(LoadRoomsEvent(propertyId)),
+                      child: const AddEditRoomPage(),
+                    );
+                  },
                 ),
                 GoRoute(
                   path: ':roomId',
@@ -140,7 +150,14 @@ class AppRouter {
                       name: 'editRoom',
                       builder: (context, state) {
                         final roomId = state.pathParameters['roomId']!;
-                        return AddEditRoomPage(roomId: roomId);
+                        final authState = context.read<AuthBloc>().state;
+                        final propertyId = authState is AuthAuthenticated
+                            ? authState.user.propertyId ?? ''
+                            : '';
+                        return BlocProvider<RoomBloc>(
+                          create: (_) => getIt<RoomBloc>()..add(LoadRoomsEvent(propertyId)),
+                          child: AddEditRoomPage(roomId: roomId),
+                        );
                       },
                     ),
                   ],
