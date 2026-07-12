@@ -37,6 +37,9 @@ class _RoomsListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final authState = context.watch<AuthBloc>().state;
+    final isOwner = authState is AuthAuthenticated && authState.user.isOwner;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Quản lý Phòng'),
@@ -69,7 +72,7 @@ class _RoomsListView extends StatelessWidget {
           if (state is RoomsLoading) {
             return const Center(child: CircularProgressIndicator());
           }
-
+ 
           if (state is RoomsLoaded || state is RoomActionSuccess) {
             final rooms = state is RoomsLoaded
                 ? state.filteredRooms
@@ -77,7 +80,7 @@ class _RoomsListView extends StatelessWidget {
             final allRooms = state is RoomsLoaded ? state.rooms : rooms;
             final activeFilter =
                 state is RoomsLoaded ? state.activeFilter : null;
-
+ 
             return Column(
               children: [
                 // ── Stats Row ──────────────────────────────────────────
@@ -88,7 +91,7 @@ class _RoomsListView extends StatelessWidget {
                     occupied: state.occupiedCount,
                     maintenance: state.maintenanceCount,
                   ),
-
+ 
                 // ── Filter Chips ───────────────────────────────────────
                 _FilterRow(
                   activeFilter: activeFilter,
@@ -96,7 +99,7 @@ class _RoomsListView extends StatelessWidget {
                     context.read<RoomBloc>().add(FilterRoomsEvent(status));
                   },
                 ),
-
+ 
                 // ── Room Grid ──────────────────────────────────────────
                 Expanded(
                   child: rooms.isEmpty
@@ -125,15 +128,17 @@ class _RoomsListView extends StatelessWidget {
               ],
             );
           }
-
+ 
           return const Center(child: CircularProgressIndicator());
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.go('/rooms/add'),
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('Thêm phòng'),
-      ),
+      floatingActionButton: isOwner
+          ? FloatingActionButton.extended(
+              onPressed: () => context.go('/rooms/add'),
+              icon: const Icon(Icons.add_rounded),
+              label: const Text('Thêm phòng'),
+            )
+          : null,
     );
   }
 }

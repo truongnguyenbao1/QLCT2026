@@ -50,12 +50,12 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
           .from(AppConstants.tableInvoices)
           .select('''
             *,
-            rooms!inner(room_number, property_id),
-            tenants(full_name)
+            phong!inner(room_number, property_id),
+            khachthue(full_name)
           ''');
 
       if (propertyId != null) {
-        query = query.eq('rooms.property_id', propertyId);
+        query = query.eq('phong.property_id', propertyId);
       }
       if (roomId != null) {
         query = query.eq('room_id', roomId);
@@ -76,8 +76,8 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
       return (data as List).map((e) {
         // Flatten joined data
         final map = Map<String, dynamic>.from(e);
-        map['room_number'] = e['rooms']?['room_number'] ?? '';
-        map['tenant_name'] = e['tenants']?['full_name'];
+        map['room_number'] = e['phong']?['room_number'] ?? '';
+        map['tenant_name'] = e['khachthue']?['full_name'];
         return InvoiceModel.fromJson(map);
       }).toList();
     } catch (e) {
@@ -92,15 +92,15 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
           .from(AppConstants.tableInvoices)
           .select('''
             *,
-            rooms!inner(room_number),
-            tenants(full_name)
+            phong!inner(room_number),
+            khachthue(full_name)
           ''')
           .eq('id', invoiceId)
           .single();
 
       final map = Map<String, dynamic>.from(data);
-      map['room_number'] = data['rooms']?['room_number'] ?? '';
-      map['tenant_name'] = data['tenants']?['full_name'];
+      map['room_number'] = data['phong']?['room_number'] ?? '';
+      map['tenant_name'] = data['khachthue']?['full_name'];
       return InvoiceModel.fromJson(map);
     } catch (e) {
       throw NotFoundFailure(message: 'Không tìm thấy hóa đơn: $invoiceId');
@@ -129,14 +129,14 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
           .insert(invoice.toJson())
           .select('''
             *,
-            rooms!inner(room_number),
-            tenants(full_name)
+            phong!inner(room_number),
+            khachthue(full_name)
           ''')
           .single();
 
       final map = Map<String, dynamic>.from(data);
-      map['room_number'] = data['rooms']?['room_number'] ?? '';
-      map['tenant_name'] = data['tenants']?['full_name'];
+      map['room_number'] = data['phong']?['room_number'] ?? '';
+      map['tenant_name'] = data['khachthue']?['full_name'];
       return InvoiceModel.fromJson(map);
     } on Failure {
       rethrow;
@@ -175,8 +175,8 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
           .eq('id', invoiceId)
           .select('''
             *,
-            rooms!inner(room_number),
-            tenants(full_name)
+            phong!inner(room_number),
+            khachthue(full_name)
           ''')
           .single();
 
@@ -188,8 +188,8 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
       );
 
       final map = Map<String, dynamic>.from(data);
-      map['room_number'] = data['rooms']?['room_number'] ?? '';
-      map['tenant_name'] = data['tenants']?['full_name'];
+      map['room_number'] = data['phong']?['room_number'] ?? '';
+      map['tenant_name'] = data['khachthue']?['full_name'];
       return InvoiceModel.fromJson(map);
     } catch (e) {
       if (e is Failure) rethrow;
@@ -229,10 +229,10 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
           .from(AppConstants.tableInvoices)
           .select('''
             *,
-            rooms!inner(room_number, property_id),
-            tenants(full_name)
+            phong!inner(room_number, property_id),
+            khachthue(full_name)
           ''')
-          .eq('rooms.property_id', propertyId)
+          .eq('phong.property_id', propertyId)
           .eq('year', year)
           .gte('month', startMonth)
           .lte('month', endMonth)
@@ -240,8 +240,8 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
 
       return (data as List).map((e) {
         final map = Map<String, dynamic>.from(e);
-        map['room_number'] = e['rooms']?['room_number'] ?? '';
-        map['tenant_name'] = e['tenants']?['full_name'];
+        map['room_number'] = e['phong']?['room_number'] ?? '';
+        map['tenant_name'] = e['khachthue']?['full_name'];
         return InvoiceModel.fromJson(map);
       }).toList();
     } catch (e) {

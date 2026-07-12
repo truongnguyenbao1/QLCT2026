@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import '../../domain/entities/room.dart';
 import '../bloc/room_bloc.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
 
 class AddEditRoomPage extends StatefulWidget {
   final String? roomId;
@@ -78,9 +80,14 @@ class _AddEditRoomPageState extends State<AddEditRoomPage> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
       
+      final authState = context.read<AuthBloc>().state;
+      final propertyId = authState is AuthAuthenticated
+          ? authState.user.propertyId ?? 'default_property'
+          : 'default_property';
+      
       final room = Room(
         id: _isEditing ? _existingRoom!.id : const Uuid().v4(),
-        propertyId: _isEditing ? _existingRoom!.propertyId : 'default_property', // Should come from context/auth
+        propertyId: _isEditing ? _existingRoom!.propertyId : propertyId,
         roomNumber: _roomNumber,
         floor: _floor,
         area: _area,
@@ -105,6 +112,35 @@ class _AddEditRoomPageState extends State<AddEditRoomPage> {
 
   @override
   Widget build(BuildContext context) {
+    final authState = context.watch<AuthBloc>().state;
+    if (authState is! AuthAuthenticated || !authState.user.isOwner) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Truy cập bị từ chối')),
+        body: const Center(
+          child: Padding(
+            padding: EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.gpp_bad_rounded, size: 72, color: Colors.red),
+                SizedBox(height: 16),
+                Text(
+                  'Quyền truy cập bị từ chối',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Chức năng này chỉ dành cho chủ trọ/admin.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return BlocListener<RoomBloc, RoomState>(
       listener: (context, state) {
         if (state is RoomActionSuccess) {

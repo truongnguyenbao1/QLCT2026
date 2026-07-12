@@ -9,14 +9,14 @@ class AppConstants {
 
   // ── Tên Table trong Supabase ──────────────────────────────────────────
   static const String tableUsers = 'users';
-  static const String tableRooms = 'rooms';
-  static const String tableProperties = 'properties';
-  static const String tableTenants = 'tenants';
-  static const String tableContracts = 'contracts';
-  static const String tableInvoices = 'invoices';
-  static const String tablePayments = 'payments';
-  static const String tableAuditLogs = 'audit_logs';
-  static const String tableMeterReadings = 'meter_readings';
+  static const String tableRooms = 'phong';
+  static const String tableProperties = 'nhatro';
+  static const String tableTenants = 'khachthue';
+  static const String tableContracts = 'thuephong';
+  static const String tableInvoices = 'hoadon';
+  static const String tablePayments = 'chitiethoadon';
+  static const String tableAuditLogs = 'nhatky_hethong';
+  static const String tableMeterReadings = 'chiso';
 
   // ── Storage Buckets ───────────────────────────────────────────────────
   static const String bucketContracts = 'contracts';
