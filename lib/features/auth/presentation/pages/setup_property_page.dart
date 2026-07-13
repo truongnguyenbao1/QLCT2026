@@ -187,6 +187,7 @@ class _SetupPropertyPageState extends State<SetupPropertyPage>
                                 const SizedBox(height: 8),
                                 TextFormField(
                                   controller: _nameController,
+                                  style: const TextStyle(color: Color(0xFF111827)),
                                   textInputAction: TextInputAction.next,
                                   decoration: InputDecoration(
                                     hintText: 'VD: Nhà trọ Phúc Hưng',
@@ -223,6 +224,7 @@ class _SetupPropertyPageState extends State<SetupPropertyPage>
                                 const SizedBox(height: 8),
                                 TextFormField(
                                   controller: _addressController,
+                                  style: const TextStyle(color: Color(0xFF111827)),
                                   textInputAction: TextInputAction.done,
                                   maxLines: 2,
                                   decoration: InputDecoration(
