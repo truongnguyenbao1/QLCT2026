@@ -79,15 +79,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         throw const AuthFailure(message: 'Đăng ký thất bại.');
       }
 
-      // Tạo profile trong bảng users
-      await _client.from(AppConstants.tableUsers).insert({
-        'iduser': response.user!.id,
-        'email': email,
-        'tenuser': fullName,
-        'sdt': phone,
-        'quyenhan': role.code,
-        'has_accepted_privacy_policy': false,
-      });
+      // Việc insert vào bảng users được thực hiện tự động qua Trigger handle_new_user trong Supabase.
 
       return _fetchUserProfile(response.user!.id);
     } on sb.AuthException catch (e) {
