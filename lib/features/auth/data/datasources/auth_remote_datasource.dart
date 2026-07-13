@@ -3,7 +3,6 @@ import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/errors/failures.dart';
-import '../../domain/entities/app_user.dart';
 import '../models/user_model.dart';
 
 abstract class AuthRemoteDataSource {
@@ -13,7 +12,7 @@ abstract class AuthRemoteDataSource {
     required String password,
     required String fullName,
     required String phone,
-    required UserRole role,
+    // role luôn là TENANT khi đăng ký
   });
   Future<void> logout();
   Future<UserModel?> checkSession();
@@ -62,16 +61,18 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String password,
     required String fullName,
     required String phone,
-    required UserRole role,
   }) async {
     try {
+      // Mặc định tất cả đăng ký mới đều là TENANT
+      const defaultRole = 'TENANT';
+
       final response = await _client.auth.signUp(
         email: email,
         password: password,
         data: {
           'full_name': fullName,
           'phone': phone,
-          'role': role.code,
+          'role': defaultRole,
         },
       );
 
@@ -85,7 +86,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         'email': email,
         'tenuser': fullName,
         'sdt': phone,
-        'quyenhan': role.code,
+        'quyenhan': defaultRole,
         'has_accepted_privacy_policy': false,
       });
 

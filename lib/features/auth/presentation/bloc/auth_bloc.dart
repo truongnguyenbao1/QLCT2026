@@ -95,7 +95,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         password: event.password,
         fullName: event.fullName,
         phone: event.phone,
-        role: event.role,
+        // role không cần truyền, datasource sẽ hardcode TENANT
       ),
     );
     result.fold(
@@ -103,8 +103,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       (user) {
         if (!user.hasAcceptedPrivacyPolicy) {
           emit(AuthNeedPrivacyAcceptance(user));
-        } else if (user.isOwner && (user.propertyId == null || user.propertyId!.isEmpty)) {
-          emit(AuthNeedPropertySetup(user));
         } else {
           emit(AuthAuthenticated(user));
         }
