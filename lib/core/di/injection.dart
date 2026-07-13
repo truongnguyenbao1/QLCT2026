@@ -16,6 +16,7 @@ import '../../features/auth/domain/repositories/auth_repository.dart';
 import '../../features/auth/domain/usecases/login_usecase.dart';
 import '../../features/auth/domain/usecases/logout_usecase.dart';
 import '../../features/auth/domain/usecases/check_session_usecase.dart';
+import '../../features/auth/domain/usecases/register_usecase.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 
 import '../../features/room_management/data/datasources/room_remote_datasource.dart';
@@ -77,11 +78,13 @@ Future<void> configureDependencies() async {
   getIt.registerLazySingleton(() => LogoutUseCase(getIt<AuthRepository>()));
   getIt.registerLazySingleton(
       () => CheckSessionUseCase(getIt<AuthRepository>()));
+  getIt.registerLazySingleton(() => RegisterUseCase(getIt<AuthRepository>()));
   getIt.registerFactory<AuthBloc>(
     () => AuthBloc(
       loginUseCase: getIt<LoginUseCase>(),
       logoutUseCase: getIt<LogoutUseCase>(),
       checkSessionUseCase: getIt<CheckSessionUseCase>(),
+      registerUseCase: getIt<RegisterUseCase>(),
     ),
   );
 

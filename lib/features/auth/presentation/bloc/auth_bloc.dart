@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/usecases/check_session_usecase.dart';
 import '../../domain/usecases/login_usecase.dart';
 import '../../domain/usecases/logout_usecase.dart';
+import '../../domain/usecases/register_usecase.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
@@ -11,18 +12,22 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final LoginUseCase _loginUseCase;
   final LogoutUseCase _logoutUseCase;
   final CheckSessionUseCase _checkSessionUseCase;
+  final RegisterUseCase _registerUseCase;
 
   AuthBloc({
     required LoginUseCase loginUseCase,
     required LogoutUseCase logoutUseCase,
     required CheckSessionUseCase checkSessionUseCase,
+    required RegisterUseCase registerUseCase,
   })  : _loginUseCase = loginUseCase,
         _logoutUseCase = logoutUseCase,
         _checkSessionUseCase = checkSessionUseCase,
+        _registerUseCase = registerUseCase,
         super(const AuthInitial()) {
     on<AuthCheckSessionEvent>(_onCheckSession);
     on<AuthLoginEvent>(_onLogin);
     on<AuthLogoutEvent>(_onLogout);
+    on<AuthRegisterEvent>(_onRegister);
     on<AuthAcceptPrivacyPolicyEvent>(_onAcceptPrivacyPolicy);
     on<AuthPropertySetupCompletedEvent>(_onPropertySetupCompleted);
   }
@@ -77,6 +82,34 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     await _logoutUseCase.call();
     emit(const AuthUnauthenticated());
+  }
+
+  Future<void> _onRegister(
+    AuthRegisterEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(const AuthLoading());
+    final result = await _registerUseCase.call(
+      RegisterParams(
+        email: event.email,
+        password: event.password,
+        fullName: event.fullName,
+        phone: event.phone,
+        role: event.role,
+      ),
+    );
+    result.fold(
+      (failure) => emit(AuthError(failure.message)),
+      (user) {
+        if (!user.hasAcceptedPrivacyPolicy) {
+          emit(AuthNeedPrivacyAcceptance(user));
+        } else if (user.isOwner && (user.propertyId == null || user.propertyId!.isEmpty)) {
+          emit(AuthNeedPropertySetup(user));
+        } else {
+          emit(AuthAuthenticated(user));
+        }
+      },
+    );
   }
 
   Future<void> _onAcceptPrivacyPolicy(

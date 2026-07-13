@@ -7,6 +7,7 @@ import '../../core/di/injection.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/privacy_policy_page.dart';
 import '../../features/auth/presentation/pages/setup_property_page.dart';
+import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/auth/presentation/bloc/auth_state.dart';
 import 'dart:async';
@@ -27,6 +28,7 @@ class AppRoutes {
   AppRoutes._();
 
   static const String login = '/login';
+  static const String register = '/register';
   static const String privacyPolicy = '/privacy-policy';
   static const String setupProperty = '/setup-property';
   static const String dashboard = '/dashboard';
@@ -71,6 +73,7 @@ class AppRouter {
         final authState = authBloc.state;
         final isLoggedIn = authState is AuthAuthenticated;
         final isLoginPage = state.matchedLocation == AppRoutes.login;
+        final isRegisterPage = state.matchedLocation == AppRoutes.register;
         final isPrivacyPage =
             state.matchedLocation == AppRoutes.privacyPolicy;
 
@@ -91,13 +94,13 @@ class AppRouter {
           return AppRoutes.setupProperty;
         }
 
-        // Chưa đăng nhập → chuyển đến login
-        if (!isLoggedIn && !isLoginPage && authState is! AuthNeedPrivacyAcceptance && authState is! AuthNeedPropertySetup) {
+        // Chưa đăng nhập → chuyển đến login (trừ trang register)
+        if (!isLoggedIn && !isLoginPage && !isRegisterPage && authState is! AuthNeedPrivacyAcceptance && authState is! AuthNeedPropertySetup) {
           return AppRoutes.login;
         }
 
-        // Đã đăng nhập mà vào login hoặc privacy → chuyển về dashboard
-        if (isLoggedIn && (isLoginPage || isPrivacyPage || isSetupPage)) {
+        // Đã đăng nhập mà vào login, register hoặc privacy → chuyển về dashboard
+        if (isLoggedIn && (isLoginPage || isRegisterPage || isPrivacyPage || isSetupPage)) {
           return AppRoutes.dashboard;
         }
 
@@ -109,6 +112,11 @@ class AppRouter {
           path: AppRoutes.login,
           name: 'login',
           builder: (context, state) => const LoginPage(),
+        ),
+        GoRoute(
+          path: AppRoutes.register,
+          name: 'register',
+          builder: (context, state) => const RegisterPage(),
         ),
         GoRoute(
           path: AppRoutes.privacyPolicy,

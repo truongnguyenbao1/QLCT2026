@@ -42,3 +42,22 @@ class AuthPropertySetupCompletedEvent extends AuthEvent {
   @override
   List<Object?> get props => [updatedUser];
 }
+
+class AuthRegisterEvent extends AuthEvent {
+  final String email;
+  final String password;
+  final String fullName;
+  final String phone;
+  final UserRole role;
+
+  const AuthRegisterEvent({
+    required this.email,
+    required this.password,
+    required this.fullName,
+    required this.phone,
+    required this.role,
+  });
+
+  @override
+  List<Object?> get props => [email, password, fullName, phone, role];
+}
