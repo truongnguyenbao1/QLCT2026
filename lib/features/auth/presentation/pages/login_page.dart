@@ -465,7 +465,7 @@ class _LoginPageState extends State<LoginPage> {
       style: const TextStyle(
         fontSize: 13,
         fontWeight: FontWeight.w600,
-        color: Color(0xFF111827),
+        color: Colors.black,
       ),
     );
   }
