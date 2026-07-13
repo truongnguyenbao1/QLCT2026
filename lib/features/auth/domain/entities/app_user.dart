@@ -1,15 +1,13 @@
 // lib/features/auth/domain/entities/app_user.dart
 import 'package:equatable/equatable.dart';
 
-enum UserRole { owner, staff, tenant }
+enum UserRole { owner, tenant }
 
 extension UserRoleExt on UserRole {
   String get displayName {
     switch (this) {
       case UserRole.owner:
         return 'Chủ trọ';
-      case UserRole.staff:
-        return 'Nhân viên';
       case UserRole.tenant:
         return 'Khách thuê';
     }
@@ -18,11 +16,9 @@ extension UserRoleExt on UserRole {
   String get code {
     switch (this) {
       case UserRole.owner:
-        return 'Chủ trọ';
-      case UserRole.staff:
-        return 'Nhân viên';
+        return 'admin';
       case UserRole.tenant:
-        return 'Khách thuê';
+        return 'khách thuê';
     }
   }
 
@@ -32,10 +28,6 @@ extension UserRoleExt on UserRole {
       case 'owner':
       case 'chủ trọ':
         return UserRole.owner;
-      case 'staff':
-      case 'nhân viên':
-      case 'quản lý':
-        return UserRole.staff;
       case 'khách thuê':
       case 'tenant':
         return UserRole.tenant;
@@ -69,9 +61,7 @@ class AppUser extends Equatable {
   });
 
   bool get isOwner => role == UserRole.owner;
-  bool get isStaff => role == UserRole.staff;
   bool get isTenant => role == UserRole.tenant;
-  bool get canManageRooms => isOwner || isStaff;
   bool get canViewCccd => isOwner;
   bool get canDeleteData => isOwner;
 
