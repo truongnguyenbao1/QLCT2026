@@ -248,6 +248,7 @@ class _LoginPageState extends State<LoginPage> {
                               const SizedBox(height: 6),
                               TextFormField(
                                 controller: _emailController,
+                                style: const TextStyle(color: Color(0xFF111827)),
                                 keyboardType: TextInputType.emailAddress,
                                 textInputAction: TextInputAction.next,
                                 decoration: _inputDecoration(
@@ -275,6 +276,7 @@ class _LoginPageState extends State<LoginPage> {
                               const SizedBox(height: 6),
                               TextFormField(
                                 controller: _passwordController,
+                                style: const TextStyle(color: Color(0xFF111827)),
                                 obscureText: _obscurePassword,
                                 textInputAction: TextInputAction.done,
                                 onFieldSubmitted: (_) => _onLogin(),
@@ -552,6 +554,7 @@ class _LoginPageState extends State<LoginPage> {
             const SizedBox(height: 16),
             TextFormField(
               controller: emailCtrl,
+              style: const TextStyle(color: Color(0xFF111827)),
               keyboardType: TextInputType.emailAddress,
               decoration: InputDecoration(
                 labelText: 'Email',

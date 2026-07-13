@@ -200,6 +200,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               const SizedBox(height: 6),
                               TextFormField(
                                 controller: _fullNameController,
+                                style: const TextStyle(color: Color(0xFF111827)),
                                 textInputAction: TextInputAction.next,
                                 decoration: _inputDecoration(
                                   hint: 'Nguyễn Văn A',
@@ -216,6 +217,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               const SizedBox(height: 6),
                               TextFormField(
                                 controller: _emailController,
+                                style: const TextStyle(color: Color(0xFF111827)),
                                 keyboardType: TextInputType.emailAddress,
                                 textInputAction: TextInputAction.next,
                                 decoration: _inputDecoration(
@@ -237,6 +239,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               const SizedBox(height: 6),
                               TextFormField(
                                 controller: _phoneController,
+                                style: const TextStyle(color: Color(0xFF111827)),
                                 keyboardType: TextInputType.phone,
                                 textInputAction: TextInputAction.next,
                                 decoration: _inputDecoration(
@@ -254,6 +257,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               const SizedBox(height: 6),
                               TextFormField(
                                 controller: _passwordController,
+                                style: const TextStyle(color: Color(0xFF111827)),
                                 obscureText: _obscurePassword,
                                 textInputAction: TextInputAction.next,
                                 decoration: _inputDecoration(
@@ -284,6 +288,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               const SizedBox(height: 6),
                               TextFormField(
                                 controller: _confirmPasswordController,
+                                style: const TextStyle(color: Color(0xFF111827)),
                                 obscureText: _obscureConfirm,
                                 textInputAction: TextInputAction.done,
                                 onFieldSubmitted: (_) => _onRegister(),
