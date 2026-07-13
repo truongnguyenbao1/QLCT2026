@@ -24,6 +24,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthLoginEvent>(_onLogin);
     on<AuthLogoutEvent>(_onLogout);
     on<AuthAcceptPrivacyPolicyEvent>(_onAcceptPrivacyPolicy);
+    on<AuthPropertySetupCompletedEvent>(_onPropertySetupCompleted);
   }
 
   Future<void> _onCheckSession(
@@ -39,6 +40,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           emit(const AuthUnauthenticated());
         } else if (!user.hasAcceptedPrivacyPolicy) {
           emit(AuthNeedPrivacyAcceptance(user));
+        } else if (user.isOwner && (user.propertyId == null || user.propertyId!.isEmpty)) {
+          emit(AuthNeedPropertySetup(user));
         } else {
           emit(AuthAuthenticated(user));
         }
@@ -59,6 +62,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       (user) {
         if (!user.hasAcceptedPrivacyPolicy) {
           emit(AuthNeedPrivacyAcceptance(user));
+        } else if (user.isOwner && (user.propertyId == null || user.propertyId!.isEmpty)) {
+          emit(AuthNeedPropertySetup(user));
         } else {
           emit(AuthAuthenticated(user));
         }
@@ -80,10 +85,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     final currentState = state;
     if (currentState is AuthNeedPrivacyAcceptance) {
-      // User đã chấp nhận, chuyển sang Authenticated
-      final updatedUser =
-          currentState.user.copyWith(hasAcceptedPrivacyPolicy: true);
-      emit(AuthAuthenticated(updatedUser));
+      final updatedUser = currentState.user.copyWith(hasAcceptedPrivacyPolicy: true);
+      // Kiểm tra chủ trọ có cần đăng ký dãy trọ không
+      if (updatedUser.isOwner && (updatedUser.propertyId == null || updatedUser.propertyId!.isEmpty)) {
+        emit(AuthNeedPropertySetup(updatedUser));
+      } else {
+        emit(AuthAuthenticated(updatedUser));
+      }
     }
+  }
+
+  Future<void> _onPropertySetupCompleted(
+    AuthPropertySetupCompletedEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthAuthenticated(event.updatedUser));
   }
 }

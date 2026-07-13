@@ -18,21 +18,23 @@ extension UserRoleExt on UserRole {
   String get code {
     switch (this) {
       case UserRole.owner:
-        return 'admin';
+        return 'OWNER';
       case UserRole.staff:
-        return 'staff';
+        return 'STAFF';
       case UserRole.tenant:
-        return 'khách thuê';
+        return 'TENANT';
     }
   }
 
   static UserRole fromCode(String code) {
     switch (code.toLowerCase()) {
       case 'admin':
+      case 'owner':
         return UserRole.owner;
       case 'staff':
         return UserRole.staff;
       case 'khách thuê':
+      case 'tenant':
         return UserRole.tenant;
       default:
         return UserRole.tenant;

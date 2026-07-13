@@ -2,12 +2,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../core/di/injection.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/privacy_policy_page.dart';
+import '../../features/auth/presentation/pages/setup_property_page.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/auth/presentation/bloc/auth_state.dart';
 import 'dart:async';
-import '../../features/auth/presentation/bloc/auth_event.dart';
 import '../../features/dashboard/presentation/pages/dashboard_page.dart';
 import '../../features/room_management/presentation/pages/rooms_list_page.dart';
 import '../../features/room_management/presentation/pages/add_edit_room_page.dart';
@@ -26,6 +28,7 @@ class AppRoutes {
 
   static const String login = '/login';
   static const String privacyPolicy = '/privacy-policy';
+  static const String setupProperty = '/setup-property';
   static const String dashboard = '/dashboard';
   static const String rooms = '/rooms';
   static const String addRoom = '/rooms/add';
@@ -76,18 +79,25 @@ class AppRouter {
           return null;
         }
 
+        final isSetupPage = state.matchedLocation == AppRoutes.setupProperty;
+
         // Cần đồng ý điều khoản nhưng lại chưa ở trang privacy
         if (authState is AuthNeedPrivacyAcceptance && !isPrivacyPage) {
           return AppRoutes.privacyPolicy;
         }
 
+        // Chủ trọ chưa đăng ký dãy trọ
+        if (authState is AuthNeedPropertySetup && !isSetupPage) {
+          return AppRoutes.setupProperty;
+        }
+
         // Chưa đăng nhập → chuyển đến login
-        if (!isLoggedIn && !isLoginPage && authState is! AuthNeedPrivacyAcceptance) {
+        if (!isLoggedIn && !isLoginPage && authState is! AuthNeedPrivacyAcceptance && authState is! AuthNeedPropertySetup) {
           return AppRoutes.login;
         }
 
         // Đã đăng nhập mà vào login hoặc privacy → chuyển về dashboard
-        if (isLoggedIn && (isLoginPage || isPrivacyPage)) {
+        if (isLoggedIn && (isLoginPage || isPrivacyPage || isSetupPage)) {
           return AppRoutes.dashboard;
         }
 
@@ -104,6 +114,11 @@ class AppRouter {
           path: AppRoutes.privacyPolicy,
           name: 'privacyPolicy',
           builder: (context, state) => const PrivacyPolicyPage(),
+        ),
+        GoRoute(
+          path: AppRoutes.setupProperty,
+          name: 'setupProperty',
+          builder: (context, state) => const SetupPropertyPage(),
         ),
 
         // ── Main Shell (Bottom Nav) ──────────────────────────────────────

@@ -34,3 +34,11 @@ class AuthUserUpdatedEvent extends AuthEvent {
 class AuthAcceptPrivacyPolicyEvent extends AuthEvent {
   const AuthAcceptPrivacyPolicyEvent();
 }
+
+/// Sự kiện khi chủ trọ hoàn thành đăng ký dãy trọ, cập nhật user trong state
+class AuthPropertySetupCompletedEvent extends AuthEvent {
+  final AppUser updatedUser;
+  const AuthPropertySetupCompletedEvent(this.updatedUser);
+  @override
+  List<Object?> get props => [updatedUser];
+}

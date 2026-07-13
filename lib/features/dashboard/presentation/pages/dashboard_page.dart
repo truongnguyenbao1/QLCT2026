@@ -2,12 +2,33 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/di/injection.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../features/auth/presentation/bloc/auth_bloc.dart';
+import '../../../../features/auth/presentation/bloc/auth_state.dart';
 import '../../../../shared/navigation/app_router.dart';
 import '../bloc/dashboard_bloc.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider<DashboardBloc>(
+      create: (_) {
+        final authState = context.read<AuthBloc>().state;
+        final propertyId = authState is AuthAuthenticated
+            ? authState.user.propertyId ?? ''
+            : '';
+        return getIt<DashboardBloc>()..add(LoadDashboardEvent(propertyId));
+      },
+      child: const _DashboardView(),
+    );
+  }
+}
+
+class _DashboardView extends StatelessWidget {
+  const _DashboardView();
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +60,15 @@ class DashboardPage extends StatelessWidget {
                 if (state is DashboardError) {
                   return _DashboardError(
                     message: state.message,
-                    onRetry: () {},
+                    onRetry: () {
+                      final authState = context.read<AuthBloc>().state;
+                      final propertyId = authState is AuthAuthenticated
+                          ? authState.user.propertyId ?? ''
+                          : '';
+                      context
+                          .read<DashboardBloc>()
+                          .add(LoadDashboardEvent(propertyId));
+                    },
                   );
                 }
                 if (state is DashboardLoaded) {

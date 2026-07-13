@@ -35,6 +35,14 @@ class AuthNeedPrivacyAcceptance extends AuthState {
   List<Object?> get props => [user];
 }
 
+/// Chủ trọ đã đăng nhập nhưng chưa đăng ký dãy trọ
+class AuthNeedPropertySetup extends AuthState {
+  final AppUser user;
+  const AuthNeedPropertySetup(this.user);
+  @override
+  List<Object?> get props => [user];
+}
+
 class AuthError extends AuthState {
   final String message;
   const AuthError(this.message);
