@@ -10,12 +10,13 @@ abstract class AuthRepository {
     required String password,
   });
 
-  /// Đăng ký tài khoản mới (mặc định vai trò TENANT)
+  /// Đăng ký tài khoản mới
   Future<Either<Failure, AppUser>> register({
     required String email,
     required String password,
     required String fullName,
     required String phone,
+    required UserRole role,
   });
 
   /// Đăng xuất

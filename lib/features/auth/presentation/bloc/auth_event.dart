@@ -48,15 +48,16 @@ class AuthRegisterEvent extends AuthEvent {
   final String password;
   final String fullName;
   final String phone;
-  // Không cho chọn vai trò: mặc định TENANT
+  final UserRole role;
 
   const AuthRegisterEvent({
     required this.email,
     required this.password,
     required this.fullName,
     required this.phone,
+    required this.role,
   });
 
   @override
-  List<Object?> get props => [email, password, fullName, phone];
+  List<Object?> get props => [email, password, fullName, phone, role];
 }

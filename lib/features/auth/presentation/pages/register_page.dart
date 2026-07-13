@@ -8,6 +8,7 @@ import '../../../../shared/navigation/app_router.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
+import '../../domain/entities/app_user.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -26,6 +27,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
+  UserRole _selectedRole = UserRole.tenant;
 
   @override
   void dispose() {
@@ -45,7 +47,7 @@ class _RegisterPageState extends State<RegisterPage> {
             password: _passwordController.text,
             fullName: _fullNameController.text.trim(),
             phone: _phoneController.text.trim(),
-            // Không truyền role — mặc định TENANT
+            role: _selectedRole,
           ),
         );
   }
@@ -142,26 +144,26 @@ class _RegisterPageState extends State<RegisterPage> {
 
                       const SizedBox(height: 28),
 
-                      // ── Info chip: vai trò mặc định ──────────────────────
+                      // ── Chọn Vai trò ──────────────────────────────────────
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFEFF6FF),
+                          color: const Color(0xFFF3F4F6),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFFBFDBFE)),
+                          border: Border.all(color: const Color(0xFFE5E7EB)),
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.info_outline_rounded,
-                                color: Color(0xFF3B82F6), size: 18),
-                            const SizedBox(width: 10),
                             Expanded(
-                              child: Text(
-                                'Tài khoản mới sẽ có vai trò Khách thuê. Chủ trọ vui lòng liên hệ quản trị viên để nâng quyền.',
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: const Color(0xFF1D4ED8),
-                                  height: 1.4,
-                                ),
+                              child: _buildRoleButton(
+                                title: 'Khách thuê',
+                                role: UserRole.tenant,
+                              ),
+                            ),
+                            Expanded(
+                              child: _buildRoleButton(
+                                title: 'Chủ trọ',
+                                role: UserRole.owner,
                               ),
                             ),
                           ],
@@ -450,6 +452,40 @@ class _RegisterPageState extends State<RegisterPage> {
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.5),
+      ),
+    );
+  }
+
+  Widget _buildRoleButton({required String title, required UserRole role}) {
+    final isSelected = _selectedRole == role;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedRole = role),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  )
+                ]
+              : [],
+        ),
+        child: Center(
+          child: Text(
+            title,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+              color: isSelected ? const Color(0xFF1D4ED8) : const Color(0xFF6B7280),
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -8,13 +8,14 @@ class RegisterParams {
   final String password;
   final String fullName;
   final String phone;
-  // Vai trò mặc định TENANT, không cho chọn khi đăng ký
+  final UserRole role;
 
   RegisterParams({
     required this.email,
     required this.password,
     required this.fullName,
     required this.phone,
+    required this.role,
   });
 }
 
@@ -29,6 +30,7 @@ class RegisterUseCase {
       password: params.password,
       fullName: params.fullName,
       phone: params.phone,
+      role: params.role,
     );
   }
 }
