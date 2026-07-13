@@ -1,6 +1,7 @@
 // lib/features/auth/presentation/bloc/auth_bloc.dart
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../data/datasources/auth_remote_datasource.dart';
 import '../../domain/usecases/check_session_usecase.dart';
 import '../../domain/usecases/login_usecase.dart';
 import '../../domain/usecases/logout_usecase.dart';
@@ -13,16 +14,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final LogoutUseCase _logoutUseCase;
   final CheckSessionUseCase _checkSessionUseCase;
   final RegisterUseCase _registerUseCase;
+  final AuthRemoteDataSource _authDataSource;
 
   AuthBloc({
     required LoginUseCase loginUseCase,
     required LogoutUseCase logoutUseCase,
     required CheckSessionUseCase checkSessionUseCase,
     required RegisterUseCase registerUseCase,
+    required AuthRemoteDataSource authDataSource,
   })  : _loginUseCase = loginUseCase,
         _logoutUseCase = logoutUseCase,
         _checkSessionUseCase = checkSessionUseCase,
         _registerUseCase = registerUseCase,
+        _authDataSource = authDataSource,
         super(const AuthInitial()) {
     on<AuthCheckSessionEvent>(_onCheckSession);
     on<AuthLoginEvent>(_onLogin);
@@ -117,14 +121,22 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     final currentState = state;
-    if (currentState is AuthNeedPrivacyAcceptance) {
-      final updatedUser = currentState.user.copyWith(hasAcceptedPrivacyPolicy: true);
-      // Kiểm tra chủ trọ có cần đăng ký dãy trọ không
-      if (updatedUser.isOwner && (updatedUser.propertyId == null || updatedUser.propertyId!.isEmpty)) {
-        emit(AuthNeedPropertySetup(updatedUser));
-      } else {
-        emit(AuthAuthenticated(updatedUser));
-      }
+    if (currentState is! AuthNeedPrivacyAcceptance) return;
+
+    emit(const AuthLoading());
+    try {
+      // Lưu vào Supabase
+      await _authDataSource.acceptPrivacyPolicy(currentState.user.id);
+    } catch (_) {
+      // Không block user nếu lỗi network, vẫn cho tiếp tục
+    }
+
+    final updatedUser = currentState.user.copyWith(hasAcceptedPrivacyPolicy: true);
+    // Kiểm tra chủ trọ có cần đăng ký dãy trọ không
+    if (updatedUser.isOwner && (updatedUser.propertyId == null || updatedUser.propertyId!.isEmpty)) {
+      emit(AuthNeedPropertySetup(updatedUser));
+    } else {
+      emit(AuthAuthenticated(updatedUser));
     }
   }
 

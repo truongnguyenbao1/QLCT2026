@@ -85,6 +85,7 @@ Future<void> configureDependencies() async {
       logoutUseCase: getIt<LogoutUseCase>(),
       checkSessionUseCase: getIt<CheckSessionUseCase>(),
       registerUseCase: getIt<RegisterUseCase>(),
+      authDataSource: getIt<AuthRemoteDataSource>(),
     ),
   );
 
