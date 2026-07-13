@@ -408,7 +408,7 @@ class _RegisterPageState extends State<RegisterPage> {
       style: const TextStyle(
         fontSize: 13,
         fontWeight: FontWeight.w600,
-        color: Color(0xFF374151),
+        color: Color(0xFF111827),
       ),
     );
   }
