@@ -1,4 +1,5 @@
 // lib/features/auth/presentation/pages/setup_property_page.dart
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -57,6 +58,20 @@ class _SetupPropertyPageState extends State<SetupPropertyPage>
     try {
       final client = getIt<SupabaseClient>();
       final userId = authState.user.id;
+
+      // ── DEBUG: Kiểm tra role đang lưu trong DB ──────────────
+      final dbUser = await client
+          .from('users')
+          .select('quyenhan, iduser')
+          .eq('iduser', userId)
+          .single();
+      debugPrint('🔍 DB quyenhan = "${dbUser['quyenhan']}"');
+      debugPrint('🔍 Flutter role = "${authState.user.role.code}"');
+
+      // Kiểm tra get_my_role() trả về gì
+      final roleCheck = await client.rpc('get_my_role');
+      debugPrint('🔍 get_my_role() = "$roleCheck"');
+      // ── END DEBUG ───────────────────────────────────────────
 
       // 1. Tạo row nhà trọ trong bảng nhatro
       final result = await client
