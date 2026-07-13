@@ -18,11 +18,11 @@ extension UserRoleExt on UserRole {
   String get code {
     switch (this) {
       case UserRole.owner:
-        return 'OWNER';
+        return 'Chủ trọ';
       case UserRole.staff:
-        return 'STAFF';
+        return 'Nhân viên';
       case UserRole.tenant:
-        return 'TENANT';
+        return 'Khách thuê';
     }
   }
 
@@ -30,8 +30,11 @@ extension UserRoleExt on UserRole {
     switch (code.toLowerCase()) {
       case 'admin':
       case 'owner':
+      case 'chủ trọ':
         return UserRole.owner;
       case 'staff':
+      case 'nhân viên':
+      case 'quản lý':
         return UserRole.staff;
       case 'khách thuê':
       case 'tenant':
