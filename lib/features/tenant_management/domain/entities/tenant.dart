@@ -10,8 +10,6 @@ class Tenant extends Equatable {
   final String cccdNumber; // Encrypted
   final DateTime? dateOfBirth;
   final String? email;
-  final DateTime contractStartDate;
-  final DateTime contractEndDate;
   final bool isActive;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -25,8 +23,6 @@ class Tenant extends Equatable {
     required this.cccdNumber,
     this.dateOfBirth,
     this.email,
-    required this.contractStartDate,
-    required this.contractEndDate,
     this.isActive = true,
     required this.createdAt,
     required this.updatedAt,
@@ -37,8 +33,6 @@ class Tenant extends Equatable {
     String? phoneNumber,
     String? cccdNumber,
     String? email,
-    DateTime? contractStartDate,
-    DateTime? contractEndDate,
     bool? isActive,
   }) {
     return Tenant(
@@ -50,8 +44,6 @@ class Tenant extends Equatable {
       cccdNumber: cccdNumber ?? this.cccdNumber,
       dateOfBirth: dateOfBirth,
       email: email ?? this.email,
-      contractStartDate: contractStartDate ?? this.contractStartDate,
-      contractEndDate: contractEndDate ?? this.contractEndDate,
       isActive: isActive ?? this.isActive,
       createdAt: createdAt,
       updatedAt: DateTime.now(),

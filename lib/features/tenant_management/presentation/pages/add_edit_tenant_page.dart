@@ -67,8 +67,6 @@ class _AddEditTenantFormState extends State<_AddEditTenantForm> {
   final _emailController = TextEditingController();
 
   DateTime? _dob;
-  late DateTime _startDate;
-  late DateTime _endDate;
   String? _selectedRoomId;
 
   bool _isEditing = false;
@@ -80,8 +78,6 @@ class _AddEditTenantFormState extends State<_AddEditTenantForm> {
     super.initState();
     _isEditing = widget.tenantId != null;
     _selectedRoomId = widget.roomId;
-    _startDate = DateTime.now();
-    _endDate = DateTime.now().add(const Duration(days: 180)); // Mặc định 6 tháng
 
     _cccdController.addListener(_onCccdChanged);
   }
@@ -124,29 +120,22 @@ class _AddEditTenantFormState extends State<_AddEditTenantForm> {
     }
   }
 
-  Future<void> _selectDate(BuildContext context, bool isDob, {bool isStartDate = false}) async {
+  Future<void> _selectDate(BuildContext context, bool isDob) async {
     final initialDate = isDob
         ? (_dob ?? DateTime(2000, 1, 1))
-        : (isStartDate ? _startDate : _endDate);
+        : DateTime.now();
 
     final picked = await showDatePicker(
       context: context,
       initialDate: initialDate,
       firstDate: DateTime(1940),
-      lastDate: DateTime(2100),
+      lastDate: DateTime.now(),
     );
 
     if (picked != null) {
       setState(() {
         if (isDob) {
           _dob = picked;
-        } else if (isStartDate) {
-          _startDate = picked;
-          if (_endDate.isBefore(_startDate)) {
-            _endDate = _startDate.add(const Duration(days: 30));
-          }
-        } else {
-          _endDate = picked;
         }
       });
     }
@@ -280,8 +269,6 @@ class _AddEditTenantFormState extends State<_AddEditTenantForm> {
       cccdNumber: _cccdController.text.trim(),
       dateOfBirth: _dob,
       email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
-      contractStartDate: _startDate,
-      contractEndDate: _endDate,
       isActive: _existingTenant?.isActive ?? true,
       createdAt: _isEditing ? _existingTenant!.createdAt : DateTime.now(),
       updatedAt: DateTime.now(),
@@ -343,8 +330,6 @@ class _AddEditTenantFormState extends State<_AddEditTenantForm> {
                   _phoneController.text = _existingTenant!.phoneNumber;
                   _emailController.text = _existingTenant!.email ?? '';
                   _dob = _existingTenant!.dateOfBirth;
-                  _startDate = _existingTenant!.contractStartDate;
-                  _endDate = _existingTenant!.contractEndDate;
                   _selectedRoomId = _existingTenant!.roomId;
                 }
               });
@@ -486,7 +471,7 @@ class _AddEditTenantFormState extends State<_AddEditTenantForm> {
                             ? 'Chưa chọn'
                             : '${_dob!.day}/${_dob!.month}/${_dob!.year}'),
                         trailing: OutlinedButton(
-                          onPressed: () => _selectDate(context, true),
+                          onPressed: () => _selectDate(context),
                           child: const Text('Chọn'),
                         ),
                       ),
@@ -496,7 +481,7 @@ class _AddEditTenantFormState extends State<_AddEditTenantForm> {
               ),
               const SizedBox(height: 16),
 
-              // Thông tin thuê phòng
+              // Thông tin phòng
               Card(
                 elevation: 1,
                 child: Padding(
@@ -509,7 +494,7 @@ class _AddEditTenantFormState extends State<_AddEditTenantForm> {
                           Icon(Icons.home_work_outlined, color: AppColors.primary),
                           SizedBox(width: 8),
                           Text(
-                            'Thông tin phòng & Hợp đồng',
+                            'Thông tin phòng',
                             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                         ],
@@ -546,28 +531,6 @@ class _AddEditTenantFormState extends State<_AddEditTenantForm> {
                             validator: (value) => value == null ? 'Vui lòng chọn phòng' : null,
                           );
                         },
-                      ),
-                      const SizedBox(height: 16),
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: const Icon(Icons.calendar_today_outlined, color: AppColors.textSecondary),
-                        title: const Text('Ngày bắt đầu hợp đồng'),
-                        subtitle: Text('${_startDate.day}/${_startDate.month}/${_startDate.year}'),
-                        trailing: OutlinedButton(
-                          onPressed: () => _selectDate(context, false, isStartDate: true),
-                          child: const Text('Chọn'),
-                        ),
-                      ),
-                      const Divider(),
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: const Icon(Icons.event_busy_outlined, color: AppColors.textSecondary),
-                        title: const Text('Ngày kết thúc hợp đồng'),
-                        subtitle: Text('${_endDate.day}/${_endDate.month}/${_endDate.year}'),
-                        trailing: OutlinedButton(
-                          onPressed: () => _selectDate(context, false, isStartDate: false),
-                          child: const Text('Chọn'),
-                        ),
                       ),
                     ],
                   ),

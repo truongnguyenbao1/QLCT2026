@@ -59,8 +59,6 @@ CREATE TABLE IF NOT EXISTS public.khachthue (
     cccd_number TEXT, -- Mã hóa đầu cuối trong Flutter App
     date_of_birth TIMESTAMPTZ,
     email VARCHAR(255),
-    contract_start_date TIMESTAMPTZ NOT NULL,
-    contract_end_date TIMESTAMPTZ NOT NULL,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()

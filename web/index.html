@@ -91,25 +91,7 @@
 </head>
 
 <body>
-  <!-- Xóa token Supabase khỏi localStorage mỗi khi tải trang.
-       Phải chạy TRƯỚC khi Flutter/Supabase SDK khởi tạo để đảm bảo
-       phiên cũ không bị khôi phục. -->
-  <script>
-    (function () {
-      // Supabase lưu token với key dạng: sb-<project-ref>-auth-token
-      // Xóa tất cả các key có prefix 'sb-' và suffix '-auth-token'
-      var keysToDelete = [];
-      for (var i = 0; i < localStorage.length; i++) {
-        var key = localStorage.key(i);
-        if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
-          keysToDelete.push(key);
-        }
-      }
-      keysToDelete.forEach(function (key) {
-        localStorage.removeItem(key);
-      });
-    })();
-  </script>
+
   <script src="flutter_bootstrap.js" async></script>
 </body>
 
