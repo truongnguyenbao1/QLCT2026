@@ -9,16 +9,46 @@ import '../../../room_management/domain/entities/room.dart';
 import '../../../room_management/presentation/bloc/room_bloc.dart';
 import '../../../../core/utils/formatters.dart';
 
-class CreateInvoicePage extends StatefulWidget {
+import '../../../../core/di/injection.dart';
+import '../../../../features/auth/presentation/bloc/auth_bloc.dart';
+import '../../../../features/auth/presentation/bloc/auth_state.dart';
+
+class CreateInvoicePage extends StatelessWidget {
   final String? roomId;
 
   const CreateInvoicePage({super.key, this.roomId});
 
   @override
-  State<CreateInvoicePage> createState() => _CreateInvoicePageState();
+  Widget build(BuildContext context) {
+    final authState = context.read<AuthBloc>().state;
+    final propertyId = authState is AuthAuthenticated
+        ? authState.user.propertyId ?? ''
+        : '';
+        
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<RoomBloc>(
+          create: (_) => getIt<RoomBloc>()..add(LoadRoomsEvent(propertyId)),
+        ),
+        BlocProvider<InvoiceBloc>(
+          create: (_) => getIt<InvoiceBloc>(),
+        ),
+      ],
+      child: _CreateInvoiceView(roomId: roomId),
+    );
+  }
 }
 
-class _CreateInvoicePageState extends State<CreateInvoicePage> {
+class _CreateInvoiceView extends StatefulWidget {
+  final String? roomId;
+
+  const _CreateInvoiceView({this.roomId});
+
+  @override
+  State<_CreateInvoiceView> createState() => _CreateInvoiceViewState();
+}
+
+class _CreateInvoiceViewState extends State<_CreateInvoiceView> {
   final _formKey = GlobalKey<FormState>();
 
   String? _selectedRoomId;

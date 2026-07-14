@@ -9,14 +9,42 @@ import '../../../room_management/presentation/bloc/room_bloc.dart';
 import '../../domain/entities/invoice.dart';
 import '../bloc/invoice_bloc.dart';
 
-class UtilityManagementPage extends StatefulWidget {
+import '../../../../core/di/injection.dart';
+import '../../../../features/auth/presentation/bloc/auth_bloc.dart';
+import '../../../../features/auth/presentation/bloc/auth_state.dart';
+
+class UtilityManagementPage extends StatelessWidget {
   const UtilityManagementPage({super.key});
 
   @override
-  State<UtilityManagementPage> createState() => _UtilityManagementPageState();
+  Widget build(BuildContext context) {
+    final authState = context.read<AuthBloc>().state;
+    final propertyId = authState is AuthAuthenticated
+        ? authState.user.propertyId ?? ''
+        : '';
+        
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<RoomBloc>(
+          create: (_) => getIt<RoomBloc>()..add(LoadRoomsEvent(propertyId)),
+        ),
+        BlocProvider<InvoiceBloc>(
+          create: (_) => getIt<InvoiceBloc>(),
+        ),
+      ],
+      child: const _UtilityManagementView(),
+    );
+  }
 }
 
-class _UtilityManagementPageState extends State<UtilityManagementPage> {
+class _UtilityManagementView extends StatefulWidget {
+  const _UtilityManagementView();
+
+  @override
+  State<_UtilityManagementView> createState() => _UtilityManagementViewState();
+}
+
+class _UtilityManagementViewState extends State<_UtilityManagementView> {
   int _selectedMonth = DateTime.now().month;
   int _selectedYear = DateTime.now().year;
 

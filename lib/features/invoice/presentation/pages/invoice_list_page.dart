@@ -2,23 +2,30 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../core/di/injection.dart';
 import '../../domain/entities/invoice.dart';
 import '../bloc/invoice_bloc.dart';
 
-class InvoiceListPage extends StatefulWidget {
+class InvoiceListPage extends StatelessWidget {
   const InvoiceListPage({super.key});
 
   @override
-  State<InvoiceListPage> createState() => _InvoiceListPageState();
+  Widget build(BuildContext context) {
+    return BlocProvider<InvoiceBloc>(
+      create: (_) => getIt<InvoiceBloc>()..add(const LoadInvoicesEvent()),
+      child: const _InvoiceListView(),
+    );
+  }
 }
 
-class _InvoiceListPageState extends State<InvoiceListPage> {
+class _InvoiceListView extends StatefulWidget {
+  const _InvoiceListView();
 
   @override
-  void initState() {
-    super.initState();
-    context.read<InvoiceBloc>().add(const LoadInvoicesEvent());
-  }
+  State<_InvoiceListView> createState() => _InvoiceListViewState();
+}
+
+class _InvoiceListViewState extends State<_InvoiceListView> {
 
   @override
   Widget build(BuildContext context) {

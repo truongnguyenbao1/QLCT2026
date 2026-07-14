@@ -249,6 +249,13 @@ class AppRouter {
                 ),
               ],
             ),
+            
+            // Utilities
+            GoRoute(
+              path: AppRoutes.utilities,
+              name: 'utilities',
+              builder: (context, state) => const UtilityManagementPage(),
+            ),
           ],
         ),
       ],
