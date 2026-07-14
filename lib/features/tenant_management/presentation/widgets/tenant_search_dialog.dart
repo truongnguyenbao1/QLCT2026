@@ -12,8 +12,8 @@ class TenantSearchDialog extends StatefulWidget {
 
   const TenantSearchDialog({super.key, required this.roomId});
 
-  static Future<void> show(BuildContext context, String roomId) {
-    return showDialog(
+  static Future<bool?> show(BuildContext context, String roomId) {
+    return showDialog<bool>(
       context: context,
       builder: (context) => TenantSearchDialog(roomId: roomId),
     );

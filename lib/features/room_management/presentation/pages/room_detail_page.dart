@@ -8,7 +8,6 @@ import '../../../../features/auth/presentation/bloc/auth_state.dart';
 import '../../domain/entities/room.dart';
 import '../bloc/room_bloc.dart';
 import '../../../tenant_management/presentation/bloc/tenant_bloc.dart';
-import '../../../tenant_management/domain/entities/tenant.dart';
 import '../../../tenant_management/presentation/widgets/tenant_search_dialog.dart';
 
 class RoomDetailPage extends StatelessWidget {
