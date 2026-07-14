@@ -65,6 +65,7 @@ class _SetupPropertyPageState extends State<SetupPropertyPage>
           .insert({
             'name': _nameController.text.trim(),
             'address': _addressController.text.trim(),
+            'iduser': userId,
           })
           .select()
           .single();
