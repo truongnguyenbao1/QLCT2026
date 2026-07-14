@@ -6,6 +6,7 @@ import '../../../../core/di/injection.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../../../features/auth/presentation/bloc/auth_state.dart';
+import '../../../../features/auth/presentation/bloc/auth_event.dart';
 import '../../../../shared/navigation/app_router.dart';
 import '../bloc/dashboard_bloc.dart';
 
@@ -45,6 +46,13 @@ class _DashboardView extends StatelessWidget {
                 icon: const Icon(Icons.notifications_outlined),
                 onPressed: () {},
                 tooltip: 'Thông báo',
+              ),
+              IconButton(
+                icon: const Icon(Icons.logout),
+                onPressed: () {
+                  context.read<AuthBloc>().add(const AuthLogoutEvent());
+                },
+                tooltip: 'Đăng xuất',
               ),
               const SizedBox(width: 8),
             ],

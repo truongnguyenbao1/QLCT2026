@@ -1,4 +1,4 @@
-// lib/features/auth/data/datasources/auth_remote_datasource.dart
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 
 import '../../../../core/constants/app_constants.dart';
@@ -29,8 +29,9 @@ abstract class AuthRemoteDataSource {
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   final sb.SupabaseClient _client;
+  final FlutterSecureStorage _storage;
 
-  AuthRemoteDataSourceImpl(this._client);
+  AuthRemoteDataSourceImpl(this._client, this._storage);
 
   @override
   Future<UserModel> login({
@@ -46,6 +47,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       if (response.user == null) {
         throw const AuthFailure(message: 'Đăng nhập thất bại.');
       }
+
+      await _storage.write(key: 'last_login_time', value: DateTime.now().toIso8601String());
 
       return _fetchUserProfile(response.user!.id);
     } on sb.AuthException catch (e) {
@@ -81,6 +84,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       // Việc insert vào bảng users được thực hiện tự động qua Trigger handle_new_user trong Supabase.
 
+      await _storage.write(key: 'last_login_time', value: DateTime.now().toIso8601String());
+
       return _fetchUserProfile(response.user!.id);
     } on sb.AuthException catch (e) {
       _throwAuthFailure(e);
@@ -92,6 +97,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<void> logout() async {
+    await _storage.delete(key: 'last_login_time');
     await _client.auth.signOut();
   }
 
@@ -101,6 +107,19 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     if (session == null || _client.auth.currentUser == null) {
       return null;
     }
+    
+    final lastLoginStr = await _storage.read(key: 'last_login_time');
+    if (lastLoginStr != null) {
+      final lastLogin = DateTime.tryParse(lastLoginStr);
+      if (lastLogin != null && DateTime.now().difference(lastLogin).inMinutes >= 5) {
+        await logout();
+        return null;
+      }
+    } else {
+      await logout();
+      return null;
+    }
+
     return _fetchUserProfile(_client.auth.currentUser!.id);
   }
 

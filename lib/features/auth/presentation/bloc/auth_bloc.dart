@@ -1,4 +1,4 @@
-// lib/features/auth/presentation/bloc/auth_bloc.dart
+import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../data/datasources/auth_remote_datasource.dart';
@@ -15,6 +15,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final CheckSessionUseCase _checkSessionUseCase;
   final RegisterUseCase _registerUseCase;
   final AuthRemoteDataSource _authDataSource;
+  Timer? _sessionTimer;
 
   AuthBloc({
     required LoginUseCase loginUseCase,
@@ -52,6 +53,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         } else if (user.isOwner && (user.propertyId == null || user.propertyId!.isEmpty)) {
           emit(AuthNeedPropertySetup(user));
         } else {
+          _startSessionTimer();
           emit(AuthAuthenticated(user));
         }
       },
@@ -74,6 +76,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         } else if (user.isOwner && (user.propertyId == null || user.propertyId!.isEmpty)) {
           emit(AuthNeedPropertySetup(user));
         } else {
+          _startSessionTimer();
           emit(AuthAuthenticated(user));
         }
       },
@@ -84,6 +87,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthLogoutEvent event,
     Emitter<AuthState> emit,
   ) async {
+    _sessionTimer?.cancel();
     await _logoutUseCase.call();
     emit(const AuthUnauthenticated());
   }
@@ -110,6 +114,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         } else if (user.isOwner && (user.propertyId == null || user.propertyId!.isEmpty)) {
           emit(AuthNeedPropertySetup(user));
         } else {
+          _startSessionTimer();
           emit(AuthAuthenticated(user));
         }
       },
@@ -136,6 +141,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     if (updatedUser.isOwner && (updatedUser.propertyId == null || updatedUser.propertyId!.isEmpty)) {
       emit(AuthNeedPropertySetup(updatedUser));
     } else {
+      _startSessionTimer();
       emit(AuthAuthenticated(updatedUser));
     }
   }
@@ -144,6 +150,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthPropertySetupCompletedEvent event,
     Emitter<AuthState> emit,
   ) async {
+    _startSessionTimer();
     emit(AuthAuthenticated(event.updatedUser));
+  }
+
+  void _startSessionTimer() {
+    _sessionTimer?.cancel();
+    _sessionTimer = Timer(const Duration(minutes: 5), () {
+      add(const AuthLogoutEvent());
+    });
+  }
+
+  @override
+  Future<void> close() {
+    _sessionTimer?.cancel();
+    return super.close();
   }
 }
