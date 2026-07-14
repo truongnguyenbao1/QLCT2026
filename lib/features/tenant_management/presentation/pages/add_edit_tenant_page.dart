@@ -471,7 +471,7 @@ class _AddEditTenantFormState extends State<_AddEditTenantForm> {
                             ? 'Chưa chọn'
                             : '${_dob!.day}/${_dob!.month}/${_dob!.year}'),
                         trailing: OutlinedButton(
-                          onPressed: () => _selectDate(context),
+                          onPressed: () => _selectDate(context, true),
                           child: const Text('Chọn'),
                         ),
                       ),
