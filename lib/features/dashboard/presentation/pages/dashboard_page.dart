@@ -17,22 +17,38 @@ class DashboardPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider<DashboardBloc>(
       create: (_) {
-        final authState = context.read<AuthBloc>().state;
-        final propertyId = authState is AuthAuthenticated
-            ? authState.user.propertyId ?? ''
-            : '';
-        return getIt<DashboardBloc>()..add(LoadDashboardEvent(propertyId));
+        return getIt<DashboardBloc>();
       },
       child: const _DashboardView(),
     );
   }
 }
 
-class _DashboardView extends StatelessWidget {
+class _DashboardView extends StatefulWidget {
   const _DashboardView();
 
   @override
+  State<_DashboardView> createState() => _DashboardViewState();
+}
+
+class _DashboardViewState extends State<_DashboardView> {
+  @override
+  void initState() {
+    super.initState();
+    final authState = context.read<AuthBloc>().state;
+    final isOwner = authState is AuthAuthenticated ? authState.user.isOwner : false;
+    final propertyId = authState is AuthAuthenticated ? authState.user.propertyId ?? '' : '';
+
+    if (isOwner) {
+      context.read<DashboardBloc>().add(LoadDashboardEvent(propertyId));
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final authState = context.read<AuthBloc>().state;
+    final isOwner = authState is AuthAuthenticated ? authState.user.isOwner : false;
+    final userName = authState is AuthAuthenticated ? authState.user.fullName : '';
 
     return Scaffold(
       body: CustomScrollView(
@@ -58,31 +74,34 @@ class _DashboardView extends StatelessWidget {
             ],
           ),
           SliverToBoxAdapter(
-            child: BlocBuilder<DashboardBloc, DashboardState>(
-              builder: (context, state) {
-                if (state is DashboardLoading || state is DashboardInitial) {
-                  return const _DashboardSkeleton();
-                }
-                if (state is DashboardError) {
-                  return _DashboardError(
-                    message: state.message,
-                    onRetry: () {
-                      final authState = context.read<AuthBloc>().state;
-                      final propertyId = authState is AuthAuthenticated
-                          ? authState.user.propertyId ?? ''
-                          : '';
-                      context
-                          .read<DashboardBloc>()
-                          .add(LoadDashboardEvent(propertyId));
+            child: isOwner
+                ? BlocBuilder<DashboardBloc, DashboardState>(
+                    builder: (context, state) {
+                      if (state is DashboardLoading ||
+                          state is DashboardInitial) {
+                        return const _DashboardSkeleton();
+                      }
+                      if (state is DashboardError) {
+                        return _DashboardError(
+                          message: state.message,
+                          onRetry: () {
+                            final authState = context.read<AuthBloc>().state;
+                            final propertyId = authState is AuthAuthenticated
+                                ? authState.user.propertyId ?? ''
+                                : '';
+                            context
+                                .read<DashboardBloc>()
+                                .add(LoadDashboardEvent(propertyId));
+                          },
+                        );
+                      }
+                      if (state is DashboardLoaded) {
+                        return _DashboardContent(stats: state.stats);
+                      }
+                      return const _DashboardEmpty();
                     },
-                  );
-                }
-                if (state is DashboardLoaded) {
-                  return _DashboardContent(stats: state.stats);
-                }
-                return const _DashboardEmpty();
-              },
-            ),
+                  )
+                : _TenantDashboardContent(userName: userName),
           ),
         ],
       ),
@@ -383,6 +402,279 @@ class _DashboardEmpty extends StatelessWidget {
           SizedBox(height: 16),
           Text('Chưa có dữ liệu'),
         ],
+      ),
+    );
+  }
+}
+
+// ── Dashboard cho Khách Thuê (Tenant) ───────────────────────────────────
+class _TenantDashboardContent extends StatefulWidget {
+  final String userName;
+  const _TenantDashboardContent({required this.userName});
+
+  @override
+  State<_TenantDashboardContent> createState() => _TenantDashboardContentState();
+}
+
+class _TenantDashboardContentState extends State<_TenantDashboardContent> {
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+
+  final List<String> _bannerImages = [
+    'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=800&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1502672260266-1c1de2d96674?q=80&w=800&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1493809842364-78817add7ffb?q=80&w=800&auto=format&fit=crop',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    // Tự động cuộn banner mỗi 3 giây
+    Future.delayed(const Duration(seconds: 3), _autoScrollBanner);
+  }
+
+  void _autoScrollBanner() {
+    if (!mounted) return;
+    if (_pageController.hasClients) {
+      final nextPage = (_currentPage + 1) % _bannerImages.length;
+      _pageController.animateToPage(
+        nextPage,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+    }
+    Future.delayed(const Duration(seconds: 3), _autoScrollBanner);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Xin chào, ${widget.userName} 👋',
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Chúc bạn một ngày tốt lành!',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Banner Carousel
+          SizedBox(
+            height: 180,
+            child: Stack(
+              children: [
+                PageView.builder(
+                  controller: _pageController,
+                  onPageChanged: (index) {
+                    setState(() {
+                      _currentPage = index;
+                    });
+                  },
+                  itemCount: _bannerImages.length,
+                  itemBuilder: (context, index) {
+                    return Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        image: DecorationImage(
+                          image: NetworkImage(_bannerImages[index]),
+                          fit: BoxFit.cover,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          )
+                        ],
+                      ),
+                      // Lớp phủ tối mờ để chữ hoặc icon hiển thị rõ hơn
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          gradient: LinearGradient(
+                            begin: Alignment.bottomCenter,
+                            end: Alignment.topCenter,
+                            colors: [
+                              Colors.black.withValues(alpha: 0.5),
+                              Colors.transparent,
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                // Indicators
+                Positioned(
+                  bottom: 12,
+                  left: 0,
+                  right: 0,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(
+                      _bannerImages.length,
+                      (index) => AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        width: _currentPage == index ? 24 : 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: _currentPage == index
+                              ? Colors.white
+                              : Colors.white.withValues(alpha: 0.5),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 32),
+
+          // Phần thông báo
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Thông báo quan trọng',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              TextButton(
+                onPressed: () {},
+                child: const Text('Xem tất cả'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+
+          // Mock Notifications
+          _NotificationCard(
+            icon: Icons.receipt_long_rounded,
+            iconColor: Colors.orange,
+            title: 'Đã có hóa đơn tháng mới',
+            time: '2 giờ trước',
+            onTap: () {
+              context.push(AppRoutes.invoices);
+            },
+          ),
+          const SizedBox(height: 12),
+          _NotificationCard(
+            icon: Icons.cleaning_services_rounded,
+            iconColor: Colors.blue,
+            title: 'Lịch dọn dẹp vệ sinh chung',
+            time: 'Hôm qua',
+            onTap: () {},
+          ),
+          const SizedBox(height: 12),
+          _NotificationCard(
+            icon: Icons.info_outline_rounded,
+            iconColor: Colors.green,
+            title: 'Quy định mới về giờ giấc',
+            time: 'Tuần trước',
+            onTap: () {},
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NotificationCard extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String time;
+  final VoidCallback onTap;
+
+  const _NotificationCard({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    required this.time,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: theme.colorScheme.shadow.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: iconColor.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: iconColor, size: 24),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    time,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded, color: Colors.grey),
+          ],
+        ),
       ),
     );
   }
