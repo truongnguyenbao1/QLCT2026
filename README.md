@@ -6,7 +6,7 @@ Dự án ứng dụng quản lý nhà trọ quy mô vừa và nhỏ, hỗ trợ 
 
 ## 📊 BÁO CÁO TIẾN ĐỘ DỰ ÁN
 
-*Cập nhật lần cuối: 12/07/2026*
+*Cập nhật lần cuối: 14/07/2026*
 
 ### 🟢 ĐÃ HOÀN THÀNH (Done)
 
@@ -32,14 +32,15 @@ Dự án ứng dụng quản lý nhà trọ quy mô vừa và nhỏ, hỗ trợ 
 - [x] Giao diện (UI):
   - [x] Trang Đăng nhập (`LoginPage`).
   - [x] Trang Chính sách bảo mật bắt buộc (`PrivacyPolicyPage` tuân thủ quy định pháp luật).
+  - [x] **Tự động đăng xuất (Auto-Logout)**: Thiết lập bộ đếm thời gian 5 phút. Ứng dụng tự động đăng xuất nếu không có bất kỳ thao tác nào nhằm bảo vệ dữ liệu nhạy cảm của khách hàng và chủ trọ.
 
 **4. Tính năng Quản lý Phòng (Room Management Feature)**
 - [x] Tầng Domain & Data (Room Entity, RoomModel, Repository, RemoteDataSource).
 - [x] Use cases: Thêm, Sửa, Xóa, Lấy danh sách phòng.
 - [x] State Management: `RoomBloc`.
 - [x] Giao diện (UI):
-  - [x] Màn hình Danh sách phòng (`RoomsListPage`) với lưới, thanh thống kê và bộ lọc trạng thái. Chỉ cho phép Chủ trọ/Admin thêm phòng.
-  - [x] Màn hình Chi tiết phòng (`RoomDetailPage`).
+  - [x] Màn hình Danh sách phòng (`RoomsListPage`) với lưới, thanh thống kê và bộ lọc trạng thái. Tích hợp UX thao tác nhanh (nhấn vào phòng TRỐNG để mở form thuê ngay lập tức).
+  - [x] Màn hình Chi tiết phòng (`RoomDetailPage`) nâng cấp UI/UX với các nút hành động (Sửa phòng, Thêm khách thuê) rõ ràng. Cập nhật trạng thái phòng real-time trên giao diện.
   - [x] Màn hình Thêm/Sửa phòng (`AddEditRoomPage`) tích hợp bảo mật kiểm tra vai trò chủ trọ/admin và tự động lấy `property_id` từ phiên đăng nhập.
 
 **5. Tính năng Quản lý Khách thuê (Tenant Management Feature)**
@@ -61,10 +62,12 @@ Dự án ứng dụng quản lý nhà trọ quy mô vừa và nhỏ, hỗ trợ 
   - [x] Màn hình Tạo/Chốt hóa đơn hàng tháng (`CreateInvoicePage`).
   - [x] Màn hình Thanh toán qua mã VietQR (`PaymentPage`).
 
-**7. Khởi tạo Bảng điều khiển (Dashboard)**
+**7. Tính năng Bảng điều khiển (Dashboard)**
 - [x] Tạo Domain & Data layer cho Dashboard.
 - [x] Thiết lập State Management (BLoC) và Use cases.
-- [x] Khởi tạo khung giao diện (DashboardPage).
+- [x] Khởi tạo khung giao diện (DashboardPage) rẽ nhánh thông minh theo Role (Phân quyền):
+  - [x] **Chủ trọ (Owner)**: Hiển thị biểu đồ thống kê doanh thu, tóm tắt phòng trống/đang thuê.
+  - [x] **Khách thuê (Tenant)**: Giao diện trực quan, cá nhân hóa với Banner quảng cáo (Carousel) và danh sách Thông báo quan trọng, có thể nhấp trực tiếp vào thông báo để xem Hóa đơn.
 - [x] Sửa toàn bộ lỗi biên dịch và kết nối thành công Supabase.
 
 **8. Triển khai Web (Web Deployment)**

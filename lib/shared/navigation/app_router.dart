@@ -315,16 +315,29 @@ class MainShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
-    final currentIndex = _getCurrentIndex(location);
+    final authState = context.watch<AuthBloc>().state;
+    final isOwner = authState is AuthAuthenticated ? authState.user.isOwner : false;
+
+    // Filter items based on role
+    final navItems = _navItems.where((item) {
+      if (!isOwner) {
+        // Tenants only see Dashboard and Invoices
+        return item.route == AppRoutes.dashboard || item.route == AppRoutes.invoices;
+      }
+      return true;
+    }).toList();
+
+    final currentIndex = navItems.indexWhere((item) => location.startsWith(item.route));
+    final safeIndex = currentIndex >= 0 ? currentIndex : 0;
 
     return Scaffold(
       body: child,
       bottomNavigationBar: NavigationBar(
-        selectedIndex: currentIndex,
+        selectedIndex: safeIndex,
         onDestinationSelected: (index) {
-          context.go(_navItems[index].route);
+          context.go(navItems[index].route);
         },
-        destinations: _navItems
+        destinations: navItems
             .map((item) => NavigationDestination(
                   icon: Icon(item.icon),
                   label: item.label,

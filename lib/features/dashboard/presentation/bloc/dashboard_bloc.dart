@@ -67,6 +67,10 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     Emitter<DashboardState> emit,
   ) async {
     emit(const DashboardLoading());
+    if (event.propertyId.isEmpty || event.propertyId == 'null') {
+      emit(const DashboardError('Vui lòng thiết lập nhà trọ.'));
+      return;
+    }
     final result = await _getStatsUseCase(event.propertyId);
     result.fold(
       (failure) => emit(DashboardError(failure.message)),
@@ -78,6 +82,10 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     RefreshDashboardEvent event,
     Emitter<DashboardState> emit,
   ) async {
+    if (event.propertyId.isEmpty || event.propertyId == 'null') {
+      emit(const DashboardError('Vui lòng thiết lập nhà trọ.'));
+      return;
+    }
     final result = await _getStatsUseCase(event.propertyId);
     result.fold(
       (failure) => emit(DashboardError(failure.message)),

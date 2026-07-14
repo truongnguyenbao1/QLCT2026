@@ -420,10 +420,10 @@ class _TenantDashboardContentState extends State<_TenantDashboardContent> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  final List<String> _bannerImages = [
-    'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=800&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1502672260266-1c1de2d96674?q=80&w=800&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1493809842364-78817add7ffb?q=80&w=800&auto=format&fit=crop',
+  final List<Color> _bannerColors = [
+    const Color(0xFF4285F4),
+    const Color(0xFF34A853),
+    const Color(0xFFFBBC05),
   ];
 
   @override
@@ -436,7 +436,7 @@ class _TenantDashboardContentState extends State<_TenantDashboardContent> {
   void _autoScrollBanner() {
     if (!mounted) return;
     if (_pageController.hasClients) {
-      final nextPage = (_currentPage + 1) % _bannerImages.length;
+      final nextPage = (_currentPage + 1) % _bannerColors.length;
       _pageController.animateToPage(
         nextPage,
         duration: const Duration(milliseconds: 500),
@@ -489,16 +489,13 @@ class _TenantDashboardContentState extends State<_TenantDashboardContent> {
                       _currentPage = index;
                     });
                   },
-                  itemCount: _bannerImages.length,
+                  itemCount: _bannerColors.length,
                   itemBuilder: (context, index) {
                     return Container(
                       margin: const EdgeInsets.symmetric(horizontal: 4),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
-                        image: DecorationImage(
-                          image: NetworkImage(_bannerImages[index]),
-                          fit: BoxFit.cover,
-                        ),
+                        color: _bannerColors[index],
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.1),
@@ -507,19 +504,8 @@ class _TenantDashboardContentState extends State<_TenantDashboardContent> {
                           )
                         ],
                       ),
-                      // Lớp phủ tối mờ để chữ hoặc icon hiển thị rõ hơn
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          gradient: LinearGradient(
-                            begin: Alignment.bottomCenter,
-                            end: Alignment.topCenter,
-                            colors: [
-                              Colors.black.withValues(alpha: 0.5),
-                              Colors.transparent,
-                            ],
-                          ),
-                        ),
+                      child: const Center(
+                        child: Icon(Icons.campaign_rounded, color: Colors.white, size: 48),
                       ),
                     );
                   },
@@ -532,7 +518,7 @@ class _TenantDashboardContentState extends State<_TenantDashboardContent> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: List.generate(
-                      _bannerImages.length,
+                      _bannerColors.length,
                       (index) => AnimatedContainer(
                         duration: const Duration(milliseconds: 300),
                         margin: const EdgeInsets.symmetric(horizontal: 4),
