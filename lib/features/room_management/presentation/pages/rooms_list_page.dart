@@ -9,8 +9,6 @@ import '../../../../core/di/injection.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../../../features/auth/presentation/bloc/auth_state.dart';
-import '../../../../shared/navigation/app_router.dart';
-import '../../../../shared/widgets/app_button.dart';
 import '../../domain/entities/room.dart';
 import '../bloc/room_bloc.dart';
 

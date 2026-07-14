@@ -14,7 +14,6 @@ import '../../../../core/di/injection.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../../../features/auth/presentation/bloc/auth_state.dart';
-import '../../../../shared/navigation/app_router.dart';
 import '../../domain/entities/invoice.dart';
 import '../bloc/invoice_bloc.dart';
 
@@ -78,7 +77,6 @@ class _InvoiceDetailContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final authState = context.read<AuthBloc>().state;
     final isOwner = authState is AuthAuthenticated &&
         authState.user.isOwner;

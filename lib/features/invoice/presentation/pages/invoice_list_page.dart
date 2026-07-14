@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/utils/formatters.dart';
-import '../../../../shared/navigation/app_router.dart';
 import '../../domain/entities/invoice.dart';
 import '../bloc/invoice_bloc.dart';
 
@@ -14,7 +13,6 @@ class InvoiceListPage extends StatefulWidget {
 }
 
 class _InvoiceListPageState extends State<InvoiceListPage> {
-  InvoiceStatus? _filterStatus;
 
   @override
   void initState() {
@@ -37,9 +35,6 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
           PopupMenuButton<InvoiceStatus?>(
             icon: const Icon(Icons.filter_list),
             onSelected: (status) {
-              setState(() {
-                _filterStatus = status;
-              });
               context.read<InvoiceBloc>().add(LoadInvoicesEvent(status: status));
             },
             itemBuilder: (context) => [

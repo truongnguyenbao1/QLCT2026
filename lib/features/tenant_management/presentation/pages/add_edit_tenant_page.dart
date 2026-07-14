@@ -13,7 +13,6 @@ import '../../../../features/auth/presentation/bloc/auth_state.dart';
 import '../../../../features/room_management/presentation/bloc/room_bloc.dart';
 import '../../../../features/room_management/domain/entities/room.dart';
 import '../../domain/entities/tenant.dart';
-import '../../data/models/tenant_model.dart';
 import '../bloc/tenant_bloc.dart';
 
 class AddEditTenantPage extends StatelessWidget {

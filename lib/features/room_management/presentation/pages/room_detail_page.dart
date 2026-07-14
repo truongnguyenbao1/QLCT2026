@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/utils/formatters.dart';
-import '../../../../shared/navigation/app_router.dart';
 import '../../domain/entities/room.dart';
 import '../bloc/room_bloc.dart';
 

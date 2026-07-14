@@ -6,7 +6,6 @@ import '../../../../core/di/injection.dart';
 import '../../../../shared/navigation/app_router.dart';
 import '../../../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../../../features/auth/presentation/bloc/auth_state.dart';
-import '../../../../core/constants/app_colors.dart';
 import '../bloc/tenant_bloc.dart';
 
 class TenantListPage extends StatelessWidget {

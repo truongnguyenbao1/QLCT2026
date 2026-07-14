@@ -1,5 +1,4 @@
 // lib/features/auth/presentation/pages/setup_property_page.dart
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
