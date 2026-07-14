@@ -59,6 +59,13 @@ class MarkInvoicePaidEvent extends InvoiceEvent {
   List<Object?> get props => [invoiceId, paymentMethod, transactionId];
 }
 
+class FetchPreviousReadingsEvent extends InvoiceEvent {
+  final String roomId;
+  const FetchPreviousReadingsEvent(this.roomId);
+  @override
+  List<Object?> get props => [roomId];
+}
+
 // ── States ────────────────────────────────────────────────────────────────
 abstract class InvoiceState extends Equatable {
   const InvoiceState();
@@ -105,6 +112,14 @@ class InvoiceError extends InvoiceState {
   List<Object?> get props => [message];
 }
 
+class InvoicePreviousReadingsLoaded extends InvoiceState {
+  final double electricPrev;
+  final double waterPrev;
+  const InvoicePreviousReadingsLoaded(this.electricPrev, this.waterPrev);
+  @override
+  List<Object?> get props => [electricPrev, waterPrev];
+}
+
 // ── BLoC ──────────────────────────────────────────────────────────────────
 class InvoiceBloc extends Bloc<InvoiceEvent, InvoiceState> {
   final GetInvoicesUseCase _getInvoicesUseCase;
@@ -125,6 +140,7 @@ class InvoiceBloc extends Bloc<InvoiceEvent, InvoiceState> {
     on<LoadInvoiceDetailEvent>(_onLoadInvoiceDetail);
     on<CreateInvoiceEvent>(_onCreateInvoice);
     on<MarkInvoicePaidEvent>(_onMarkInvoicePaid);
+    on<FetchPreviousReadingsEvent>(_onFetchPreviousReadings);
   }
 
   Future<void> _onLoadInvoices(
@@ -206,6 +222,29 @@ class InvoiceBloc extends Bloc<InvoiceEvent, InvoiceState> {
         ));
         emit(InvoiceDetailLoaded(updatedInvoice));
         emit(InvoicesLoaded(invoices: _currentInvoices));
+      },
+    );
+  }
+
+  Future<void> _onFetchPreviousReadings(
+      FetchPreviousReadingsEvent event, Emitter<InvoiceState> emit) async {
+    final result = await _getInvoicesUseCase(roomId: event.roomId);
+    result.fold(
+      (failure) {
+        // Lỗi lấy danh sách thì mặc định là 0
+        emit(const InvoicePreviousReadingsLoaded(0, 0));
+      },
+      (invoices) {
+        if (invoices.isNotEmpty) {
+          // DataSource đã sắp xếp mới nhất lên đầu
+          final latest = invoices.first;
+          emit(InvoicePreviousReadingsLoaded(
+            latest.electricCurrReading,
+            latest.waterCurrReading,
+          ));
+        } else {
+          emit(const InvoicePreviousReadingsLoaded(0, 0));
+        }
       },
     );
   }

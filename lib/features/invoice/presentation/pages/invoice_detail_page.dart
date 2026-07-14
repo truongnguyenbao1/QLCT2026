@@ -8,6 +8,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:printing/printing.dart';
+import '../../../../core/utils/pdf_generator.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/di/injection.dart';
@@ -87,13 +89,19 @@ class _InvoiceDetailContent extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.share_rounded),
-            onPressed: () {/* TODO: Share PDF */},
+            onPressed: () async {
+              final pdfBytes = await PdfGenerator.generateInvoicePdf(invoice);
+              await Printing.sharePdf(bytes: pdfBytes, filename: 'hoadon_${invoice.month}_${invoice.year}_phong_${invoice.roomNumber}.pdf');
+            },
             tooltip: 'Chia sẻ hóa đơn',
           ),
           IconButton(
             icon: const Icon(Icons.picture_as_pdf_rounded),
-            onPressed: () {/* TODO: Export PDF */},
-            tooltip: 'Xuất PDF',
+            onPressed: () async {
+              final pdfBytes = await PdfGenerator.generateInvoicePdf(invoice);
+              await Printing.layoutPdf(onLayout: (format) async => pdfBytes);
+            },
+            tooltip: 'Xuất PDF / In',
             color: AppColors.error,
           ),
         ],

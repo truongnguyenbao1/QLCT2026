@@ -22,6 +22,7 @@ import '../../features/invoice/presentation/pages/invoice_list_page.dart';
 import '../../features/invoice/presentation/pages/create_invoice_page.dart';
 import '../../features/invoice/presentation/pages/invoice_detail_page.dart';
 import '../../features/invoice/presentation/pages/payment_page.dart';
+import '../../features/invoice/presentation/pages/utility_management_page.dart';
 
 // ── Route Name Constants ──────────────────────────────────────────────────
 class AppRoutes {
@@ -43,6 +44,7 @@ class AppRoutes {
   static const String createInvoice = '/invoices/create';
   static const String invoiceDetail = '/invoices/:invoiceId';
   static const String payment = '/invoices/:invoiceId/payment';
+  static const String utilities = '/utilities';
 }
 
 // ── GoRouter Refresh Stream ───────────────────────────────────────────────
@@ -292,6 +294,11 @@ class MainShell extends StatelessWidget {
       route: AppRoutes.tenants,
     ),
     _NavItem(
+      icon: Icons.electric_bolt_rounded,
+      label: 'Điện nước',
+      route: AppRoutes.utilities,
+    ),
+    _NavItem(
       icon: Icons.receipt_long_rounded,
       label: 'Hóa đơn',
       route: AppRoutes.invoices,
@@ -323,7 +330,8 @@ class MainShell extends StatelessWidget {
   int _getCurrentIndex(String location) {
     if (location.startsWith(AppRoutes.rooms)) return 1;
     if (location.startsWith(AppRoutes.tenants)) return 2;
-    if (location.startsWith(AppRoutes.invoices)) return 3;
+    if (location.startsWith(AppRoutes.utilities)) return 3;
+    if (location.startsWith(AppRoutes.invoices)) return 4;
     return 0;
   }
 }
