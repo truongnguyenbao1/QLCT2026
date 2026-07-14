@@ -1,6 +1,7 @@
 // ============================================================
 //  main.dart — Entry point của ứng dụng Quản lý Nhà trọ
 // ============================================================
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -76,9 +77,27 @@ class QuanLyNhaTroApp extends StatefulWidget {
 class _QuanLyNhaTroAppState extends State<QuanLyNhaTroApp> {
   late final _authBloc = getIt<AuthBloc>()..add(const AuthCheckSessionEvent());
   late final _router = AppRouter.createRouter(_authBloc);
+  Timer? _inactivityTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _resetInactivityTimer();
+  }
+
+  void _resetInactivityTimer() {
+    _inactivityTimer?.cancel();
+    _inactivityTimer = Timer(const Duration(minutes: 5), () {
+      final state = _authBloc.state;
+      if (state is AuthAuthenticated) {
+        _authBloc.add(const AuthLogoutEvent());
+      }
+    });
+  }
 
   @override
   void dispose() {
+    _inactivityTimer?.cancel();
     _authBloc.close();
     super.dispose();
   }
@@ -87,7 +106,11 @@ class _QuanLyNhaTroAppState extends State<QuanLyNhaTroApp> {
   Widget build(BuildContext context) {
     return BlocProvider<AuthBloc>.value(
       value: _authBloc,
-      child: MaterialApp.router(
+      child: Listener(
+        behavior: HitTestBehavior.translucent,
+        onPointerDown: (_) => _resetInactivityTimer(),
+        onPointerMove: (_) => _resetInactivityTimer(),
+        child: MaterialApp.router(
         title: 'Quản lý Nhà trọ',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,

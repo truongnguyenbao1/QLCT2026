@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../features/auth/presentation/bloc/auth_bloc.dart';
+import '../../../../features/auth/presentation/bloc/auth_state.dart';
 import '../../domain/entities/room.dart';
 import '../bloc/room_bloc.dart';
 
@@ -54,8 +56,13 @@ class RoomDetailPage extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.edit_rounded),
-            onPressed: () {
-               context.go('/rooms/${room.id}/edit');
+            onPressed: () async {
+               await context.push('/rooms/${room.id}/edit');
+               if (context.mounted) {
+                 final authState = context.read<AuthBloc>().state;
+                 final propertyId = authState is AuthAuthenticated ? authState.user.propertyId ?? '' : '';
+                 context.read<RoomBloc>().add(LoadRoomsEvent(propertyId));
+               }
             },
           ),
         ],
@@ -73,16 +80,38 @@ class RoomDetailPage extends StatelessWidget {
             const SizedBox(height: 16),
             if (room.amenities.isNotEmpty) _buildAmenitiesCard(theme, room),
             const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: () {
-                   // Navigate to add tenant
-                   context.go('/tenants/add?roomId=${room.id}');
-                },
-                icon: const Icon(Icons.person_add_rounded),
-                label: const Text('Thêm người thuê'),
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () async {
+                       await context.push('/rooms/${room.id}/edit');
+                       if (context.mounted) {
+                         final authState = context.read<AuthBloc>().state;
+                         final propertyId = authState is AuthAuthenticated ? authState.user.propertyId ?? '' : '';
+                         context.read<RoomBloc>().add(LoadRoomsEvent(propertyId));
+                       }
+                    },
+                    icon: const Icon(Icons.edit_rounded),
+                    label: const Text('Sửa phòng'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: FilledButton.icon(
+                    onPressed: () async {
+                       await context.push('/tenants/add?roomId=${room.id}');
+                       if (context.mounted) {
+                         final authState = context.read<AuthBloc>().state;
+                         final propertyId = authState is AuthAuthenticated ? authState.user.propertyId ?? '' : '';
+                         context.read<RoomBloc>().add(LoadRoomsEvent(propertyId));
+                       }
+                    },
+                    icon: const Icon(Icons.person_add_rounded),
+                    label: const Text('Thêm khách'),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

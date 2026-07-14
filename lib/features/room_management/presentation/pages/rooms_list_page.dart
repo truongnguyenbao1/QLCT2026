@@ -299,7 +299,20 @@ class _RoomCard extends StatelessWidget {
     final theme = Theme.of(context);
 
     return GestureDetector(
-      onTap: () => context.go('/rooms/${room.id}'),
+      onTap: () async {
+        final authState = context.read<AuthBloc>().state;
+        final propertyId = authState is AuthAuthenticated ? authState.user.propertyId ?? '' : '';
+        
+        if (room.status == RoomStatus.empty) {
+          await context.push('/tenants/add?roomId=${room.id}');
+        } else {
+          await context.push('/rooms/${room.id}');
+        }
+        
+        if (context.mounted) {
+          context.read<RoomBloc>().add(LoadRoomsEvent(propertyId));
+        }
+      },
       child: Container(
         decoration: BoxDecoration(
           color: theme.cardTheme.color,
