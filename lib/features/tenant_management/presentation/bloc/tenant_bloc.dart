@@ -5,6 +5,7 @@ import '../../domain/entities/tenant.dart';
 import '../../domain/usecases/create_tenant_usecase.dart';
 import '../../domain/usecases/get_tenants_usecase.dart';
 import '../../domain/usecases/update_tenant_usecase.dart';
+import '../../domain/usecases/delete_tenant_usecase.dart';
 
 // ── Events ────────────────────────────────────────────────────────────────
 abstract class TenantEvent extends Equatable {
@@ -42,6 +43,13 @@ class FindTenantByCccdEvent extends TenantEvent {
   const FindTenantByCccdEvent(this.cccd, {this.propertyId});
   @override
   List<Object?> get props => [cccd, propertyId];
+}
+
+class DeleteTenantEvent extends TenantEvent {
+  final String tenantId;
+  const DeleteTenantEvent(this.tenantId);
+  @override
+  List<Object?> get props => [tenantId];
 }
 
 // ── States ────────────────────────────────────────────────────────────────
@@ -96,19 +104,35 @@ class TenantBloc extends Bloc<TenantEvent, TenantState> {
   final GetTenantsUseCase _getTenantsUseCase;
   final CreateTenantUseCase _createTenantUseCase;
   final UpdateTenantUseCase _updateTenantUseCase;
+  final DeleteTenantUseCase _deleteTenantUseCase;
 
   TenantBloc({
     required GetTenantsUseCase getTenantsUseCase,
     required CreateTenantUseCase createTenantUseCase,
     required UpdateTenantUseCase updateTenantUseCase,
+    required DeleteTenantUseCase deleteTenantUseCase,
   })  : _getTenantsUseCase = getTenantsUseCase,
         _createTenantUseCase = createTenantUseCase,
         _updateTenantUseCase = updateTenantUseCase,
+        _deleteTenantUseCase = deleteTenantUseCase,
         super(const TenantInitial()) {
     on<LoadTenantsEvent>(_onLoadTenants);
     on<CreateTenantEvent>(_onCreateTenant);
     on<UpdateTenantEvent>(_onUpdateTenant);
     on<FindTenantByCccdEvent>(_onFindTenantByCccd);
+    on<DeleteTenantEvent>(_onDeleteTenant);
+  }
+
+  Future<void> _onDeleteTenant(
+    DeleteTenantEvent event,
+    Emitter<TenantState> emit,
+  ) async {
+    emit(const TenantLoading());
+    final result = await _deleteTenantUseCase(event.tenantId);
+    result.fold(
+      (failure) => emit(TenantError(failure.message)),
+      (_) => emit(const TenantOperationSuccess('Xóa khách thuê thành công')),
+    );
   }
 
   Future<void> _onLoadTenants(

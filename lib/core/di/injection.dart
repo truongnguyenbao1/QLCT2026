@@ -34,6 +34,7 @@ import '../../features/tenant_management/domain/repositories/tenant_repository.d
 import '../../features/tenant_management/domain/usecases/get_tenants_usecase.dart';
 import '../../features/tenant_management/domain/usecases/create_tenant_usecase.dart';
 import '../../features/tenant_management/domain/usecases/update_tenant_usecase.dart';
+import '../../features/tenant_management/domain/usecases/delete_tenant_usecase.dart';
 import '../../features/tenant_management/presentation/bloc/tenant_bloc.dart';
 
 import '../../features/invoice/data/datasources/invoice_remote_datasource.dart';
@@ -128,11 +129,14 @@ Future<void> configureDependencies() async {
       () => CreateTenantUseCase(getIt<TenantRepository>()));
   getIt.registerLazySingleton(
       () => UpdateTenantUseCase(getIt<TenantRepository>()));
+  getIt.registerLazySingleton(
+      () => DeleteTenantUseCase(getIt<TenantRepository>()));
   getIt.registerFactory<TenantBloc>(
     () => TenantBloc(
       getTenantsUseCase: getIt<GetTenantsUseCase>(),
       createTenantUseCase: getIt<CreateTenantUseCase>(),
       updateTenantUseCase: getIt<UpdateTenantUseCase>(),
+      deleteTenantUseCase: getIt<DeleteTenantUseCase>(),
     ),
   );
 

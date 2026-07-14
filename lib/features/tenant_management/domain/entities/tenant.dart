@@ -34,11 +34,12 @@ class Tenant extends Equatable {
     String? cccdNumber,
     String? email,
     bool? isActive,
+    String? roomId,
   }) {
     return Tenant(
       id: id,
       propertyId: propertyId,
-      roomId: roomId,
+      roomId: roomId ?? this.roomId,
       fullName: fullName ?? this.fullName,
       phoneNumber: phoneNumber ?? this.phoneNumber,
       cccdNumber: cccdNumber ?? this.cccdNumber,

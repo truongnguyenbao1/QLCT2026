@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/di/injection.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../../../features/auth/presentation/bloc/auth_state.dart';
 import '../../domain/entities/room.dart';
 import '../bloc/room_bloc.dart';
+import '../../../tenant_management/presentation/bloc/tenant_bloc.dart';
+import '../../../tenant_management/domain/entities/tenant.dart';
+import '../../../tenant_management/presentation/widgets/tenant_search_dialog.dart';
 
 class RoomDetailPage extends StatelessWidget {
   final String roomId;
@@ -49,71 +53,75 @@ class RoomDetailPage extends StatelessWidget {
 
   Widget _buildRoomDetail(BuildContext context, Room room) {
     final theme = Theme.of(context);
+    final authState = context.read<AuthBloc>().state;
+    final propertyId = authState is AuthAuthenticated ? authState.user.propertyId ?? '' : '';
     
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Phòng ${room.roomNumber}'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.edit_rounded),
-            onPressed: () async {
-               await context.push('/rooms/${room.id}/edit');
-               if (context.mounted) {
-                 final authState = context.read<AuthBloc>().state;
-                 final propertyId = authState is AuthAuthenticated ? authState.user.propertyId ?? '' : '';
-                 context.read<RoomBloc>().add(LoadRoomsEvent(propertyId));
-               }
-            },
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildStatusCard(theme, room),
-            const SizedBox(height: 16),
-            _buildInfoCard(theme, room),
-            const SizedBox(height: 16),
-            _buildCostCard(theme, room),
-            const SizedBox(height: 16),
-            if (room.amenities.isNotEmpty) _buildAmenitiesCard(theme, room),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () async {
-                       await context.push('/rooms/${room.id}/edit');
-                       if (context.mounted) {
-                         final authState = context.read<AuthBloc>().state;
-                         final propertyId = authState is AuthAuthenticated ? authState.user.propertyId ?? '' : '';
-                         context.read<RoomBloc>().add(LoadRoomsEvent(propertyId));
-                       }
-                    },
-                    icon: const Icon(Icons.edit_rounded),
-                    label: const Text('Sửa phòng'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: FilledButton.icon(
-                    onPressed: () async {
-                       await context.push('/tenants/add?roomId=${room.id}');
-                       if (context.mounted) {
-                         final authState = context.read<AuthBloc>().state;
-                         final propertyId = authState is AuthAuthenticated ? authState.user.propertyId ?? '' : '';
-                         context.read<RoomBloc>().add(LoadRoomsEvent(propertyId));
-                       }
-                    },
-                    icon: const Icon(Icons.person_add_rounded),
-                    label: const Text('Thêm khách'),
-                  ),
-                ),
-              ],
+    return BlocProvider(
+      create: (context) => getIt<TenantBloc>()..add(LoadTenantsEvent(roomId: room.id, propertyId: propertyId, isActive: true)),
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('Phòng ${room.roomNumber}'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.edit_rounded),
+              onPressed: () async {
+                 await context.push('/rooms/${room.id}/edit');
+                 if (context.mounted) {
+                   context.read<RoomBloc>().add(LoadRoomsEvent(propertyId));
+                 }
+              },
             ),
           ],
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildStatusCard(theme, room),
+              const SizedBox(height: 16),
+              if (room.status == RoomStatus.occupied) ...[
+                _buildTenantsCard(theme, room),
+                const SizedBox(height: 16),
+              ],
+              _buildInfoCard(theme, room),
+              const SizedBox(height: 16),
+              _buildCostCard(theme, room),
+              const SizedBox(height: 16),
+              if (room.amenities.isNotEmpty) _buildAmenitiesCard(theme, room),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () async {
+                         await context.push('/rooms/${room.id}/edit');
+                         if (context.mounted) {
+                           context.read<RoomBloc>().add(LoadRoomsEvent(propertyId));
+                         }
+                      },
+                      icon: const Icon(Icons.edit_rounded),
+                      label: const Text('Sửa phòng'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: () async {
+                        final added = await TenantSearchDialog.show(context, room.id);
+                        if (added == true && context.mounted) {
+                          context.read<RoomBloc>().add(LoadRoomsEvent(propertyId));
+                          context.read<TenantBloc>().add(LoadTenantsEvent(roomId: room.id, propertyId: propertyId, isActive: true));
+                        }
+                      },
+                      icon: const Icon(Icons.person_add_rounded),
+                      label: const Text('Thêm khách'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -274,6 +282,110 @@ class RoomDetailPage extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildTenantsCard(ThemeData theme, Room room) {
+    return Card(
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Khách thuê hiện tại', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                Icon(Icons.people_alt_rounded, color: theme.colorScheme.primary),
+              ],
+            ),
+            const Divider(height: 24),
+            BlocBuilder<TenantBloc, TenantState>(
+              builder: (context, state) {
+                if (state is TenantLoading) {
+                  return const Center(child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: CircularProgressIndicator(),
+                  ));
+                }
+                if (state is TenantError) {
+                  return Center(child: Text(state.message, style: const TextStyle(color: Colors.red)));
+                }
+                if (state is TenantLoaded) {
+                  final tenants = state.tenants;
+                  if (tenants.isEmpty) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8.0),
+                      child: Text('Chưa có thông tin khách thuê', style: TextStyle(fontStyle: FontStyle.italic)),
+                    );
+                  }
+                  
+                  return Column(
+                    children: tenants.map((tenant) => ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: CircleAvatar(
+                        backgroundColor: theme.colorScheme.primaryContainer,
+                        child: Text(tenant.fullName.isNotEmpty ? tenant.fullName[0].toUpperCase() : '?', style: TextStyle(color: theme.colorScheme.onPrimaryContainer)),
+                      ),
+                      title: Text(tenant.fullName, style: const TextStyle(fontWeight: FontWeight.w500)),
+                      subtitle: Text(tenant.phoneNumber),
+                      trailing: PopupMenuButton<String>(
+                        icon: const Icon(Icons.more_vert_rounded),
+                        onSelected: (value) async {
+                          if (value == 'edit') {
+                            context.push('/tenants/${tenant.id}/edit');
+                          } else if (value == 'delete') {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Xác nhận xóa'),
+                                content: Text('Bạn có chắc chắn muốn xóa khách thuê ${tenant.fullName} không?'),
+                                actions: [
+                                  TextButton(onPressed: () => context.pop(false), child: const Text('Hủy')),
+                                  FilledButton(
+                                    onPressed: () => context.pop(true),
+                                    style: FilledButton.styleFrom(backgroundColor: Colors.red),
+                                    child: const Text('Xóa'),
+                                  ),
+                                ],
+                              ),
+                            );
+                            if (confirm == true && context.mounted) {
+                              context.read<TenantBloc>().add(DeleteTenantEvent(tenant.id));
+                              // Also reload rooms to update counts/stats if needed
+                              final authState = context.read<AuthBloc>().state;
+                              if (authState is AuthAuthenticated) {
+                                context.read<RoomBloc>().add(LoadRoomsEvent(authState.user.propertyId ?? ''));
+                                // Since we are in RoomDetailPage, we should also reload tenants for this room after deletion
+                                // TenantBloc will emit TenantOperationSuccess, but we need it to reload.
+                                // Instead of a full BlocConsumer here, we can just fire LoadTenantsEvent
+                                context.read<TenantBloc>().add(LoadTenantsEvent(roomId: room.id, propertyId: authState.user.propertyId, isActive: true));
+                              }
+                            }
+                          }
+                        },
+                        itemBuilder: (context) => [
+                          const PopupMenuItem(
+                            value: 'edit',
+                            child: Row(children: [Icon(Icons.edit_rounded, size: 20), SizedBox(width: 8), Text('Sửa')]),
+                          ),
+                          const PopupMenuItem(
+                            value: 'delete',
+                            child: Row(children: [Icon(Icons.delete_rounded, size: 20, color: Colors.red), SizedBox(width: 8), Text('Xóa', style: TextStyle(color: Colors.red))]),
+                          ),
+                        ],
+                      ),
+                    )).toList(),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

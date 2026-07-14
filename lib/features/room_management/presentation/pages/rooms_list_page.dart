@@ -11,6 +11,7 @@ import '../../../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../../../features/auth/presentation/bloc/auth_state.dart';
 import '../../domain/entities/room.dart';
 import '../bloc/room_bloc.dart';
+import '../../../tenant_management/presentation/widgets/tenant_search_dialog.dart';
 
 class RoomsListPage extends StatelessWidget {
   const RoomsListPage({super.key});
@@ -304,13 +305,15 @@ class _RoomCard extends StatelessWidget {
         final propertyId = authState is AuthAuthenticated ? authState.user.propertyId ?? '' : '';
         
         if (room.status == RoomStatus.empty) {
-          await context.push('/tenants/add?roomId=${room.id}');
+          final added = await TenantSearchDialog.show(context, room.id);
+          if (added == true && context.mounted) {
+            context.read<RoomBloc>().add(LoadRoomsEvent(propertyId));
+          }
         } else {
           await context.push('/rooms/${room.id}');
-        }
-        
-        if (context.mounted) {
-          context.read<RoomBloc>().add(LoadRoomsEvent(propertyId));
+          if (context.mounted) {
+            context.read<RoomBloc>().add(LoadRoomsEvent(propertyId));
+          }
         }
       },
       child: Container(
@@ -342,7 +345,7 @@ class _RoomCard extends StatelessWidget {
                   ),
                   Positioned(
                     top: 10,
-                    right: 10,
+                    left: 10,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 4),
@@ -358,6 +361,53 @@ class _RoomCard extends StatelessWidget {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: PopupMenuButton<String>(
+                      icon: const Icon(Icons.more_vert_rounded, size: 20),
+                      onSelected: (value) async {
+                        final authState = context.read<AuthBloc>().state;
+                        final propertyId = authState is AuthAuthenticated ? authState.user.propertyId ?? '' : '';
+
+                        if (value == 'edit') {
+                          await context.push('/rooms/${room.id}/edit');
+                          if (context.mounted) {
+                            context.read<RoomBloc>().add(LoadRoomsEvent(propertyId));
+                          }
+                        } else if (value == 'delete') {
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Xác nhận xóa'),
+                              content: Text('Bạn có chắc chắn muốn xóa phòng ${room.roomNumber} không?'),
+                              actions: [
+                                TextButton(onPressed: () => context.pop(false), child: const Text('Hủy')),
+                                FilledButton(
+                                  onPressed: () => context.pop(true),
+                                  style: FilledButton.styleFrom(backgroundColor: Colors.red),
+                                  child: const Text('Xóa'),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (confirm == true && context.mounted) {
+                            context.read<RoomBloc>().add(DeleteRoomEvent(room.id));
+                          }
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(
+                          value: 'edit',
+                          child: Row(children: [Icon(Icons.edit_rounded, size: 20), SizedBox(width: 8), Text('Sửa')]),
+                        ),
+                        const PopupMenuItem(
+                          value: 'delete',
+                          child: Row(children: [Icon(Icons.delete_rounded, size: 20, color: Colors.red), SizedBox(width: 8), Text('Xóa', style: TextStyle(color: Colors.red))]),
+                        ),
+                      ],
                     ),
                   ),
                 ],

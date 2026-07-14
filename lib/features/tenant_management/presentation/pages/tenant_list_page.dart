@@ -50,7 +50,22 @@ class TenantListPage extends StatelessWidget {
           title: const Text('Khách thuê'),
           centerTitle: true,
         ),
-        body: BlocBuilder<TenantBloc, TenantState>(
+        body: BlocConsumer<TenantBloc, TenantState>(
+          listener: (context, state) {
+            if (state is TenantOperationSuccess) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(state.message), backgroundColor: Colors.green),
+              );
+              final authState = context.read<AuthBloc>().state;
+              if (authState is AuthAuthenticated) {
+                context.read<TenantBloc>().add(LoadTenantsEvent(propertyId: authState.user.propertyId));
+              }
+            } else if (state is TenantError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+              );
+            }
+          },
           builder: (context, state) {
             if (state is TenantLoading) {
               return const Center(child: CircularProgressIndicator());
@@ -97,29 +112,85 @@ class TenantListPage extends StatelessWidget {
                 ),
               );
             }
-            if (state is TenantLoaded) {
+            if (state is TenantLoaded || state is TenantOperationSuccess && context.read<TenantBloc>().state is TenantLoaded) {
+              // Retrieve tenants from the previous state if needed, but BlocConsumer will rebuild if we emit loaded soon.
+              // Wait, since we are doing a LoadTenantsEvent, it will go to TenantLoading soon. But just in case:
+              final currentState = context.read<TenantBloc>().state;
+              List<Tenant> tenants = [];
+              if (state is TenantLoaded) {
+                tenants = state.tenants;
+              } else if (currentState is TenantLoaded) {
+                tenants = currentState.tenants;
+              }
+
+              if (tenants.isEmpty) return const SizedBox.shrink();
+
               return ListView.separated(
                 padding: const EdgeInsets.all(16),
-                itemCount: state.tenants.length,
+                itemCount: tenants.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 8),
                 itemBuilder: (context, index) {
-                  final tenant = state.tenants[index];
+                  final tenant = tenants[index];
                   return Card(
                     child: ListTile(
                       leading: CircleAvatar(
-                        child: Text(tenant.fullName[0].toUpperCase()),
+                        child: Text(tenant.fullName.isNotEmpty ? tenant.fullName[0].toUpperCase() : '?'),
                       ),
                       title: Text(tenant.fullName),
                       subtitle: Text('Phòng: ${tenant.roomId}'),
-                      trailing: Chip(
-                        label: Text(tenant.isActive ? 'Đang thuê' : 'Đã rời'),
-                        backgroundColor: tenant.isActive
-                            ? Colors.green.withValues(alpha: 0.15)
-                            : Colors.grey.withValues(alpha: 0.15),
-                        labelStyle: TextStyle(
-                          color: tenant.isActive ? Colors.green : Colors.grey,
-                          fontSize: 12,
-                        ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Chip(
+                            label: Text(tenant.isActive ? 'Đang thuê' : 'Đã rời'),
+                            backgroundColor: tenant.isActive
+                                ? Colors.green.withValues(alpha: 0.15)
+                                : Colors.grey.withValues(alpha: 0.15),
+                            labelStyle: TextStyle(
+                              color: tenant.isActive ? Colors.green : Colors.grey,
+                              fontSize: 12,
+                            ),
+                          ),
+                          PopupMenuButton<String>(
+                            icon: const Icon(Icons.more_vert_rounded),
+                            onSelected: (value) async {
+                              if (value == 'edit') {
+                                context.push(
+                                  AppRoutes.editTenant.replaceFirst(':tenantId', tenant.id),
+                                );
+                              } else if (value == 'delete') {
+                                final confirm = await showDialog<bool>(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text('Xác nhận xóa'),
+                                    content: Text('Bạn có chắc chắn muốn xóa khách thuê ${tenant.fullName} không?'),
+                                    actions: [
+                                      TextButton(onPressed: () => context.pop(false), child: const Text('Hủy')),
+                                      FilledButton(
+                                        onPressed: () => context.pop(true),
+                                        style: FilledButton.styleFrom(backgroundColor: Colors.red),
+                                        child: const Text('Xóa'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                                if (confirm == true && context.mounted) {
+                                  context.read<TenantBloc>().add(DeleteTenantEvent(tenant.id));
+                                }
+                              }
+                            },
+                            itemBuilder: (context) => [
+                              const PopupMenuItem(
+                                value: 'edit',
+                                child: Row(children: [Icon(Icons.edit_rounded, size: 20), SizedBox(width: 8), Text('Sửa')]),
+                              ),
+                              const PopupMenuItem(
+                                value: 'delete',
+                                child: Row(children: [Icon(Icons.delete_rounded, size: 20, color: Colors.red), SizedBox(width: 8), Text('Xóa', style: TextStyle(color: Colors.red))]),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                       onTap: () => context.push(
                         AppRoutes.editTenant.replaceFirst(':tenantId', tenant.id),
