@@ -36,6 +36,14 @@ class UpdateTenantEvent extends TenantEvent {
   List<Object?> get props => [tenant];
 }
 
+class FindTenantByCccdEvent extends TenantEvent {
+  final String cccd;
+  final String? propertyId;
+  const FindTenantByCccdEvent(this.cccd, {this.propertyId});
+  @override
+  List<Object?> get props => [cccd, propertyId];
+}
+
 // ── States ────────────────────────────────────────────────────────────────
 abstract class TenantState extends Equatable {
   const TenantState();
@@ -72,6 +80,17 @@ class TenantOperationSuccess extends TenantState {
   List<Object?> get props => [message];
 }
 
+class TenantSearchSuccess extends TenantState {
+  final Tenant tenant;
+  const TenantSearchSuccess(this.tenant);
+  @override
+  List<Object?> get props => [tenant];
+}
+
+class TenantSearchNotFound extends TenantState {
+  const TenantSearchNotFound();
+}
+
 // ── BLoC ──────────────────────────────────────────────────────────────────
 class TenantBloc extends Bloc<TenantEvent, TenantState> {
   final GetTenantsUseCase _getTenantsUseCase;
@@ -89,6 +108,7 @@ class TenantBloc extends Bloc<TenantEvent, TenantState> {
     on<LoadTenantsEvent>(_onLoadTenants);
     on<CreateTenantEvent>(_onCreateTenant);
     on<UpdateTenantEvent>(_onUpdateTenant);
+    on<FindTenantByCccdEvent>(_onFindTenantByCccd);
   }
 
   Future<void> _onLoadTenants(
@@ -128,6 +148,26 @@ class TenantBloc extends Bloc<TenantEvent, TenantState> {
     result.fold(
       (failure) => emit(TenantError(failure.message)),
       (_) => emit(const TenantOperationSuccess('Cập nhật khách thuê thành công')),
+    );
+  }
+
+  Future<void> _onFindTenantByCccd(
+    FindTenantByCccdEvent event,
+    Emitter<TenantState> emit,
+  ) async {
+    emit(const TenantLoading());
+    final result = await _getTenantsUseCase(propertyId: event.propertyId);
+    
+    result.fold(
+      (failure) => emit(TenantError(failure.message)),
+      (tenants) {
+        try {
+          final tenant = tenants.firstWhere((t) => t.cccdNumber == event.cccd);
+          emit(TenantSearchSuccess(tenant));
+        } catch (_) {
+          emit(const TenantSearchNotFound());
+        }
+      },
     );
   }
 }

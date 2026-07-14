@@ -70,7 +70,6 @@ class _AddEditTenantFormState extends State<_AddEditTenantForm> {
 
   bool _isEditing = false;
   Tenant? _existingTenant;
-  List<Tenant> _allTenants = [];
 
   @override
   void initState() {
@@ -93,30 +92,14 @@ class _AddEditTenantFormState extends State<_AddEditTenantForm> {
 
   void _onCccdChanged() {
     final cccd = _cccdController.text.trim();
-    if (cccd.length == 12 && !_isEditing && _allTenants.isNotEmpty) {
-      // Tìm kiếm xem số CCCD đã tồn tại trong danh sách khách thuê chưa
-      try {
-        final existing = _allTenants.firstWhere(
-          (t) => t.cccdNumber == cccd,
-        );
-        
-        setState(() {
-          _fullNameController.text = existing.fullName;
-          _phoneController.text = existing.phoneNumber;
-          _emailController.text = existing.email ?? '';
-          _dob = existing.dateOfBirth;
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Tìm thấy khách thuê cũ. Đã tự động điền thông tin!'),
-            backgroundColor: AppColors.success,
-          ),
-        );
-      } catch (_) {
-        // Không tìm thấy, tiếp tục cho nhập mới bình thường
-      }
+    if (cccd.length == 12 && !_isEditing) {
+      _searchCccd(cccd);
     }
+  }
+
+  void _searchCccd(String cccd) {
+    if (cccd.isEmpty) return;
+    context.read<TenantBloc>().add(FindTenantByCccdEvent(cccd, propertyId: widget.propertyId));
   }
 
   Future<void> _selectDate(BuildContext context, bool isDob) async {
@@ -317,7 +300,6 @@ class _AddEditTenantFormState extends State<_AddEditTenantForm> {
           listener: (context, state) {
             if (state is TenantLoaded) {
               setState(() {
-                _allTenants = state.tenants;
                 if (_isEditing) {
                   _existingTenant = state.tenants.firstWhere(
                     (t) => t.id == widget.tenantId,
@@ -332,6 +314,22 @@ class _AddEditTenantFormState extends State<_AddEditTenantForm> {
                   _selectedRoomId = _existingTenant!.roomId;
                 }
               });
+            } else if (state is TenantSearchSuccess) {
+              setState(() {
+                _existingTenant = state.tenant;
+                _fullNameController.text = state.tenant.fullName;
+                _phoneController.text = state.tenant.phoneNumber;
+                _emailController.text = state.tenant.email ?? '';
+                _dob = state.tenant.dateOfBirth;
+              });
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Đã tìm thấy thông tin khách thuê!'),
+                  backgroundColor: AppColors.success,
+                ),
+              );
+            } else if (state is TenantSearchNotFound) {
+              // Not found, do nothing, just let user enter info
             } else if (state is TenantOperationSuccess) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -382,10 +380,17 @@ class _AddEditTenantFormState extends State<_AddEditTenantForm> {
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: _cccdController,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: 'Số CCCD (12 chữ số) *',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.credit_card),
+                          border: const OutlineInputBorder(),
+                          prefixIcon: const Icon(Icons.credit_card),
+                          suffixIcon: IconButton(
+                            icon: const Icon(Icons.search),
+                            onPressed: () {
+                              _searchCccd(_cccdController.text.trim());
+                            },
+                            tooltip: 'Tìm thông tin',
+                          ),
                         ),
                         keyboardType: TextInputType.number,
                         validator: (value) {

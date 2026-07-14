@@ -86,6 +86,17 @@ class TenantRemoteDataSourceImpl implements TenantRemoteDataSource {
         .insert(json)
         .select()
         .single();
+        
+    // Cập nhật trạng thái phòng thành OCCUPIED
+    try {
+      await _client
+          .from('phong')
+          .update({'status': 'OCCUPIED'})
+          .eq('id', tenant.roomId);
+    } catch (e) {
+      // Bỏ qua lỗi cập nhật trạng thái phòng (non-blocking)
+    }
+        
     return TenantModel.fromJson(data);
   }
 
