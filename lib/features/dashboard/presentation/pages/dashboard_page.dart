@@ -46,7 +46,7 @@ class _DashboardViewState extends State<_DashboardView> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = context.read<AuthBloc>().state;
+    final authState = context.watch<AuthBloc>().state;
     final isOwner = authState is AuthAuthenticated ? authState.user.isOwner : false;
     final userName = authState is AuthAuthenticated ? authState.user.fullName : '';
 

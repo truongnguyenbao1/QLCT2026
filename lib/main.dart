@@ -14,6 +14,7 @@ import 'core/di/injection.dart';
 import 'core/observers/app_bloc_observer.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/auth/presentation/bloc/auth_event.dart';
+import 'features/auth/presentation/bloc/auth_state.dart';
 import 'shared/navigation/app_router.dart';
 import 'shared/theme/app_theme.dart';
 
@@ -126,6 +127,7 @@ class _QuanLyNhaTroAppState extends State<QuanLyNhaTroApp> {
             child: child!,
           );
         },
+      ),
       ),
     );
   }
