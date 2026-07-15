@@ -31,8 +31,30 @@ class RoomsListPage extends StatelessWidget {
   }
 }
 
-class _RoomsListView extends StatelessWidget {
+class _RoomsListView extends StatefulWidget {
   const _RoomsListView();
+
+  @override
+  State<_RoomsListView> createState() => _RoomsListViewState();
+}
+
+class _RoomsListViewState extends State<_RoomsListView> {
+  @override
+  void initState() {
+    super.initState();
+    _loadRooms();
+  }
+
+  void _loadRooms() {
+    final authState = context.read<AuthBloc>().state;
+    final propertyId = authState is AuthAuthenticated
+        ? authState.user.propertyId ?? ''
+        : '';
+    final roomState = context.read<RoomBloc>().state;
+    if (roomState is RoomInitial) {
+      context.read<RoomBloc>().add(LoadRoomsEvent(propertyId));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,12 +73,9 @@ class _RoomsListView extends StatelessWidget {
       ),
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, authState) {
-          if (authState is AuthAuthenticated && authState.user.isOwner) {
+          if (authState is AuthAuthenticated) {
             final propertyId = authState.user.propertyId ?? '';
-            final roomState = context.read<RoomBloc>().state;
-            if (roomState is RoomInitial) {
-              context.read<RoomBloc>().add(LoadRoomsEvent(propertyId));
-            }
+            context.read<RoomBloc>().add(LoadRoomsEvent(propertyId));
           }
         },
         child: BlocConsumer<RoomBloc, RoomState>(
@@ -78,7 +97,7 @@ class _RoomsListView extends StatelessWidget {
           }
         },
         builder: (context, state) {
-          if (state is RoomsLoading) {
+          if (state is RoomsLoading || state is RoomInitial) {
             return const Center(child: CircularProgressIndicator());
           }
  
