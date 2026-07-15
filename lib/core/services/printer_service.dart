@@ -3,7 +3,6 @@
 //  Dịch vụ in hóa đơn: hỗ trợ máy in nhiệt (80mm như XP-80C) và in PDF
 //  Sử dụng package `printing` để in trực tiếp mà không cần dialog
 // ─────────────────────────────────────────────────────────────────────────────
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart';

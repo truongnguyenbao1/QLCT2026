@@ -7,6 +7,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 
 import '../../features/invoice/domain/entities/invoice.dart';
