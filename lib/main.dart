@@ -75,18 +75,35 @@ class QuanLyNhaTroApp extends StatefulWidget {
   State<QuanLyNhaTroApp> createState() => _QuanLyNhaTroAppState();
 }
 
-class _QuanLyNhaTroAppState extends State<QuanLyNhaTroApp> {
+class _QuanLyNhaTroAppState extends State<QuanLyNhaTroApp> with WidgetsBindingObserver {
   late final _authBloc = getIt<AuthBloc>()..add(const AuthCheckSessionEvent());
   late final _router = AppRouter.createRouter(_authBloc);
   Timer? _inactivityTimer;
+  DateTime _lastInteraction = DateTime.now();
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _resetInactivityTimer();
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      if (DateTime.now().difference(_lastInteraction) > const Duration(minutes: 5)) {
+        final authState = _authBloc.state;
+        if (authState is AuthAuthenticated) {
+          _authBloc.add(const AuthLogoutEvent());
+        }
+      } else {
+        _resetInactivityTimer();
+      }
+    }
+  }
+
   void _resetInactivityTimer() {
+    _lastInteraction = DateTime.now();
     _inactivityTimer?.cancel();
     _inactivityTimer = Timer(const Duration(minutes: 5), () {
       final state = _authBloc.state;
@@ -98,6 +115,7 @@ class _QuanLyNhaTroAppState extends State<QuanLyNhaTroApp> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _inactivityTimer?.cancel();
     _authBloc.close();
     super.dispose();
@@ -111,6 +129,8 @@ class _QuanLyNhaTroAppState extends State<QuanLyNhaTroApp> {
         behavior: HitTestBehavior.translucent,
         onPointerDown: (_) => _resetInactivityTimer(),
         onPointerMove: (_) => _resetInactivityTimer(),
+        onPointerHover: (_) => _resetInactivityTimer(),
+        onPointerUp: (_) => _resetInactivityTimer(),
         child: MaterialApp.router(
         title: 'Quản lý Nhà trọ',
         debugShowCheckedModeBanner: false,

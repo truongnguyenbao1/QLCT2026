@@ -479,7 +479,7 @@ class _TenantDashboardContentState extends State<_TenantDashboardContent> {
 
           // Banner Carousel
           SizedBox(
-            height: 240,
+            height: 320,
             child: Stack(
               children: [
                 PageView.builder(
