@@ -96,8 +96,29 @@ class TenantRemoteDataSourceImpl implements TenantRemoteDataSource {
     } catch (e) {
       // Bỏ qua lỗi cập nhật trạng thái phòng (non-blocking)
     }
+
+    // Cập nhật room_id và property_id cho tài khoản khách thuê (nếu có)
+    await _syncTenantToUser(tenant);
         
     return TenantModel.fromJson(data);
+  }
+
+  Future<void> _syncTenantToUser(TenantModel tenant) async {
+    try {
+      final updateData = {
+        'room_id': tenant.roomId,
+        'property_id': tenant.propertyId,
+      };
+
+      if (tenant.email != null && tenant.email!.isNotEmpty) {
+        await _client.from(AppConstants.tableUsers).update(updateData).eq('email', tenant.email!);
+      } else if (tenant.phoneNumber.isNotEmpty) {
+        // Fallback sync by phone number if email is not available
+        await _client.from(AppConstants.tableUsers).update(updateData).eq('phone', tenant.phoneNumber);
+      }
+    } catch (e) {
+      // Bỏ qua lỗi (không chặn flow chính)
+    }
   }
 
   @override
@@ -112,6 +133,10 @@ class TenantRemoteDataSourceImpl implements TenantRemoteDataSource {
         .eq('id', tenant.id)
         .select()
         .single();
+        
+    // Đồng bộ lại room_id và property_id cho tài khoản khách thuê
+    await _syncTenantToUser(tenant);
+    
     return TenantModel.fromJson(data);
   }
 

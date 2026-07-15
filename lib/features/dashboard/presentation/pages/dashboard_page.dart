@@ -9,7 +9,8 @@ import '../../../../features/auth/presentation/bloc/auth_state.dart';
 import '../../../../features/auth/presentation/bloc/auth_event.dart';
 import '../../../../shared/navigation/app_router.dart';
 import '../bloc/dashboard_bloc.dart';
-
+import '../../../../features/auth/domain/entities/app_user.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
 
@@ -51,12 +52,23 @@ class _DashboardViewState extends State<_DashboardView> {
     final userName = authState is AuthAuthenticated ? authState.user.fullName : '';
 
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar.large(
-            title: const Text('Tổng quan'),
-            centerTitle: false,
-            floating: true,
+      body: BlocListener<AuthBloc, AuthState>(
+        listener: (context, state) {
+          if (state is AuthAuthenticated && state.user.isOwner) {
+            final dashState = context.read<DashboardBloc>().state;
+            if (dashState is DashboardInitial) {
+              context.read<DashboardBloc>().add(
+                LoadDashboardEvent(state.user.propertyId ?? ''),
+              );
+            }
+          }
+        },
+        child: CustomScrollView(
+          slivers: [
+            SliverAppBar.large(
+              title: const Text('Tổng quan'),
+              centerTitle: false,
+              floating: true,
             actions: [
               IconButton(
                 icon: const Icon(Icons.notifications_outlined),
@@ -101,7 +113,7 @@ class _DashboardViewState extends State<_DashboardView> {
                       return const _DashboardEmpty();
                     },
                   )
-                : _TenantDashboardContent(userName: userName),
+                : _TenantDashboardContent(user: authState is AuthAuthenticated ? authState.user : null),
           ),
         ],
       ),
@@ -409,8 +421,8 @@ class _DashboardEmpty extends StatelessWidget {
 
 // ── Dashboard cho Khách Thuê (Tenant) ───────────────────────────────────
 class _TenantDashboardContent extends StatefulWidget {
-  final String userName;
-  const _TenantDashboardContent({required this.userName});
+  final AppUser? user;
+  const _TenantDashboardContent({required this.user});
 
   @override
   State<_TenantDashboardContent> createState() => _TenantDashboardContentState();
@@ -419,6 +431,10 @@ class _TenantDashboardContent extends StatefulWidget {
 class _TenantDashboardContentState extends State<_TenantDashboardContent> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
+
+  String _propertyName = 'Đang tải...';
+  String _roomName = 'Đang tải...';
+  bool _isLoadingInfo = true;
 
   final List<Color> _bannerColors = [
     const Color(0xFF4285F4),
@@ -431,6 +447,61 @@ class _TenantDashboardContentState extends State<_TenantDashboardContent> {
     super.initState();
     // Tự động cuộn banner mỗi 3 giây
     Future.delayed(const Duration(seconds: 3), _autoScrollBanner);
+    _loadTenantInfo();
+  }
+
+  Future<void> _loadTenantInfo() async {
+    if (widget.user == null || widget.user!.roomId == null) {
+      setState(() {
+        _propertyName = 'Chưa xếp phòng';
+        _roomName = 'Chưa có';
+        _isLoadingInfo = false;
+      });
+      return;
+    }
+
+    try {
+      final client = getIt<SupabaseClient>();
+      
+      // Fetch room and property info
+      final roomData = await client
+          .from('phong')
+          .select('room_number, floor, property_id')
+          .eq('id', widget.user!.roomId!)
+          .maybeSingle();
+
+      if (roomData != null) {
+        final roomNumber = roomData['room_number'];
+        final floor = roomData['floor'];
+        _roomName = 'Phòng $roomNumber - T$floor';
+
+        final propertyId = widget.user!.propertyId ?? roomData['property_id'];
+        if (propertyId != null) {
+          final propData = await client
+              .from('nhatro')
+              .select('name')
+              .eq('id', propertyId)
+              .maybeSingle();
+          if (propData != null) {
+            _propertyName = propData['name'] as String;
+          } else {
+            _propertyName = 'Nhà trọ không xác định';
+          }
+        }
+      } else {
+        _propertyName = 'Chưa rõ';
+        _roomName = 'Không tìm thấy phòng';
+      }
+    } catch (e) {
+      _propertyName = 'Lỗi tải dữ liệu';
+      _roomName = 'Lỗi tải dữ liệu';
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingInfo = false;
+        });
+      }
+    }
   }
 
   void _autoScrollBanner() {
@@ -463,7 +534,7 @@ class _TenantDashboardContentState extends State<_TenantDashboardContent> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Xin chào, ${widget.userName} 👋',
+            'Xin chào, ${widget.user?.fullName ?? 'Khách thuê'} 👋',
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -475,6 +546,54 @@ class _TenantDashboardContentState extends State<_TenantDashboardContent> {
               color: colorScheme.onSurfaceVariant,
             ),
           ),
+          const SizedBox(height: 16),
+          
+          // Card thông tin nhà trọ
+          if (!_isLoadingInfo)
+            Card(
+              elevation: 0,
+              color: colorScheme.primaryContainer.withValues(alpha: 0.3),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(Icons.home_work_rounded, color: colorScheme.primary),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _propertyName,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Bạn đang ở: $_roomName',
+                            style: TextStyle(
+                              color: colorScheme.onSurfaceVariant,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
           const SizedBox(height: 24),
 
           // Banner Carousel
