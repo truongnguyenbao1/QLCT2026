@@ -30,6 +30,37 @@ class InvoiceModel extends Invoice {
     super.isLocked,
   });
 
+  factory InvoiceModel.fromEntity(Invoice entity) {
+    return InvoiceModel(
+      id: entity.id,
+      roomId: entity.roomId,
+      roomNumber: entity.roomNumber,
+      tenantId: entity.tenantId,
+      tenantName: entity.tenantName,
+      month: entity.month,
+      year: entity.year,
+      electricPrevReading: entity.electricPrevReading,
+      electricCurrReading: entity.electricCurrReading,
+      electricUnitPrice: entity.electricUnitPrice,
+      waterPrevReading: entity.waterPrevReading,
+      waterCurrReading: entity.waterCurrReading,
+      waterUnitPrice: entity.waterUnitPrice,
+      rentAmount: entity.rentAmount,
+      serviceAmount: entity.serviceAmount,
+      otherAmount: entity.otherAmount,
+      otherDescription: entity.otherDescription,
+      status: entity.status,
+      dueDate: entity.dueDate,
+      paidAt: entity.paidAt,
+      paymentMethod: entity.paymentMethod,
+      transactionId: entity.transactionId,
+      createdAt: entity.createdAt,
+      createdBy: entity.createdBy,
+      isLocked: entity.isLocked,
+    );
+  }
+
+
   factory InvoiceModel.fromJson(Map<String, dynamic> json) {
     return InvoiceModel(
       id: json['id'] as String,

@@ -46,7 +46,7 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
   @override
   Future<Either<Failure, Invoice>> createInvoice(Invoice invoice) async {
     try {
-      final model = invoice as InvoiceModel;
+      final model = InvoiceModel.fromEntity(invoice);
       final result = await _remoteDataSource.createInvoice(model);
       return Right(result);
     } catch (e) {
