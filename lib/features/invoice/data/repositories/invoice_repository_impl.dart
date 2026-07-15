@@ -49,8 +49,10 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
       final model = InvoiceModel.fromEntity(invoice);
       final result = await _remoteDataSource.createInvoice(model);
       return Right(result);
+    } on Failure catch (f) {
+      return Left(f);
     } catch (e) {
-      return Left(ServerFailure(message: e.toString()));
+      return Left(ServerFailure(message: 'Lỗi tạo hóa đơn: $e'));
     }
   }
 

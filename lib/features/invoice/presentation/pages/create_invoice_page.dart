@@ -132,12 +132,18 @@ class _CreateInvoiceViewState extends State<_CreateInvoiceView> {
       final waterCurr = double.tryParse(_waterCurrCtrl.text) ?? 0;
       final otherAmount = double.tryParse(_otherAmountCtrl.text) ?? 0;
 
+      // Lấy userId thật từ AuthBloc
+      final authState = context.read<AuthBloc>().state;
+      final userId = authState is AuthAuthenticated
+          ? authState.user.id
+          : '';
+
       final invoice = Invoice(
         id: const Uuid().v4(),
         roomId: _selectedRoom!.id,
         roomNumber: _selectedRoom!.roomNumber,
-        tenantId: null, // _selectedRoom!.tenantId,
-        tenantName: null, // _selectedRoom!.tenantName,
+        tenantId: null,
+        tenantName: null,
         month: _month,
         year: _year,
         electricPrevReading: elecPrev,
@@ -148,12 +154,12 @@ class _CreateInvoiceViewState extends State<_CreateInvoiceView> {
         waterUnitPrice: _selectedRoom!.waterPrice,
         rentAmount: _selectedRoom!.rentPrice,
         serviceAmount: _selectedRoom!.servicePrice,
-        otherAmount: otherAmount,
+        otherAmount: otherAmount > 0 ? otherAmount : null,
         otherDescription: _otherDescCtrl.text.trim().isEmpty ? null : _otherDescCtrl.text.trim(),
         status: InvoiceStatus.pending,
         dueDate: DateTime.now().add(const Duration(days: 5)),
         createdAt: DateTime.now(),
-        createdBy: 'admin_user',
+        createdBy: userId,
       );
 
       context.read<InvoiceBloc>().add(CreateInvoiceEvent(invoice));
