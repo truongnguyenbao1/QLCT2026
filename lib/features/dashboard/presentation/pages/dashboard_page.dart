@@ -126,7 +126,7 @@ class _DashboardContent extends StatelessWidget {
         children: [
           // Header greeting
           Text(
-            'Xin chào, Chủ trọ 👋',
+            'Xin chào, Chủ trọ!',
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -479,7 +479,7 @@ class _TenantDashboardContentState extends State<_TenantDashboardContent> {
 
           // Banner Carousel
           SizedBox(
-            height: 180,
+            height: 240,
             child: Stack(
               children: [
                 PageView.builder(
@@ -505,7 +505,7 @@ class _TenantDashboardContentState extends State<_TenantDashboardContent> {
                         ],
                       ),
                       child: const Center(
-                        child: Icon(Icons.campaign_rounded, color: Colors.white, size: 48),
+                        child: Icon(Icons.campaign_rounded, color: Colors.white, size: 80),
                       ),
                     );
                   },
