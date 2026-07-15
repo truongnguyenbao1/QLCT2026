@@ -111,28 +111,47 @@ class _RoomsListView extends StatelessWidget {
  
                 // ── Room Grid ──────────────────────────────────────────
                 Expanded(
-                  child: rooms.isEmpty
-                      ? _EmptyState(hasRooms: allRooms.isNotEmpty)
-                      : GridView.builder(
-                          padding: const EdgeInsets.all(16),
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            childAspectRatio: 0.85,
-                            crossAxisSpacing: 12,
-                            mainAxisSpacing: 12,
+                  child: RefreshIndicator(
+                    onRefresh: () async {
+                      final authState = context.read<AuthBloc>().state;
+                      final propertyId = authState is AuthAuthenticated
+                          ? authState.user.propertyId ?? ''
+                          : '';
+                      context.read<RoomBloc>().add(LoadRoomsEvent(propertyId));
+                      await Future.delayed(const Duration(milliseconds: 500));
+                    },
+                    child: rooms.isEmpty
+                        ? ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: [
+                              SizedBox(
+                                height: MediaQuery.of(context).size.height * 0.5,
+                                child: _EmptyState(hasRooms: allRooms.isNotEmpty),
+                              ),
+                            ],
+                          )
+                        : GridView.builder(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: const EdgeInsets.all(16),
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              childAspectRatio: 0.85,
+                              crossAxisSpacing: 12,
+                              mainAxisSpacing: 12,
+                            ),
+                            itemCount: rooms.length,
+                            itemBuilder: (context, index) {
+                              return _RoomCard(room: rooms[index])
+                                  .animate()
+                                  .fadeIn(
+                                    delay: Duration(milliseconds: 50 * index),
+                                    duration: 300.ms,
+                                  )
+                                  .slideY(begin: 0.1);
+                            },
                           ),
-                          itemCount: rooms.length,
-                          itemBuilder: (context, index) {
-                            return _RoomCard(room: rooms[index])
-                                .animate()
-                                .fadeIn(
-                                  delay: Duration(milliseconds: 50 * index),
-                                  duration: 300.ms,
-                                )
-                                .slideY(begin: 0.1);
-                          },
-                        ),
+                  ),
                 ),
               ],
             );
