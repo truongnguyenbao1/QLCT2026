@@ -10,7 +10,7 @@ import '../../../../features/auth/presentation/bloc/auth_event.dart';
 import '../../../../shared/navigation/app_router.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../../../../features/auth/domain/entities/app_user.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState;
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
 
