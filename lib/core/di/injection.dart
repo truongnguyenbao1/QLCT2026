@@ -42,6 +42,7 @@ import '../../features/invoice/data/repositories/invoice_repository_impl.dart';
 import '../../features/invoice/domain/repositories/invoice_repository.dart';
 import '../../features/invoice/domain/usecases/create_invoice_usecase.dart';
 import '../../features/invoice/domain/usecases/get_invoices_usecase.dart';
+import '../../features/invoice/domain/usecases/get_invoice_by_id_usecase.dart';
 import '../../features/invoice/domain/usecases/mark_invoice_paid_usecase.dart';
 import '../../features/invoice/presentation/bloc/invoice_bloc.dart';
 
@@ -152,11 +153,14 @@ Future<void> configureDependencies() async {
   getIt.registerLazySingleton(
       () => GetInvoicesUseCase(getIt<InvoiceRepository>()));
   getIt.registerLazySingleton(
+      () => GetInvoiceByIdUseCase(getIt<InvoiceRepository>()));
+  getIt.registerLazySingleton(
       () => MarkInvoicePaidUseCase(getIt<InvoiceRepository>()));
   getIt.registerFactory<InvoiceBloc>(
     () => InvoiceBloc(
       createInvoiceUseCase: getIt<CreateInvoiceUseCase>(),
       getInvoicesUseCase: getIt<GetInvoicesUseCase>(),
+      getInvoiceByIdUseCase: getIt<GetInvoiceByIdUseCase>(),
       markInvoicePaidUseCase: getIt<MarkInvoicePaidUseCase>(),
     ),
   );

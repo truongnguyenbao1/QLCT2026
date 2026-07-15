@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 
 import '../../domain/entities/invoice.dart';
 import '../../domain/usecases/create_invoice_usecase.dart';
+import '../../domain/usecases/get_invoice_by_id_usecase.dart';
 import '../../domain/usecases/get_invoices_usecase.dart';
 import '../../domain/usecases/mark_invoice_paid_usecase.dart';
 
@@ -123,6 +124,7 @@ class InvoicePreviousReadingsLoaded extends InvoiceState {
 // ── BLoC ──────────────────────────────────────────────────────────────────
 class InvoiceBloc extends Bloc<InvoiceEvent, InvoiceState> {
   final GetInvoicesUseCase _getInvoicesUseCase;
+  final GetInvoiceByIdUseCase _getInvoiceByIdUseCase;
   final CreateInvoiceUseCase _createInvoiceUseCase;
   final MarkInvoicePaidUseCase _markInvoicePaidUseCase;
 
@@ -130,9 +132,11 @@ class InvoiceBloc extends Bloc<InvoiceEvent, InvoiceState> {
 
   InvoiceBloc({
     required GetInvoicesUseCase getInvoicesUseCase,
+    required GetInvoiceByIdUseCase getInvoiceByIdUseCase,
     required CreateInvoiceUseCase createInvoiceUseCase,
     required MarkInvoicePaidUseCase markInvoicePaidUseCase,
   })  : _getInvoicesUseCase = getInvoicesUseCase,
+        _getInvoiceByIdUseCase = getInvoiceByIdUseCase,
         _createInvoiceUseCase = createInvoiceUseCase,
         _markInvoicePaidUseCase = markInvoicePaidUseCase,
         super(const InvoiceInitial()) {
@@ -165,24 +169,22 @@ class InvoiceBloc extends Bloc<InvoiceEvent, InvoiceState> {
   Future<void> _onLoadInvoiceDetail(
       LoadInvoiceDetailEvent event, Emitter<InvoiceState> emit) async {
     emit(const InvoicesLoading());
+
+    // 1. Thử tìm trong cache trước (nhanh hơn)
     try {
-      final invoice = _currentInvoices.firstWhere((i) => i.id == event.invoiceId);
-      emit(InvoiceDetailLoaded(invoice));
+      final cached = _currentInvoices.firstWhere((i) => i.id == event.invoiceId);
+      emit(InvoiceDetailLoaded(cached));
+      return;
     } catch (_) {
-      final result = await _getInvoicesUseCase();
-      result.fold(
-        (failure) => emit(InvoiceError(failure.message)),
-        (invoices) {
-          _currentInvoices = invoices;
-          try {
-            final invoice = _currentInvoices.firstWhere((i) => i.id == event.invoiceId);
-            emit(InvoiceDetailLoaded(invoice));
-          } catch (_) {
-            emit(const InvoiceError('Không tìm thấy hóa đơn'));
-          }
-        },
-      );
+      // Không có trong cache, gọi API trực tiếp
     }
+
+    // 2. Gọi API lấy theo ID
+    final result = await _getInvoiceByIdUseCase(event.invoiceId);
+    result.fold(
+      (failure) => emit(InvoiceError(failure.message)),
+      (invoice) => emit(InvoiceDetailLoaded(invoice)),
+    );
   }
 
   Future<void> _onCreateInvoice(

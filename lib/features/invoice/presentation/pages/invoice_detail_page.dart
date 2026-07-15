@@ -8,12 +8,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:printing/printing.dart';
-import '../../../../core/utils/pdf_generator.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../core/widgets/print_dialog.dart';
 import '../../../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../../../features/auth/presentation/bloc/auth_state.dart';
 import '../../domain/entities/invoice.dart';
@@ -90,19 +89,15 @@ class _InvoiceDetailContent extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.share_rounded),
             onPressed: () async {
-              final pdfBytes = await PdfGenerator.generateInvoicePdf(invoice);
-              await Printing.sharePdf(bytes: pdfBytes, filename: 'hoadon_${invoice.month}_${invoice.year}_phong_${invoice.roomNumber}.pdf');
+              await PrintInvoiceDialog.show(context, invoice);
             },
-            tooltip: 'Chia sẻ hóa đơn',
+            tooltip: 'In / Chia sẻ hóa đơn',
           ),
           IconButton(
-            icon: const Icon(Icons.picture_as_pdf_rounded),
-            onPressed: () async {
-              final pdfBytes = await PdfGenerator.generateInvoicePdf(invoice);
-              await Printing.layoutPdf(onLayout: (format) async => pdfBytes);
-            },
-            tooltip: 'Xuất PDF / In',
-            color: AppColors.error,
+            icon: const Icon(Icons.print_rounded),
+            onPressed: () => PrintInvoiceDialog.show(context, invoice),
+            tooltip: 'In hóa đơn',
+            color: AppColors.primary,
           ),
         ],
       ),
@@ -623,11 +618,23 @@ class _PaidConfirmation extends StatelessWidget {
               style: const TextStyle(color: AppColors.success, fontSize: 13),
             ),
           ],
+          const SizedBox(height: 16),
+          // Nút in biên lai thanh toán
+          OutlinedButton.icon(
+            onPressed: () => PrintInvoiceDialog.show(context, invoice),
+            icon: const Icon(Icons.print_rounded, size: 18),
+            label: const Text('In biên lai'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.success,
+              side: const BorderSide(color: AppColors.success),
+            ),
+          ),
         ],
       ),
     );
   }
 }
+
 
 // ── Helper Widgets ────────────────────────────────────────────────────────
 class _InfoRow extends StatelessWidget {

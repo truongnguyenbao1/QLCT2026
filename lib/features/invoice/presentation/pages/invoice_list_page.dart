@@ -117,7 +117,7 @@ class _InvoiceListViewState extends State<_InvoiceListView> {
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () {
-          context.go('/invoices/${invoice.id}');
+          context.push('/invoices/${invoice.id}');
         },
         child: Padding(
           padding: const EdgeInsets.all(16.0),
