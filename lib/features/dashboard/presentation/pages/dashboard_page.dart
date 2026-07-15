@@ -117,6 +117,7 @@ class _DashboardViewState extends State<_DashboardView> {
           ),
         ],
       ),
+      ),
     );
   }
 }
