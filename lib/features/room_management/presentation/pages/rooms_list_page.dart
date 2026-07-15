@@ -49,15 +49,25 @@ class _RoomsListView extends StatelessWidget {
           ),
         ],
       ),
-      body: BlocConsumer<RoomBloc, RoomState>(
-        listener: (context, state) {
-          if (state is RoomError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: AppColors.error,
-              ),
-            );
+      body: BlocListener<AuthBloc, AuthState>(
+        listener: (context, authState) {
+          if (authState is AuthAuthenticated && authState.user.isOwner) {
+            final propertyId = authState.user.propertyId ?? '';
+            final roomState = context.read<RoomBloc>().state;
+            if (roomState is RoomInitial) {
+              context.read<RoomBloc>().add(LoadRoomsEvent(propertyId));
+            }
+          }
+        },
+        child: BlocConsumer<RoomBloc, RoomState>(
+          listener: (context, state) {
+            if (state is RoomError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: AppColors.error,
+                ),
+              );
           } else if (state is RoomActionSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -130,6 +140,7 @@ class _RoomsListView extends StatelessWidget {
  
           return const Center(child: CircularProgressIndicator());
         },
+      ),
       ),
       floatingActionButton: isOwner
           ? FloatingActionButton.extended(

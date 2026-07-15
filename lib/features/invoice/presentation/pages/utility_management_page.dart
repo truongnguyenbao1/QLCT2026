@@ -64,8 +64,19 @@ class _UtilityManagementViewState extends State<_UtilityManagementView> {
       appBar: AppBar(
         title: const Text('Quản lý Điện Nước'),
       ),
-      body: Column(
-        children: [
+      body: BlocListener<AuthBloc, AuthState>(
+        listener: (context, authState) {
+          if (authState is AuthAuthenticated && authState.user.isOwner) {
+            final propertyId = authState.user.propertyId ?? '';
+            final roomState = context.read<RoomBloc>().state;
+            if (roomState is RoomInitial || (roomState is RoomsLoaded && roomState.rooms.isEmpty)) {
+              context.read<RoomBloc>().add(LoadRoomsEvent(propertyId));
+              context.read<InvoiceBloc>().add(LoadInvoicesEvent(month: _selectedMonth, year: _selectedYear));
+            }
+          }
+        },
+        child: Column(
+          children: [
           Container(
             padding: const EdgeInsets.all(16),
             color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
@@ -182,6 +193,7 @@ class _UtilityManagementViewState extends State<_UtilityManagementView> {
             ),
           ),
         ],
+      ),
       ),
     );
   }
