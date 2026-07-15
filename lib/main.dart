@@ -85,32 +85,36 @@ class _QuanLyNhaTroAppState extends State<QuanLyNhaTroApp> with WidgetsBindingOb
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _resetInactivityTimer();
+    _startInactivityTimer();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      if (DateTime.now().difference(_lastInteraction) > const Duration(minutes: 5)) {
+      if (DateTime.now().difference(_lastInteraction) >= const Duration(minutes: 5)) {
         final authState = _authBloc.state;
         if (authState is AuthAuthenticated) {
           _authBloc.add(const AuthLogoutEvent());
         }
-      } else {
-        _resetInactivityTimer();
       }
     }
   }
 
-  void _resetInactivityTimer() {
-    _lastInteraction = DateTime.now();
+  void _startInactivityTimer() {
     _inactivityTimer?.cancel();
-    _inactivityTimer = Timer(const Duration(minutes: 5), () {
-      final state = _authBloc.state;
-      if (state is AuthAuthenticated) {
-        _authBloc.add(const AuthLogoutEvent());
+    // Kiểm tra mỗi phút thay vì tạo lại Timer liên tục mỗi khi chạm màn hình
+    _inactivityTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
+      if (DateTime.now().difference(_lastInteraction) >= const Duration(minutes: 5)) {
+        final state = _authBloc.state;
+        if (state is AuthAuthenticated) {
+          _authBloc.add(const AuthLogoutEvent());
+        }
       }
     });
+  }
+
+  void _handleInteraction([_]) {
+    _lastInteraction = DateTime.now();
   }
 
   @override
@@ -127,10 +131,9 @@ class _QuanLyNhaTroAppState extends State<QuanLyNhaTroApp> with WidgetsBindingOb
       value: _authBloc,
       child: Listener(
         behavior: HitTestBehavior.translucent,
-        onPointerDown: (_) => _resetInactivityTimer(),
-        onPointerMove: (_) => _resetInactivityTimer(),
-        onPointerHover: (_) => _resetInactivityTimer(),
-        onPointerUp: (_) => _resetInactivityTimer(),
+        onPointerDown: _handleInteraction,
+        onPointerMove: _handleInteraction,
+        onPointerUp: _handleInteraction,
         child: MaterialApp.router(
         title: 'Quản lý Nhà trọ',
         debugShowCheckedModeBanner: false,
