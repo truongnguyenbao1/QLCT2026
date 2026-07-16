@@ -9,8 +9,6 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
-// ignore: avoid_web_libraries_in_flutter
-import 'dart:js' as js;
 
 import '../../features/invoice/domain/entities/invoice.dart';
 import '../constants/app_colors.dart';
@@ -98,17 +96,6 @@ class _PrintInvoiceDialogState extends State<PrintInvoiceDialog> {
                 )
               : PdfPageFormat.a5,
         );
-
-        // Gửi lệnh ESC/POS cắt giấy sau khi in (chỉ máy in nhiệt)
-        if (ok && kIsWeb && _printSize == _PrintSize.thermal) {
-          try {
-            // Đợi máy in xử lý xong (khoảng 2 giây)
-            await Future.delayed(const Duration(seconds: 2));
-            js.context.callMethod('cutPaper', []);
-          } catch (_) {
-            // Không có Web Serial API hoặc chưa kết nối — bỏ qua
-          }
-        }
       } else {
         // 🖥 Desktop: in trực tiếp tới máy in đã chọn
         ok = await PrinterService.printDirectly(
