@@ -136,6 +136,38 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
           ''')
           .single();
 
+      // Cập nhật bảng chiso (ELECTRIC)
+      try {
+        await _client.from(AppConstants.tableMeterReadings).upsert({
+          'room_id': invoice.roomId,
+          'type': 'ELECTRIC',
+          'prev_reading': invoice.electricPrevReading,
+          'curr_reading': invoice.electricCurrReading,
+          'unit_price': invoice.electricUnitPrice,
+          'month': invoice.month,
+          'year': invoice.year,
+          'reading_date': DateTime.now().toIso8601String(),
+        }, onConflict: 'room_id, type, month, year');
+      } catch (e) {
+        // Bỏ qua nếu có lỗi nhỏ lúc ghi log chiso
+      }
+
+      // Cập nhật bảng chiso (WATER)
+      try {
+        await _client.from(AppConstants.tableMeterReadings).upsert({
+          'room_id': invoice.roomId,
+          'type': 'WATER',
+          'prev_reading': invoice.waterPrevReading,
+          'curr_reading': invoice.waterCurrReading,
+          'unit_price': invoice.waterUnitPrice,
+          'month': invoice.month,
+          'year': invoice.year,
+          'reading_date': DateTime.now().toIso8601String(),
+        }, onConflict: 'room_id, type, month, year');
+      } catch (e) {
+        // Bỏ qua
+      }
+
       final map = Map<String, dynamic>.from(data);
       map['room_number'] = data['phong']?['room_number'] ?? '';
       map['tenant_name'] = data['khachthue']?['full_name'];
@@ -212,6 +244,38 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
             khachthue(full_name)
           ''')
           .single();
+
+      // Cập nhật bảng chiso (ELECTRIC)
+      try {
+        await _client.from(AppConstants.tableMeterReadings).upsert({
+          'room_id': invoice.roomId,
+          'type': 'ELECTRIC',
+          'prev_reading': invoice.electricPrevReading,
+          'curr_reading': invoice.electricCurrReading,
+          'unit_price': invoice.electricUnitPrice,
+          'month': invoice.month,
+          'year': invoice.year,
+          'reading_date': DateTime.now().toIso8601String(),
+        }, onConflict: 'room_id, type, month, year');
+      } catch (e) {
+        // Bỏ qua
+      }
+
+      // Cập nhật bảng chiso (WATER)
+      try {
+        await _client.from(AppConstants.tableMeterReadings).upsert({
+          'room_id': invoice.roomId,
+          'type': 'WATER',
+          'prev_reading': invoice.waterPrevReading,
+          'curr_reading': invoice.waterCurrReading,
+          'unit_price': invoice.waterUnitPrice,
+          'month': invoice.month,
+          'year': invoice.year,
+          'reading_date': DateTime.now().toIso8601String(),
+        }, onConflict: 'room_id, type, month, year');
+      } catch (e) {
+        // Bỏ qua
+      }
 
       final map = Map<String, dynamic>.from(data);
       map['room_number'] = data['phong']?['room_number'] ?? '';
