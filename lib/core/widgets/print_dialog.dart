@@ -217,52 +217,23 @@ class _PrintInvoiceDialogState extends State<PrintInvoiceDialog> {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.blue.withOpacity(0.3)),
               ),
-              child: Column(
+              child: const Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Row(
-                    children: [
-                      Icon(Icons.info_outline_rounded,
-                          color: Colors.blue, size: 20),
-                      SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          'Nhấn "In ngay" → chọn XP-80C trong hộp thoại.\n'
-                          'Để tự động cắt giấy, nhấn "Kết nối USB" bên dưới.',
-                          style: TextStyle(color: Colors.blue, fontSize: 12.5),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      icon: const Icon(Icons.usb_rounded, size: 16),
-                      label: const Text('Kết nối USB máy in (cho lệnh cắt giấy)'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.blue,
-                        side: const BorderSide(color: Colors.blue),
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        textStyle: const TextStyle(fontSize: 12),
-                      ),
-                      onPressed: () {
-                        try {
-                          // ignore: avoid_web_libraries_in_flutter
-                          js.context.callMethod('connectThermalPrinter', []);
-                        } catch (_) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Trình duyệt không hỗ trợ Web Serial API'),
-                            ),
-                          );
-                        }
-                      },
+                  Icon(Icons.info_outline_rounded,
+                      color: Colors.blue, size: 20),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Nhấn "In ngay" → chọn XP-80C trong hộp thoại trình duyệt.\n'
+                      'Máy sẽ tự cắt giấy nếu đã bật "Cut paper per job" trong driver.',
+                      style: TextStyle(color: Colors.blue, fontSize: 12.5),
                     ),
                   ),
                 ],
               ),
             ),
+
 
           // ── Kích thước giấy ────────────────────────────────────────────
           Text('Kích thước giấy', style: theme.textTheme.labelLarge),
