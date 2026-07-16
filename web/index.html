@@ -92,6 +92,71 @@
 
 <body>
 
+  <!-- ══ ESC/POS Bridge: gửi lệnh cắt giấy qua Web Serial API ══════════ -->
+  <script>
+    /**
+     * Kết nối tới máy in nhiệt qua USB (Web Serial API)
+     * và gửi lệnh ESC/POS cắt giấy: GS V 0 (Full Cut)
+     *
+     * Gọi từ Flutter: js.context.callMethod('cutPaper', [])
+     *
+     * Yêu cầu: Chrome/Edge 89+, HTTPS hoặc localhost
+     */
+    let _thermalPort = null;
+
+    // Mở kết nối Serial tới máy in (chỉ cần 1 lần, lưu lại)
+    async function connectThermalPrinter() {
+      try {
+        if (!('serial' in navigator)) {
+          console.warn('[ESC/POS] Web Serial API không được hỗ trợ trên trình duyệt này.');
+          return false;
+        }
+        // Hiện dialog chọn cổng Serial (USB)
+        _thermalPort = await navigator.serial.requestPort();
+        await _thermalPort.open({ baudRate: 9600 });
+        console.log('[ESC/POS] Đã kết nối máy in nhiệt.');
+        return true;
+      } catch (e) {
+        console.error('[ESC/POS] Lỗi kết nối:', e);
+        _thermalPort = null;
+        return false;
+      }
+    }
+
+    // Gửi lệnh ESC/POS cắt giấy + feed lines
+    async function cutPaper() {
+      try {
+        if (!_thermalPort || !_thermalPort.writable) {
+          console.warn('[ESC/POS] Chưa kết nối máy in. Đang thử kết nối...');
+          const ok = await connectThermalPrinter();
+          if (!ok) return false;
+        }
+
+        const writer = _thermalPort.writable.getWriter();
+
+        // ESC/POS commands:
+        // ESC d n  = Feed n lines (0x1B 0x64 0x05 = feed 5 lines)
+        // GS V 0   = Full paper cut (0x1D 0x56 0x00)
+        const commands = new Uint8Array([
+          0x1B, 0x64, 0x05,   // Feed 5 lines
+          0x1D, 0x56, 0x00,   // Full cut
+        ]);
+
+        await writer.write(commands);
+        writer.releaseLock();
+        console.log('[ESC/POS] Đã gửi lệnh cắt giấy.');
+        return true;
+      } catch (e) {
+        console.error('[ESC/POS] Lỗi gửi lệnh cắt:', e);
+        return false;
+      }
+    }
+
+    // Expose toàn cục để Flutter gọi qua dart:js
+    window.cutPaper = cutPaper;
+    window.connectThermalPrinter = connectThermalPrinter;
+  </script>
+
   <script src="flutter_bootstrap.js" async></script>
 </body>
 

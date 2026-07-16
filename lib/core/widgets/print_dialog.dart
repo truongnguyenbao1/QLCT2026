@@ -9,6 +9,8 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
+// ignore: avoid_web_libraries_in_flutter
+import 'dart:js' as js;
 
 import '../../features/invoice/domain/entities/invoice.dart';
 import '../constants/app_colors.dart';
@@ -83,7 +85,7 @@ class _PrintInvoiceDialogState extends State<PrintInvoiceDialog> {
       bool ok;
 
       if (kIsWeb || _selectedPrinter == null) {
-        // 🌐 Web hoặc không có máy in: in qua dialog trình duyệt
+        // 🌐 Web: in qua dialog trình duyệt
         ok = await Printing.layoutPdf(
           onLayout: (_) async => pdfBytes,
           name:
@@ -96,6 +98,17 @@ class _PrintInvoiceDialogState extends State<PrintInvoiceDialog> {
                 )
               : PdfPageFormat.a5,
         );
+
+        // Gửi lệnh ESC/POS cắt giấy sau khi in (chỉ máy in nhiệt)
+        if (ok && kIsWeb && _printSize == _PrintSize.thermal) {
+          try {
+            // Đợi máy in xử lý xong (khoảng 2 giây)
+            await Future.delayed(const Duration(seconds: 2));
+            js.context.callMethod('cutPaper', []);
+          } catch (_) {
+            // Không có Web Serial API hoặc chưa kết nối — bỏ qua
+          }
+        }
       } else {
         // 🖥 Desktop: in trực tiếp tới máy in đã chọn
         ok = await PrinterService.printDirectly(
@@ -204,16 +217,47 @@ class _PrintInvoiceDialogState extends State<PrintInvoiceDialog> {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.blue.withOpacity(0.3)),
               ),
-              child: const Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.info_outline_rounded,
-                      color: Colors.blue, size: 20),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'Ứng dụng đang chạy trên trình duyệt.\n'
-                      'Nhấn "In ngay" → chọn máy in XP-80C trong hộp thoại của trình duyệt.',
-                      style: TextStyle(color: Colors.blue, fontSize: 12.5),
+                  const Row(
+                    children: [
+                      Icon(Icons.info_outline_rounded,
+                          color: Colors.blue, size: 20),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Nhấn "In ngay" → chọn XP-80C trong hộp thoại.\n'
+                          'Để tự động cắt giấy, nhấn "Kết nối USB" bên dưới.',
+                          style: TextStyle(color: Colors.blue, fontSize: 12.5),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.usb_rounded, size: 16),
+                      label: const Text('Kết nối USB máy in (cho lệnh cắt giấy)'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.blue,
+                        side: const BorderSide(color: Colors.blue),
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        textStyle: const TextStyle(fontSize: 12),
+                      ),
+                      onPressed: () {
+                        try {
+                          // ignore: avoid_web_libraries_in_flutter
+                          js.context.callMethod('connectThermalPrinter', []);
+                        } catch (_) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Trình duyệt không hỗ trợ Web Serial API'),
+                            ),
+                          );
+                        }
+                      },
                     ),
                   ),
                 ],
