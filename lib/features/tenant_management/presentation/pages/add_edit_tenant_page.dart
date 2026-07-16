@@ -331,6 +331,20 @@ class _AddEditTenantFormState extends State<_AddEditTenantForm> {
             } else if (state is TenantSearchNotFound) {
               // Not found, do nothing, just let user enter info
             } else if (state is TenantOperationSuccess) {
+              // Cập nhật trạng thái phòng thành Đang thuê nếu đang trống
+              if (_selectedRoomId != null) {
+                final roomState = context.read<RoomBloc>().state;
+                if (roomState is RoomsLoaded) {
+                  try {
+                    final selectedRoom = roomState.rooms.firstWhere((r) => r.id == _selectedRoomId);
+                    if (selectedRoom.status != RoomStatus.occupied) {
+                      final updatedRoom = selectedRoom.copyWith(status: RoomStatus.occupied);
+                      context.read<RoomBloc>().add(UpdateRoomEvent(updatedRoom));
+                    }
+                  } catch (_) {}
+                }
+              }
+
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(state.message),

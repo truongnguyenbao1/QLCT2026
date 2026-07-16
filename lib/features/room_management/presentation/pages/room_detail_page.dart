@@ -79,10 +79,8 @@ class RoomDetailPage extends StatelessWidget {
             children: [
               _buildStatusCard(theme, room),
               const SizedBox(height: 16),
-              if (room.status == RoomStatus.occupied) ...[
-                _buildTenantsCard(theme, room),
-                const SizedBox(height: 16),
-              ],
+              _buildTenantsCard(theme, room),
+              const SizedBox(height: 16),
               _buildInfoCard(theme, room),
               const SizedBox(height: 16),
               _buildCostCard(theme, room),
@@ -353,6 +351,13 @@ class RoomDetailPage extends StatelessWidget {
                             );
                             if (confirm == true && context.mounted) {
                               context.read<TenantBloc>().add(DeleteTenantEvent(tenant.id));
+                              
+                              // Nếu đây là khách thuê cuối cùng, cập nhật trạng thái phòng thành "Còn trống"
+                              if (tenants.length == 1 && room.status != RoomStatus.empty) {
+                                final updatedRoom = room.copyWith(status: RoomStatus.empty);
+                                context.read<RoomBloc>().add(UpdateRoomEvent(updatedRoom));
+                              }
+
                               // Also reload rooms to update counts/stats if needed
                               final authState = context.read<AuthBloc>().state;
                               if (authState is AuthAuthenticated) {

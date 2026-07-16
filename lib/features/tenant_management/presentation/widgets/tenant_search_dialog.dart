@@ -6,6 +6,8 @@ import '../../../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../../../features/auth/presentation/bloc/auth_state.dart';
 import '../../domain/entities/tenant.dart';
 import '../bloc/tenant_bloc.dart';
+import '../../../../features/room_management/presentation/bloc/room_bloc.dart';
+import '../../../../features/room_management/domain/entities/room.dart';
 
 class TenantSearchDialog extends StatefulWidget {
   final String roomId;
@@ -13,9 +15,13 @@ class TenantSearchDialog extends StatefulWidget {
   const TenantSearchDialog({super.key, required this.roomId});
 
   static Future<bool?> show(BuildContext context, String roomId) {
+    final roomBloc = context.read<RoomBloc>();
     return showDialog<bool>(
       context: context,
-      builder: (context) => TenantSearchDialog(roomId: roomId),
+      builder: (dialogContext) => BlocProvider.value(
+        value: roomBloc,
+        child: TenantSearchDialog(roomId: roomId),
+      ),
     );
   }
 
@@ -66,6 +72,14 @@ class _TenantSearchDialogState extends State<TenantSearchDialog> {
       child: BlocConsumer<TenantBloc, TenantState>(
         listener: (context, state) {
           if (state is TenantOperationSuccess) {
+            final roomState = context.read<RoomBloc>().state;
+            if (roomState is RoomsLoaded) {
+                 final selectedRoom = roomState.rooms.firstWhere((r) => r.id == widget.roomId);
+                 if (selectedRoom.status != RoomStatus.occupied) {
+                    final updatedRoom = selectedRoom.copyWith(status: RoomStatus.occupied);
+                    context.read<RoomBloc>().add(UpdateRoomEvent(updatedRoom));
+                 }
+            }
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Thêm khách thuê vào phòng thành công')),
             );
