@@ -499,7 +499,7 @@ class _RoomCard extends StatelessWidget {
                           color: AppColors.textTertiary),
                       const SizedBox(width: 4),
                       Text(
-                        'T${room.floor}',
+                        room.floor != null ? 'T${room.floor}' : 'Trệt',
                         style: theme.textTheme.bodySmall,
                       ),
                     ],
