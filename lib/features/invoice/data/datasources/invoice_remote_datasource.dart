@@ -22,6 +22,8 @@ abstract class InvoiceRemoteDataSource {
     String? paymentMethod,
     String? transactionId,
   });
+  Future<InvoiceModel> updateInvoice(InvoiceModel invoice);
+  Future<void> deleteInvoice(String invoiceId);
   Future<InvoiceModel> tenantConfirmPayment(String invoiceId);
   Future<InvoiceModel> ownerConfirmPayment(String invoiceId);
   Future<List<InvoiceModel>> getInvoicesByQuarter({
@@ -194,6 +196,38 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
     } catch (e) {
       if (e is Failure) rethrow;
       throw ServerFailure(message: 'Lỗi cập nhật trạng thái: $e');
+    }
+  }
+
+  @override
+  Future<InvoiceModel> updateInvoice(InvoiceModel invoice) async {
+    try {
+      final data = await _client
+          .from(AppConstants.tableInvoices)
+          .update(invoice.toUpdateJson())
+          .eq('id', invoice.id)
+          .select('''
+            *,
+            phong!inner(room_number),
+            khachthue(full_name)
+          ''')
+          .single();
+
+      final map = Map<String, dynamic>.from(data);
+      map['room_number'] = data['phong']?['room_number'] ?? '';
+      map['tenant_name'] = data['khachthue']?['full_name'];
+      return InvoiceModel.fromJson(map);
+    } catch (e) {
+      throw ServerFailure(message: 'Lỗi cập nhật hóa đơn: $e');
+    }
+  }
+
+  @override
+  Future<void> deleteInvoice(String invoiceId) async {
+    try {
+      await _client.from(AppConstants.tableInvoices).delete().eq('id', invoiceId);
+    } catch (e) {
+      throw ServerFailure(message: 'Lỗi xóa hóa đơn: $e');
     }
   }
 

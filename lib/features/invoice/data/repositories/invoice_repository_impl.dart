@@ -57,6 +57,29 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
   }
 
   @override
+  Future<Either<Failure, Invoice>> updateInvoice(Invoice invoice) async {
+    try {
+      final model = InvoiceModel.fromEntity(invoice);
+      final result = await _remoteDataSource.updateInvoice(model);
+      return Right(result);
+    } on Failure catch (f) {
+      return Left(f);
+    } catch (e) {
+      return Left(ServerFailure(message: 'Lỗi cập nhật hóa đơn: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteInvoice(String invoiceId) async {
+    try {
+      await _remoteDataSource.deleteInvoice(invoiceId);
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(message: 'Lỗi xóa hóa đơn: $e'));
+    }
+  }
+
+  @override
   Future<Either<Failure, Invoice>> updateInvoiceStatus({
     required String invoiceId,
     required InvoiceStatus status,

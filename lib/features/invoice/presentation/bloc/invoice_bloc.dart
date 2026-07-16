@@ -47,6 +47,20 @@ class CreateInvoiceEvent extends InvoiceEvent {
   List<Object?> get props => [invoice];
 }
 
+class UpdateInvoiceEvent extends InvoiceEvent {
+  final Invoice invoice;
+  const UpdateInvoiceEvent(this.invoice);
+  @override
+  List<Object?> get props => [invoice];
+}
+
+class DeleteInvoiceEvent extends InvoiceEvent {
+  final String invoiceId;
+  const DeleteInvoiceEvent(this.invoiceId);
+  @override
+  List<Object?> get props => [invoiceId];
+}
+
 class MarkInvoicePaidEvent extends InvoiceEvent {
   final String invoiceId;
   final String? paymentMethod;
@@ -127,6 +141,8 @@ class InvoiceBloc extends Bloc<InvoiceEvent, InvoiceState> {
   final GetInvoiceByIdUseCase _getInvoiceByIdUseCase;
   final CreateInvoiceUseCase _createInvoiceUseCase;
   final MarkInvoicePaidUseCase _markInvoicePaidUseCase;
+  final UpdateInvoiceUseCase _updateInvoiceUseCase;
+  final DeleteInvoiceUseCase _deleteInvoiceUseCase;
 
   List<Invoice> _currentInvoices = [];
 
@@ -135,16 +151,22 @@ class InvoiceBloc extends Bloc<InvoiceEvent, InvoiceState> {
     required GetInvoiceByIdUseCase getInvoiceByIdUseCase,
     required CreateInvoiceUseCase createInvoiceUseCase,
     required MarkInvoicePaidUseCase markInvoicePaidUseCase,
+    required UpdateInvoiceUseCase updateInvoiceUseCase,
+    required DeleteInvoiceUseCase deleteInvoiceUseCase,
   })  : _getInvoicesUseCase = getInvoicesUseCase,
         _getInvoiceByIdUseCase = getInvoiceByIdUseCase,
         _createInvoiceUseCase = createInvoiceUseCase,
         _markInvoicePaidUseCase = markInvoicePaidUseCase,
+        _updateInvoiceUseCase = updateInvoiceUseCase,
+        _deleteInvoiceUseCase = deleteInvoiceUseCase,
         super(const InvoiceInitial()) {
     on<LoadInvoicesEvent>(_onLoadInvoices);
     on<LoadInvoiceDetailEvent>(_onLoadInvoiceDetail);
     on<CreateInvoiceEvent>(_onCreateInvoice);
     on<MarkInvoicePaidEvent>(_onMarkInvoicePaid);
     on<FetchPreviousReadingsEvent>(_onFetchPreviousReadings);
+    on<UpdateInvoiceEvent>(_onUpdateInvoice);
+    on<DeleteInvoiceEvent>(_onDeleteInvoice);
   }
 
   Future<void> _onLoadInvoices(
@@ -247,6 +269,43 @@ class InvoiceBloc extends Bloc<InvoiceEvent, InvoiceState> {
         } else {
           emit(const InvoicePreviousReadingsLoaded(0, 0));
         }
+      },
+    );
+  }
+
+  Future<void> _onUpdateInvoice(
+      UpdateInvoiceEvent event, Emitter<InvoiceState> emit) async {
+    emit(const InvoicesLoading());
+    final result = await _updateInvoiceUseCase(event.invoice);
+    result.fold(
+      (failure) => emit(InvoiceError(failure.message)),
+      (updatedInvoice) {
+        _currentInvoices = _currentInvoices
+            .map((i) => i.id == updatedInvoice.id ? updatedInvoice : i)
+            .toList();
+        emit(InvoiceActionSuccess(
+          message: 'Cập nhật hóa đơn thành công!',
+          invoices: _currentInvoices,
+        ));
+        emit(InvoiceDetailLoaded(updatedInvoice));
+        emit(InvoicesLoaded(invoices: _currentInvoices));
+      },
+    );
+  }
+
+  Future<void> _onDeleteInvoice(
+      DeleteInvoiceEvent event, Emitter<InvoiceState> emit) async {
+    emit(const InvoicesLoading());
+    final result = await _deleteInvoiceUseCase(event.invoiceId);
+    result.fold(
+      (failure) => emit(InvoiceError(failure.message)),
+      (_) {
+        _currentInvoices = _currentInvoices.where((i) => i.id != event.invoiceId).toList();
+        emit(InvoiceActionSuccess(
+          message: 'Xóa hóa đơn thành công!',
+          invoices: _currentInvoices,
+        ));
+        emit(InvoicesLoaded(invoices: _currentInvoices));
       },
     );
   }

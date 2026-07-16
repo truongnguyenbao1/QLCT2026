@@ -19,6 +19,8 @@ abstract class InvoiceRepository {
     String? paymentMethod,
     String? transactionId,
   });
+  Future<Either<Failure, Invoice>> updateInvoice(Invoice invoice);
+  Future<Either<Failure, void>> deleteInvoice(String invoiceId);
   Future<Either<Failure, Invoice>> tenantConfirmPayment(String invoiceId);
   Future<Either<Failure, Invoice>> ownerConfirmPayment(String invoiceId);
   Future<Either<Failure, List<Invoice>>> getInvoicesByQuarter({

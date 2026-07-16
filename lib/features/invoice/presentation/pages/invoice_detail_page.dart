@@ -13,6 +13,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/widgets/print_dialog.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../../../features/auth/presentation/bloc/auth_state.dart';
 import '../../domain/entities/invoice.dart';
@@ -99,6 +100,43 @@ class _InvoiceDetailContent extends StatelessWidget {
             tooltip: 'In hóa đơn',
             color: AppColors.primary,
           ),
+          if (!invoice.isPaid && isOwner)
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                if (value == 'edit') {
+                  _showPasswordConfirmationDialog(context, 'Sửa hóa đơn', () {
+                    context.push('/invoices/${invoice.id}/edit', extra: invoice);
+                  });
+                } else if (value == 'delete') {
+                  _showPasswordConfirmationDialog(context, 'Xóa hóa đơn', () {
+                    context.read<InvoiceBloc>().add(DeleteInvoiceEvent(invoice.id));
+                    context.pop(); // Quay lại trang danh sách
+                  });
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'edit',
+                  child: Row(
+                    children: [
+                      Icon(Icons.edit, size: 20),
+                      SizedBox(width: 8),
+                      Text('Sửa hóa đơn'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete, color: Colors.red, size: 20),
+                      SizedBox(width: 8),
+                      Text('Xóa hóa đơn', style: TextStyle(color: Colors.red)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
         ],
       ),
       body: SingleChildScrollView(
@@ -149,6 +187,108 @@ class _InvoiceDetailContent extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  void _showPasswordConfirmationDialog(BuildContext context, String actionName, VoidCallback onSuccess) {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is! AuthAuthenticated) return;
+    
+    final adminEmail = authState.user.email;
+    final passwordController = TextEditingController();
+    bool isLoading = false;
+    String? errorMessage;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Row(
+                children: [
+                  Icon(Icons.security, color: AppColors.primary),
+                  SizedBox(width: 8),
+                  Text('Xác thực bảo mật'),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Vui lòng nhập mật khẩu của bạn để xác nhận $actionName.',
+                    style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: passwordController,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      labelText: 'Mật khẩu của bạn',
+                      errorText: errorMessage,
+                      border: const OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.lock_outline),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isLoading ? null : () => Navigator.pop(dialogContext),
+                  child: const Text('Hủy'),
+                ),
+                FilledButton(
+                  onPressed: isLoading
+                      ? null
+                      : () async {
+                          final password = passwordController.text.trim();
+                          if (password.isEmpty) {
+                            setDialogState(() {
+                              errorMessage = 'Vui lòng nhập mật khẩu';
+                            });
+                            return;
+                          }
+
+                          setDialogState(() {
+                            isLoading = true;
+                            errorMessage = null;
+                          });
+
+                          try {
+                            await getIt<SupabaseClient>().auth.signInWithPassword(
+                              email: adminEmail,
+                              password: password,
+                            );
+
+                            if (context.mounted) {
+                              Navigator.pop(dialogContext);
+                              onSuccess();
+                            }
+                          } catch (e) {
+                            setDialogState(() {
+                              isLoading = false;
+                              errorMessage = 'Mật khẩu không chính xác';
+                            });
+                          }
+                        },
+                  child: isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text('Xác nhận'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }

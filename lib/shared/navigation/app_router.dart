@@ -19,7 +19,8 @@ import '../../features/room_management/presentation/bloc/room_bloc.dart';
 import '../../features/tenant_management/presentation/pages/tenant_list_page.dart';
 import '../../features/tenant_management/presentation/pages/add_edit_tenant_page.dart';
 import '../../features/invoice/presentation/pages/invoice_list_page.dart';
-import '../../features/invoice/presentation/pages/create_invoice_page.dart';
+import '../../features/invoice/domain/entities/invoice.dart';
+import '../../features/invoice/presentation/pages/add_edit_invoice_page.dart';
 import '../../features/invoice/presentation/pages/invoice_detail_page.dart';
 import '../../features/invoice/presentation/pages/payment_page.dart';
 import '../../features/invoice/presentation/pages/utility_management_page.dart';
@@ -226,7 +227,7 @@ class AppRouter {
                   name: 'createInvoice',
                   builder: (context, state) {
                     final roomId = state.uri.queryParameters['roomId'];
-                    return CreateInvoicePage(roomId: roomId);
+                    return AddEditInvoicePage(roomId: roomId);
                   },
                 ),
                 GoRoute(
@@ -243,6 +244,14 @@ class AppRouter {
                       builder: (context, state) {
                         final invoiceId = state.pathParameters['invoiceId']!;
                         return PaymentPage(invoiceId: invoiceId);
+                      },
+                    ),
+                    GoRoute(
+                      path: 'edit',
+                      name: 'editInvoice',
+                      builder: (context, state) {
+                        final invoice = state.extra as Invoice?;
+                        return AddEditInvoicePage(invoice: invoice);
                       },
                     ),
                   ],

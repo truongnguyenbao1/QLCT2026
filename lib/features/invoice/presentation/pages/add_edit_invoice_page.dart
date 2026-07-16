@@ -13,10 +13,11 @@ import '../../../../core/di/injection.dart';
 import '../../../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../../../features/auth/presentation/bloc/auth_state.dart';
 
-class CreateInvoicePage extends StatelessWidget {
+class AddEditInvoicePage extends StatelessWidget {
   final String? roomId;
+  final Invoice? invoice;
 
-  const CreateInvoicePage({super.key, this.roomId});
+  const AddEditInvoicePage({super.key, this.roomId, this.invoice});
 
   @override
   Widget build(BuildContext context) {
@@ -34,21 +35,22 @@ class CreateInvoicePage extends StatelessWidget {
           create: (_) => getIt<InvoiceBloc>(),
         ),
       ],
-      child: _CreateInvoiceView(roomId: roomId),
+      child: _AddEditInvoiceView(roomId: roomId, invoice: invoice),
     );
   }
 }
 
-class _CreateInvoiceView extends StatefulWidget {
+class _AddEditInvoiceView extends StatefulWidget {
   final String? roomId;
+  final Invoice? invoice;
 
-  const _CreateInvoiceView({this.roomId});
+  const _AddEditInvoiceView({this.roomId, this.invoice});
 
   @override
-  State<_CreateInvoiceView> createState() => _CreateInvoiceViewState();
+  State<_AddEditInvoiceView> createState() => _AddEditInvoiceViewState();
 }
 
-class _CreateInvoiceViewState extends State<_CreateInvoiceView> {
+class _AddEditInvoiceViewState extends State<_AddEditInvoiceView> {
   final _formKey = GlobalKey<FormState>();
 
   String? _selectedRoomId;
@@ -64,14 +66,27 @@ class _CreateInvoiceViewState extends State<_CreateInvoiceView> {
   final _otherAmountCtrl = TextEditingController(text: '0');
   final _otherDescCtrl = TextEditingController();
 
+  bool get _isEditing => widget.invoice != null;
+
   @override
   void initState() {
     super.initState();
-    _selectedRoomId = widget.roomId;
-    _loadRoomDetails();
-    if (_selectedRoomId != null) {
+    _selectedRoomId = widget.invoice?.roomId ?? widget.roomId;
+    
+    if (_isEditing) {
+      _month = widget.invoice!.month;
+      _year = widget.invoice!.year;
+      _elecPrevCtrl.text = widget.invoice!.electricPrevReading.toStringAsFixed(0);
+      _elecCurrCtrl.text = widget.invoice!.electricCurrReading.toStringAsFixed(0);
+      _waterPrevCtrl.text = widget.invoice!.waterPrevReading.toStringAsFixed(0);
+      _waterCurrCtrl.text = widget.invoice!.waterCurrReading.toStringAsFixed(0);
+      _otherAmountCtrl.text = (widget.invoice!.otherAmount ?? 0).toStringAsFixed(0);
+      _otherDescCtrl.text = widget.invoice!.otherDescription ?? '';
+    } else if (_selectedRoomId != null) {
       context.read<InvoiceBloc>().add(FetchPreviousReadingsEvent(_selectedRoomId!));
     }
+
+    _loadRoomDetails();
 
     _elecPrevCtrl.addListener(_updateTotal);
     _elecCurrCtrl.addListener(_updateTotal);
@@ -139,11 +154,11 @@ class _CreateInvoiceViewState extends State<_CreateInvoiceView> {
           : '';
 
       final invoice = Invoice(
-        id: const Uuid().v4(),
+        id: _isEditing ? widget.invoice!.id : const Uuid().v4(),
         roomId: _selectedRoom!.id,
         roomNumber: _selectedRoom!.roomNumber,
-        tenantId: null,
-        tenantName: null,
+        tenantId: _isEditing ? widget.invoice!.tenantId : null,
+        tenantName: _isEditing ? widget.invoice!.tenantName : null,
         month: _month,
         year: _year,
         electricPrevReading: elecPrev,
@@ -156,13 +171,17 @@ class _CreateInvoiceViewState extends State<_CreateInvoiceView> {
         serviceAmount: _selectedRoom!.servicePrice,
         otherAmount: otherAmount > 0 ? otherAmount : null,
         otherDescription: _otherDescCtrl.text.trim().isEmpty ? null : _otherDescCtrl.text.trim(),
-        status: InvoiceStatus.pending,
-        dueDate: DateTime.now().add(const Duration(days: 5)),
-        createdAt: DateTime.now(),
+        status: _isEditing ? widget.invoice!.status : InvoiceStatus.pending,
+        dueDate: _isEditing ? widget.invoice!.dueDate : DateTime.now().add(const Duration(days: 5)),
+        createdAt: _isEditing ? widget.invoice!.createdAt : DateTime.now(),
         createdBy: userId,
       );
 
-      context.read<InvoiceBloc>().add(CreateInvoiceEvent(invoice));
+      if (_isEditing) {
+        context.read<InvoiceBloc>().add(UpdateInvoiceEvent(invoice));
+      } else {
+        context.read<InvoiceBloc>().add(CreateInvoiceEvent(invoice));
+      }
     } else if (_selectedRoom == null) {
        ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Vui lòng chọn phòng'), backgroundColor: Colors.red),
@@ -191,7 +210,7 @@ class _CreateInvoiceViewState extends State<_CreateInvoiceView> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Tạo hóa đơn'),
+          title: Text(_isEditing ? 'Sửa hóa đơn' : 'Tạo hóa đơn'),
         ),
         body: Form(
           key: _formKey,
@@ -224,7 +243,7 @@ class _CreateInvoiceViewState extends State<_CreateInvoiceView> {
                                 child: Text('Phòng ${room.roomNumber}'),
                               );
                             }).toList(),
-                            onChanged: (value) {
+                            onChanged: _isEditing ? null : (value) {
                               setState(() {
                                 _selectedRoomId = value;
                                 _loadRoomDetails();
@@ -430,8 +449,8 @@ class _CreateInvoiceViewState extends State<_CreateInvoiceView> {
                   height: 50,
                   child: FilledButton.icon(
                     onPressed: _submit,
-                    icon: const Icon(Icons.receipt_long),
-                    label: const Text('Tạo hóa đơn', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    icon: Icon(_isEditing ? Icons.save : Icons.receipt_long),
+                    label: Text(_isEditing ? 'Cập nhật hóa đơn' : 'Tạo hóa đơn', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   ),
                 ),
                 const SizedBox(height: 32),
