@@ -4,6 +4,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -61,6 +62,9 @@ Future<void> main() async {
 
   // Khởi tạo Dependency Injection
   await configureDependencies();
+
+  // Khởi tạo locale data cho intl (DateFormat vi_VN)
+  await initializeDateFormatting('vi_VN', null);
 
   // BLoC Observer để debug
   Bloc.observer = AppBlocObserver();

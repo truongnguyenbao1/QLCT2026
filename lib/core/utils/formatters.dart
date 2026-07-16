@@ -5,13 +5,14 @@ class AppFormatters {
   AppFormatters._();
 
   // ── Tiền tệ VND ──────────────────────────────────────────────────────────
-  static final _currencyFormatter = NumberFormat.currency(
+  // Dùng getter để tránh khởi tạo sớm trước initializeDateFormatting()
+  static NumberFormat get _currencyFormatter => NumberFormat.currency(
     locale: 'vi_VN',
     symbol: '₫',
     decimalDigits: 0,
   );
 
-  static final _numberFormatter = NumberFormat('#,##0', 'vi_VN');
+  static NumberFormat get _numberFormatter => NumberFormat('#,##0', 'vi_VN');
 
   /// Định dạng tiền tệ: 1500000 → "1.500.000 ₫"
   static String formatCurrency(double amount) {
@@ -36,11 +37,13 @@ class AppFormatters {
   }
 
   // ── Ngày tháng ────────────────────────────────────────────────────────────
-  static final _dateFormatter = DateFormat('dd/MM/yyyy', 'vi_VN');
-  static final _dateTimeFormatter =
+  // Dùng getter thay vì static final để tránh khởi tạo sớm
+  // trước khi initializeDateFormatting('vi_VN') được gọi trong main()
+  static DateFormat get _dateFormatter => DateFormat('dd/MM/yyyy', 'vi_VN');
+  static DateFormat get _dateTimeFormatter =>
       DateFormat('dd/MM/yyyy HH:mm', 'vi_VN');
-  static final _monthYearFormatter = DateFormat('MM/yyyy', 'vi_VN');
-  static final _fullDateFormatter =
+  static DateFormat get _monthYearFormatter => DateFormat('MM/yyyy', 'vi_VN');
+  static DateFormat get _fullDateFormatter =>
       DateFormat('EEEE, dd MMMM yyyy', 'vi_VN');
 
   /// Định dạng ngày: DateTime → "25/12/2025"
