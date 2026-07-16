@@ -125,4 +125,25 @@ class InvoiceModel extends Invoice {
       'is_locked': isLocked,
     };
   }
+
+  Map<String, dynamic> toUpdateJson() {
+    return {
+      'electric_prev_reading': electricPrevReading,
+      'electric_curr_reading': electricCurrReading,
+      'electric_unit_price': electricUnitPrice,
+      'water_prev_reading': waterPrevReading,
+      'water_curr_reading': waterCurrReading,
+      'water_unit_price': waterUnitPrice,
+      'rent_amount': rentAmount,
+      'service_amount': serviceAmount,
+      'other_amount': otherAmount,
+      'other_description': otherDescription,
+      'status': status.code,
+      'due_date': dueDate.toIso8601String(),
+      'paid_at': paidAt?.toIso8601String(),
+      'payment_method': paymentMethod,
+      'transaction_id': transactionId,
+      'is_locked': isLocked,
+    };
+  }
 }

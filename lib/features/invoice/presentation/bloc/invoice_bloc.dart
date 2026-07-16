@@ -6,6 +6,8 @@ import '../../domain/usecases/create_invoice_usecase.dart';
 import '../../domain/usecases/get_invoice_by_id_usecase.dart';
 import '../../domain/usecases/get_invoices_usecase.dart';
 import '../../domain/usecases/mark_invoice_paid_usecase.dart';
+import '../../domain/usecases/update_invoice_usecase.dart';
+import '../../domain/usecases/delete_invoice_usecase.dart';
 
 // ── Events ────────────────────────────────────────────────────────────────
 abstract class InvoiceEvent extends Equatable {
@@ -282,6 +284,7 @@ class InvoiceBloc extends Bloc<InvoiceEvent, InvoiceState> {
       (updatedInvoice) {
         _currentInvoices = _currentInvoices
             .map((i) => i.id == updatedInvoice.id ? updatedInvoice : i)
+            .cast<Invoice>()
             .toList();
         emit(InvoiceActionSuccess(
           message: 'Cập nhật hóa đơn thành công!',
