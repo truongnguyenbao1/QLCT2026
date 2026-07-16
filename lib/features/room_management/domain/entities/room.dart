@@ -42,7 +42,7 @@ class Room extends Equatable {
   final String id;
   final String propertyId;
   final String roomNumber;   // Tên/số phòng: "101", "A2", "Phòng 3"
-  final int floor;           // Tầng
+  final int? floor;           // Tầng
   final double area;         // Diện tích m²
   final double rentPrice;    // Giá thuê/tháng (VND)
   final double electricPrice;   // Giá điện /kWh
@@ -60,7 +60,7 @@ class Room extends Equatable {
     required this.id,
     required this.propertyId,
     required this.roomNumber,
-    required this.floor,
+    this.floor,
     required this.area,
     required this.rentPrice,
     required this.electricPrice,

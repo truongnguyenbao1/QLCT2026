@@ -20,7 +20,7 @@ class _AddEditRoomPageState extends State<AddEditRoomPage> {
   final _formKey = GlobalKey<FormState>();
   
   String _roomNumber = '';
-  int _floor = 1;
+  int? _floor;
   double _area = 20.0;
   double _rentPrice = 0;
   double _electricPrice = 3500;
@@ -199,13 +199,13 @@ class _AddEditRoomPageState extends State<AddEditRoomPage> {
                           children: [
                             Expanded(
                               child: TextFormField(
-                                initialValue: _floor.toString(),
+                                initialValue: _floor?.toString() ?? '',
                                 decoration: const InputDecoration(
-                                  labelText: 'Tầng',
+                                  labelText: 'Tầng (Tùy chọn)',
                                   border: OutlineInputBorder(),
                                 ),
                                 keyboardType: TextInputType.number,
-                                onSaved: (value) => _floor = int.tryParse(value ?? '1') ?? 1,
+                                onSaved: (value) => _floor = value != null && value.isNotEmpty ? int.tryParse(value) : null,
                               ),
                             ),
                             const SizedBox(width: 16),

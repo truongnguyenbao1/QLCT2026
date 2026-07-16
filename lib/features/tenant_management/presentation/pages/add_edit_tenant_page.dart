@@ -538,7 +538,7 @@ class _AddEditTenantFormState extends State<_AddEditTenantForm> {
                             items: availableRooms.map((room) {
                               return DropdownMenuItem(
                                 value: room.id,
-                                child: Text('Phòng ${room.roomNumber} - T${room.floor}'),
+                                child: Text('Phòng ${room.roomNumber}${room.floor != null ? ' - T${room.floor}' : ''}'),
                               );
                             }).toList(),
                             onChanged: _isEditing ? null : (value) {

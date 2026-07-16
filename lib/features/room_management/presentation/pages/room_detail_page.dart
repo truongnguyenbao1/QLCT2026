@@ -194,7 +194,7 @@ class RoomDetailPage extends StatelessWidget {
           children: [
             Text('Thông tin cơ bản', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
             const Divider(height: 24),
-            _buildDetailRow('Tầng', '${room.floor}'),
+            _buildDetailRow('Tầng', room.floor != null ? '${room.floor}' : 'Không có'),
             const SizedBox(height: 12),
             _buildDetailRow('Diện tích', '${room.area} m²'),
             const SizedBox(height: 12),
