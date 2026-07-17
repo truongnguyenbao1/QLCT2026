@@ -8,6 +8,7 @@ import '../../../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../../../features/auth/presentation/bloc/auth_state.dart';
 import '../../domain/entities/tenant.dart';
 import '../bloc/tenant_bloc.dart';
+import '../../../../features/room_management/presentation/bloc/room_bloc.dart';
 
 class TenantListPage extends StatelessWidget {
   const TenantListPage({super.key});
@@ -43,9 +44,17 @@ class TenantListPage extends StatelessWidget {
       );
     }
 
-    return BlocProvider(
-      create: (_) => getIt<TenantBloc>()
-        ..add(LoadTenantsEvent(propertyId: authState.user.propertyId)),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => getIt<TenantBloc>()
+            ..add(LoadTenantsEvent(propertyId: authState.user.propertyId)),
+        ),
+        BlocProvider(
+          create: (_) => getIt<RoomBloc>()
+            ..add(LoadRoomsEvent(authState.user.propertyId ?? '')),
+        ),
+      ],
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Khách thuê'),
@@ -138,7 +147,20 @@ class TenantListPage extends StatelessWidget {
                         child: Text(tenant.fullName.isNotEmpty ? tenant.fullName[0].toUpperCase() : '?'),
                       ),
                       title: Text(tenant.fullName),
-                      subtitle: Text('Phòng: ${tenant.roomId}'),
+                      subtitle: BlocBuilder<RoomBloc, RoomState>(
+                        builder: (context, roomState) {
+                          String roomDisplay = 'Phòng: Không rõ';
+                          if (tenant.roomId == null) {
+                            roomDisplay = 'Phòng: Đã trả phòng';
+                          } else if (roomState is RoomsLoaded) {
+                            try {
+                              final room = roomState.rooms.firstWhere((r) => r.id == tenant.roomId);
+                              roomDisplay = 'Phòng: ${room.roomNumber}';
+                            } catch (_) {}
+                          }
+                          return Text(roomDisplay);
+                        },
+                      ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
