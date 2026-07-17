@@ -61,14 +61,69 @@ class RoomDetailPage extends StatelessWidget {
         appBar: AppBar(
           title: Text('Phòng ${room.roomNumber}'),
           actions: [
-            IconButton(
-              icon: const Icon(Icons.edit_rounded),
-              onPressed: () async {
-                 await context.push('/rooms/${room.id}/edit');
-                 if (context.mounted) {
-                   context.read<RoomBloc>().add(LoadRoomsEvent(propertyId));
-                 }
-              },
+            Builder(
+              builder: (context) {
+                return PopupMenuButton<String>(
+                  icon: const Icon(Icons.more_vert_rounded),
+                  onSelected: (value) async {
+                    if (value == 'edit') {
+                      await context.push('/rooms/${room.id}/edit');
+                      if (context.mounted) {
+                        context.read<RoomBloc>().add(LoadRoomsEvent(propertyId));
+                      }
+                    } else if (value == 'checkout') {
+                      final confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: const Text('Xác nhận trả phòng'),
+                          content: const Text('Bạn có chắc chắn muốn trả phòng này? Trạng thái phòng sẽ thành "Còn trống" và tất cả khách thuê hiện tại sẽ được đánh dấu là "Đã trả phòng".'),
+                          actions: [
+                            TextButton(onPressed: () => ctx.pop(false), child: const Text('Hủy')),
+                            FilledButton(
+                              onPressed: () => ctx.pop(true),
+                              style: FilledButton.styleFrom(backgroundColor: Colors.red),
+                              child: const Text('Trả phòng'),
+                            ),
+                          ],
+                        ),
+                      );
+
+                      if (confirm == true && context.mounted) {
+                        // Cập nhật trạng thái phòng
+                        final updatedRoom = room.copyWith(status: RoomStatus.empty);
+                        context.read<RoomBloc>().add(UpdateRoomEvent(updatedRoom));
+
+                        // Lấy danh sách khách thuê hiện tại và cập nhật isActive = false
+                        final tenantState = context.read<TenantBloc>().state;
+                        if (tenantState is TenantLoaded) {
+                          for (final tenant in tenantState.tenants) {
+                            final updatedTenant = tenant.copyWith(isActive: false);
+                            context.read<TenantBloc>().add(UpdateTenantEvent(updatedTenant));
+                          }
+                        }
+                        
+                        // Tải lại danh sách khách thuê sau một chút delay để DB kịp update
+                        Future.delayed(const Duration(milliseconds: 500), () {
+                          if (context.mounted) {
+                            context.read<TenantBloc>().add(LoadTenantsEvent(roomId: room.id, propertyId: propertyId, isActive: true));
+                          }
+                        });
+                      }
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'edit',
+                      child: Row(children: [Icon(Icons.edit_rounded, size: 20), SizedBox(width: 8), Text('Chỉnh sửa')]),
+                    ),
+                    if (room.status != RoomStatus.empty)
+                      const PopupMenuItem(
+                        value: 'checkout',
+                        child: Row(children: [Icon(Icons.logout_rounded, size: 20, color: Colors.red), SizedBox(width: 8), Text('Trả phòng', style: TextStyle(color: Colors.red))]),
+                      ),
+                  ],
+                );
+              }
             ),
           ],
         ),
