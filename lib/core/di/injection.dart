@@ -73,7 +73,11 @@ Future<void> configureDependencies() async {
 
   // ── AUTH Feature ──────────────────────────────────────────────────────
   getIt.registerLazySingleton<AuthRemoteDataSource>(
-    () => AuthRemoteDataSourceImpl(getIt<SupabaseClient>(), getIt<FlutterSecureStorage>()),
+    () => AuthRemoteDataSourceImpl(
+      getIt<SupabaseClient>(),
+      getIt<FlutterSecureStorage>(),
+      getIt<EncryptionService>(),
+    ),
   );
   getIt.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(getIt<AuthRemoteDataSource>()),

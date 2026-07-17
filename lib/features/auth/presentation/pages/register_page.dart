@@ -24,6 +24,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _cccdController = TextEditingController();
 
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
@@ -36,6 +37,7 @@ class _RegisterPageState extends State<RegisterPage> {
     _phoneController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _cccdController.dispose();
     super.dispose();
   }
 
@@ -48,6 +50,7 @@ class _RegisterPageState extends State<RegisterPage> {
             fullName: _fullNameController.text.trim(),
             phone: _phoneController.text.trim(),
             role: _selectedRole,
+            cccd: _selectedRole == UserRole.tenant ? _cccdController.text.trim() : null,
           ),
         );
   }
@@ -253,6 +256,28 @@ class _RegisterPageState extends State<RegisterPage> {
                                     : null,
                               ),
                               const SizedBox(height: 18),
+
+                              // CCCD (Only for Tenant)
+                              if (_selectedRole == UserRole.tenant) ...[
+                                _buildLabel('Căn cước công dân (Bắt buộc để liên kết phòng)'),
+                                const SizedBox(height: 6),
+                                TextFormField(
+                                  controller: _cccdController,
+                                  style: const TextStyle(color: Color(0xFF111827)),
+                                  keyboardType: TextInputType.number,
+                                  textInputAction: TextInputAction.next,
+                                  decoration: _inputDecoration(
+                                    hint: 'Nhập đủ 12 số CCCD',
+                                    icon: Icons.badge_outlined,
+                                  ),
+                                  validator: (v) {
+                                    if (v == null || v.trim().isEmpty) return 'Vui lòng nhập số CCCD';
+                                    if (v.trim().length != 12) return 'CCCD phải có đúng 12 số';
+                                    return null;
+                                  },
+                                ),
+                                const SizedBox(height: 18),
+                              ],
 
                               // Password
                               _buildLabel('Mật khẩu'),

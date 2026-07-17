@@ -27,9 +27,9 @@ class AppConstants {
   static const String hiveBoxSettings = 'settings';
   static const String hiveBoxCache = 'cache';
 
-  // ── Secure Storage Keys ───────────────────────────────────────────────
-  static const String keyEncryptionKey = 'enc_key_v1';
-  static const String keyEncryptionIV = 'enc_iv_v1';
+  // ── Secure Storage Keys / Master Keys ──────────────────────────────────
+  static const String keyEncryptionKey = 'U3VwZXJTZWNyZXRLZXlGb3JRdWFubHluaGF0cm8xMjM='; // 32 bytes base64
+  static const String keyEncryptionIV = 'UXVhbmx5bmhhdHJvSVYxNg=='; // 16 bytes base64
 
   // ── Quy tắc nghiệp vụ ────────────────────────────────────────────────
   /// Số ngày cảnh báo trước khi hợp đồng hết hạn

@@ -1,6 +1,8 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 
+import '../../../../core/security/encryption_service.dart';
+
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/errors/failures.dart';
 import '../../domain/entities/app_user.dart';
@@ -14,6 +16,7 @@ abstract class AuthRemoteDataSource {
     required String fullName,
     required String phone,
     required UserRole role,
+    String? cccd,
   });
   Future<void> logout();
   Future<UserModel?> checkSession();
@@ -30,8 +33,9 @@ abstract class AuthRemoteDataSource {
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   final sb.SupabaseClient _client;
   final FlutterSecureStorage _storage;
+  final EncryptionService _encryptionService;
 
-  AuthRemoteDataSourceImpl(this._client, this._storage);
+  AuthRemoteDataSourceImpl(this._client, this._storage, this._encryptionService);
 
   @override
   Future<UserModel> login({
@@ -66,8 +70,35 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String fullName,
     required String phone,
     required UserRole role,
+    String? cccd,
   }) async {
     try {
+      Map<String, dynamic>? tenantData;
+
+      // 1. Kiểm tra CCCD nếu là Khách thuê
+      if (role == UserRole.tenant) {
+        if (cccd == null || cccd.isEmpty) {
+          throw const ValidationFailure(message: 'CCCD không được để trống.');
+        }
+
+        final encryptedCccd = await _encryptionService.encryptText(cccd);
+
+        // Tìm trong bảng khachthue xem có CCCD này không
+        final response = await _client
+            .from(AppConstants.tableTenants)
+            .select()
+            .eq('cccd_number', encryptedCccd)
+            .maybeSingle();
+
+        if (response == null) {
+          throw const ValidationFailure(
+              message: 'Không tìm thấy thông tin hợp đồng thuê khớp với CCCD này. Vui lòng liên hệ chủ trọ!');
+        }
+        
+        tenantData = response;
+      }
+
+      // 2. Đăng ký tài khoản với Supabase Auth
       final response = await _client.auth.signUp(
         email: email,
         password: password,
@@ -83,6 +114,29 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
 
       // Việc insert vào bảng users được thực hiện tự động qua Trigger handle_new_user trong Supabase.
+      
+      // 3. Liên kết tài khoản cho Khách thuê
+      if (role == UserRole.tenant && tenantData != null) {
+        final userId = response.user!.id;
+        final tenantId = tenantData['id'];
+        final roomId = tenantData['room_id'];
+        final propertyId = tenantData['property_id'];
+
+        // Đợi 1 chút để trigger bên Supabase insert xong vào bảng users
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        // Cập nhật bảng users
+        await _client.from(AppConstants.tableUsers).update({
+          'room_id': roomId,
+          'property_id': propertyId,
+        }).eq('iduser', userId);
+
+        // Cập nhật bảng khachthue
+        await _client.from(AppConstants.tableTenants).update({
+          'user_id': userId,
+          'phone_number': phone, // Cập nhật lại SĐT mới nhất
+        }).eq('id', tenantId);
+      }
 
       await _storage.write(key: 'last_login_time', value: DateTime.now().toIso8601String());
 

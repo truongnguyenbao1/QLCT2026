@@ -17,6 +17,7 @@ abstract class AuthRepository {
     required String fullName,
     required String phone,
     required UserRole role,
+    String? cccd,
   });
 
   /// Đăng xuất

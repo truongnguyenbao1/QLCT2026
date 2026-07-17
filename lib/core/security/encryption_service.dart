@@ -27,46 +27,17 @@ class EncryptionService {
 
   // ── Key Management ──────────────────────────────────────────────────────
 
-  /// Lấy hoặc tạo mới AES encryption key (256-bit = 32 bytes)
+  /// Lấy AES encryption key (256-bit = 32 bytes) từ AppConstants
   Future<enc.Key> _getKey() async {
     if (_cachedKey != null) return _cachedKey!;
-
-    String? storedKey =
-        await _secureStorage.read(key: AppConstants.keyEncryptionKey);
-
-    if (storedKey == null) {
-      // Tạo key ngẫu nhiên lần đầu tiên, lưu vào secure storage
-      final random = Random.secure();
-      final keyBytes = List<int>.generate(32, (_) => random.nextInt(256));
-      storedKey = base64Encode(keyBytes);
-      await _secureStorage.write(
-        key: AppConstants.keyEncryptionKey,
-        value: storedKey,
-      );
-    }
-
-    _cachedKey = enc.Key(base64Decode(storedKey));
+    _cachedKey = enc.Key(base64Decode(AppConstants.keyEncryptionKey));
     return _cachedKey!;
   }
 
-  /// Lấy hoặc tạo mới IV (16 bytes)
+  /// Lấy IV (16 bytes) từ AppConstants
   Future<enc.IV> _getIV() async {
     if (_cachedIV != null) return _cachedIV!;
-
-    String? storedIV =
-        await _secureStorage.read(key: AppConstants.keyEncryptionIV);
-
-    if (storedIV == null) {
-      final random = Random.secure();
-      final ivBytes = List<int>.generate(16, (_) => random.nextInt(256));
-      storedIV = base64Encode(ivBytes);
-      await _secureStorage.write(
-        key: AppConstants.keyEncryptionIV,
-        value: storedIV,
-      );
-    }
-
-    _cachedIV = enc.IV(base64Decode(storedIV));
+    _cachedIV = enc.IV(base64Decode(AppConstants.keyEncryptionIV));
     return _cachedIV!;
   }
 
