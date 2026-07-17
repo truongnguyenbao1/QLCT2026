@@ -223,24 +223,7 @@ class _AddEditRoomPageState extends State<AddEditRoomPage> {
                           ],
                         ),
                         const SizedBox(height: 16),
-                        DropdownButtonFormField<RoomStatus>(
-                          value: _status,
-                          decoration: const InputDecoration(
-                            labelText: 'Trạng thái',
-                            border: OutlineInputBorder(),
-                          ),
-                          items: RoomStatus.values.map((status) {
-                            return DropdownMenuItem(
-                              value: status,
-                              child: Text(status.displayName),
-                            );
-                          }).toList(),
-                          onChanged: (value) {
-                            setState(() {
-                              _status = value!;
-                            });
-                          },
-                        ),
+                        // Đã bỏ chọn trạng thái thủ công theo yêu cầu, trạng thái sẽ tự động cập nhật
                       ],
                     ),
                   ),

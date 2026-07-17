@@ -116,11 +116,10 @@ class RoomDetailPage extends StatelessWidget {
                       value: 'edit',
                       child: Row(children: [Icon(Icons.edit_rounded, size: 20), SizedBox(width: 8), Text('Chỉnh sửa')]),
                     ),
-                    if (room.status != RoomStatus.empty)
-                      const PopupMenuItem(
-                        value: 'checkout',
-                        child: Row(children: [Icon(Icons.logout_rounded, size: 20, color: Colors.red), SizedBox(width: 8), Text('Trả phòng', style: TextStyle(color: Colors.red))]),
-                      ),
+                    const PopupMenuItem(
+                      value: 'checkout',
+                      child: Row(children: [Icon(Icons.logout_rounded, size: 20, color: Colors.red), SizedBox(width: 8), Text('Trả phòng', style: TextStyle(color: Colors.red))]),
+                    ),
                   ],
                 );
               }
@@ -408,7 +407,7 @@ class RoomDetailPage extends StatelessWidget {
                               context.read<TenantBloc>().add(DeleteTenantEvent(tenant.id));
                               
                               // Nếu đây là khách thuê cuối cùng, cập nhật trạng thái phòng thành "Còn trống"
-                              if (tenants.length == 1 && room.status != RoomStatus.empty) {
+                              if (tenants.length == 1) {
                                 final updatedRoom = room.copyWith(status: RoomStatus.empty);
                                 context.read<RoomBloc>().add(UpdateRoomEvent(updatedRoom));
                               }
