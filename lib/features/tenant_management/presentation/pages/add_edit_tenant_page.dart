@@ -512,23 +512,58 @@ class _AddEditTenantFormState extends State<_AddEditTenantForm> {
                             }).toList();
                           }
 
-                          return DropdownButtonFormField<String>(
-                            value: _selectedRoomId,
-                            decoration: const InputDecoration(
-                              labelText: 'Chọn phòng thuê',
-                              border: OutlineInputBorder(),
-                              prefixIcon: Icon(Icons.meeting_room),
+                          if (availableRooms.isEmpty) {
+                            return const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 16.0),
+                              child: Text('Không có phòng nào khả dụng.', style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic)),
+                            );
+                          }
+
+                          return GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 3,
+                              crossAxisSpacing: 12,
+                              mainAxisSpacing: 12,
+                              childAspectRatio: 1.618,
                             ),
-                            items: availableRooms.map((room) {
-                              return DropdownMenuItem(
-                                value: room.id,
-                                child: Text('Phòng ${room.roomNumber}${room.floor != null ? ' - T${room.floor}' : ''}'),
+                            itemCount: availableRooms.length,
+                            itemBuilder: (context, index) {
+                              final room = availableRooms[index];
+                              final isSelected = _selectedRoomId == room.id;
+                              
+                              return InkWell(
+                                onTap: _isEditing ? null : () {
+                                  setState(() {
+                                    _selectedRoomId = room.id;
+                                  });
+                                },
+                                borderRadius: BorderRadius.circular(8),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: isSelected ? AppColors.primary : AppColors.border.withValues(alpha: 0.5),
+                                      width: isSelected ? 2 : 1,
+                                    ),
+                                    borderRadius: BorderRadius.circular(8),
+                                    color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : Colors.transparent,
+                                  ),
+                                  alignment: Alignment.center,
+                                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                                  child: Text(
+                                    'Phòng ${room.roomNumber}${room.floor != null ? ' - T${room.floor}' : ''}',
+                                    textAlign: TextAlign.center,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                      color: isSelected ? AppColors.primary : null,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ),
                               );
-                            }).toList(),
-                            onChanged: _isEditing ? null : (value) {
-                              setState(() {
-                                _selectedRoomId = value;
-                              });
                             },
                           );
                         },
