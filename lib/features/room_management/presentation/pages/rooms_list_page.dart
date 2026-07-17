@@ -155,8 +155,8 @@ class _RoomsListViewState extends State<_RoomsListView> {
                             padding: const EdgeInsets.all(16),
                             gridDelegate:
                                 const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              childAspectRatio: 0.85,
+                              crossAxisCount: 3,
+                              childAspectRatio: 1.618,
                               crossAxisSpacing: 12,
                               mainAxisSpacing: 12,
                             ),
