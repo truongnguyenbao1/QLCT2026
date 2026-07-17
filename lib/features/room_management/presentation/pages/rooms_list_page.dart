@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/di/injection.dart';
@@ -445,12 +446,45 @@ class _RoomCard extends StatelessWidget {
                           if (confirm == true && context.mounted) {
                             context.read<RoomBloc>().add(DeleteRoomEvent(room.id));
                           }
+                        } else if (value == 'checkout') {
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Xác nhận trả phòng'),
+                              content: const Text('Bạn có chắc chắn muốn trả phòng này? Trạng thái phòng sẽ thành "Còn trống" và tất cả khách thuê hiện tại sẽ được đánh dấu là "Đã trả phòng".'),
+                              actions: [
+                                TextButton(onPressed: () => context.pop(false), child: const Text('Hủy')),
+                                FilledButton(
+                                  onPressed: () => context.pop(true),
+                                  style: FilledButton.styleFrom(backgroundColor: Colors.red),
+                                  child: const Text('Trả phòng'),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (confirm == true && context.mounted) {
+                            // Update room status to empty
+                            final updatedRoom = room.copyWith(status: RoomStatus.empty);
+                            context.read<RoomBloc>().add(UpdateRoomEvent(updatedRoom));
+                            
+                            // Set all tenants in this room to inactive directly via SupabaseClient
+                            try {
+                               await getIt<SupabaseClient>()
+                                  .from('khachthue')
+                                  .update({'is_active': false})
+                                  .eq('room_id', room.id);
+                            } catch (_) {}
+                          }
                         }
                       },
                       itemBuilder: (context) => [
                         const PopupMenuItem(
                           value: 'edit',
                           child: Row(children: [Icon(Icons.edit_rounded, size: 20), SizedBox(width: 8), Text('Sửa')]),
+                        ),
+                        const PopupMenuItem(
+                          value: 'checkout',
+                          child: Row(children: [Icon(Icons.logout_rounded, size: 20, color: Colors.orange), SizedBox(width: 8), Text('Trả phòng', style: TextStyle(color: Colors.orange))]),
                         ),
                         const PopupMenuItem(
                           value: 'delete',
