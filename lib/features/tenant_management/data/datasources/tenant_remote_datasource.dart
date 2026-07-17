@@ -41,7 +41,8 @@ class TenantRemoteDataSourceImpl implements TenantRemoteDataSource {
         try {
           map['cccd_number'] = await _encryptionService.decryptText(map['cccd_number'] as String);
         } catch (_) {
-          // Fallback if decryption fails (e.g. key mismatch)
+          // Fallback if decryption fails (e.g. key mismatch due to master key change)
+          map['cccd_number'] = '';
         }
       }
       tenants.add(TenantModel.fromJson(map));
@@ -69,7 +70,9 @@ class TenantRemoteDataSourceImpl implements TenantRemoteDataSource {
     if (map['cccd_number'] != null && (map['cccd_number'] as String).isNotEmpty) {
       try {
         map['cccd_number'] = await _encryptionService.decryptText(map['cccd_number'] as String);
-      } catch (_) {}
+      } catch (_) {
+        map['cccd_number'] = '';
+      }
     }
     return TenantModel.fromJson(map);
   }
