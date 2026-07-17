@@ -126,15 +126,6 @@ class _AddEditTenantFormState extends State<_AddEditTenantForm> {
 
   void _submit() {
     if (_formKey.currentState!.validate()) {
-      if (_selectedRoomId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Vui lòng chọn phòng thuê'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-        return;
-      }
       _formKey.currentState!.save();
       _showPasswordConfirmationDialog();
     }
@@ -457,20 +448,11 @@ class _AddEditTenantFormState extends State<_AddEditTenantForm> {
                       TextFormField(
                         controller: _phoneController,
                         decoration: const InputDecoration(
-                          labelText: 'Số điện thoại liên hệ *',
+                          labelText: 'Số điện thoại liên hệ',
                           border: OutlineInputBorder(),
                           prefixIcon: Icon(Icons.phone),
                         ),
                         keyboardType: TextInputType.phone,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Vui lòng nhập số điện thoại';
-                          }
-                          if (!RegExp(AppConstants.phoneRegex).hasMatch(value)) {
-                            return 'Số điện thoại không hợp lệ';
-                          }
-                          return null;
-                        },
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
@@ -533,7 +515,7 @@ class _AddEditTenantFormState extends State<_AddEditTenantForm> {
                           return DropdownButtonFormField<String>(
                             value: _selectedRoomId,
                             decoration: const InputDecoration(
-                              labelText: 'Chọn phòng thuê *',
+                              labelText: 'Chọn phòng thuê',
                               border: OutlineInputBorder(),
                               prefixIcon: Icon(Icons.meeting_room),
                             ),
@@ -548,7 +530,6 @@ class _AddEditTenantFormState extends State<_AddEditTenantForm> {
                                 _selectedRoomId = value;
                               });
                             },
-                            validator: (value) => (value == null && _isActive) ? 'Vui lòng chọn phòng' : null,
                           );
                         },
                       ),
