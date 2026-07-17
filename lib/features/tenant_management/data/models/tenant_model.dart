@@ -5,7 +5,7 @@ class TenantModel extends Tenant {
   const TenantModel({
     required super.id,
     required super.propertyId,
-    required super.roomId,
+    super.roomId,
     required super.fullName,
     required super.phoneNumber,
     required super.cccdNumber,
@@ -20,7 +20,7 @@ class TenantModel extends Tenant {
     return TenantModel(
       id: json['id'] as String,
       propertyId: json['property_id'] as String,
-      roomId: json['room_id'] as String,
+      roomId: json['room_id'] as String?,
       fullName: json['full_name'] as String,
       phoneNumber: json['phone_number'] as String,
       cccdNumber: json['cccd_number'] as String? ?? '',

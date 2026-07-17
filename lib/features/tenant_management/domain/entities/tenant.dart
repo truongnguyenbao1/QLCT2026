@@ -4,7 +4,7 @@ import 'package:equatable/equatable.dart';
 class Tenant extends Equatable {
   final String id;
   final String propertyId;
-  final String roomId;
+  final String? roomId;
   final String fullName;
   final String phoneNumber;
   final String cccdNumber; // Encrypted
@@ -17,7 +17,7 @@ class Tenant extends Equatable {
   const Tenant({
     required this.id,
     required this.propertyId,
-    required this.roomId,
+    this.roomId,
     required this.fullName,
     required this.phoneNumber,
     required this.cccdNumber,

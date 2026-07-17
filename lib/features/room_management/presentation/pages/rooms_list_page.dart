@@ -471,7 +471,7 @@ class _RoomCard extends StatelessWidget {
                             try {
                                await getIt<SupabaseClient>()
                                   .from('khachthue')
-                                  .update({'is_active': false})
+                                  .update({'is_active': false, 'room_id': null})
                                   .eq('room_id', room.id);
                             } catch (_) {}
                           }

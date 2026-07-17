@@ -92,10 +92,12 @@ class TenantRemoteDataSourceImpl implements TenantRemoteDataSource {
         
     // Cập nhật trạng thái phòng thành OCCUPIED
     try {
-      await _client
-          .from('phong')
-          .update({'status': 'OCCUPIED'})
-          .eq('id', tenant.roomId);
+      if (tenant.roomId != null) {
+        await _client
+            .from('phong')
+            .update({'status': 'OCCUPIED'})
+            .eq('id', tenant.roomId!);
+      }
     } catch (e) {
       // Bỏ qua lỗi cập nhật trạng thái phòng (non-blocking)
     }
