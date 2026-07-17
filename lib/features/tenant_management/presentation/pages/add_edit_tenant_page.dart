@@ -528,6 +528,35 @@ class _AddEditTenantFormState extends State<_AddEditTenantForm> {
                             }).toList();
                           }
 
+                          if (_isEditing && _existingTenant != null && !_existingTenant!.isActive) {
+                            String oldRoomName = 'Không rõ';
+                            if (state is RoomsLoaded) {
+                              try {
+                                final oldRoom = state.rooms.firstWhere((r) => r.id == _selectedRoomId);
+                                oldRoomName = 'Phòng ${oldRoom.roomNumber}';
+                              } catch (_) {}
+                            }
+                            return Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: AppColors.surfaceVariant,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.info_outline, color: AppColors.textSecondary),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      'Khách thuê này đã rời đi.\nPhòng cũ từng thuê: $oldRoomName',
+                                      style: const TextStyle(color: AppColors.textSecondary),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
+
                           return DropdownButtonFormField<String>(
                             value: _selectedRoomId,
                             decoration: const InputDecoration(
