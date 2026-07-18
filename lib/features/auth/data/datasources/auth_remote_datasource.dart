@@ -133,11 +133,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           'property_id': propertyId,
         }).eq('iduser', userId);
 
-        // Cập nhật bảng khachthue
-        await _client.from(AppConstants.tableTenants).update({
-          'user_id': userId,
-          'phone_number': phone, // Cập nhật lại SĐT mới nhất
-        }).eq('id', tenantId);
+        // Cập nhật bảng khachthue thông qua RPC để vượt qua RLS
+        await _client.rpc('link_tenant_to_user', params: {
+          'p_tenant_id': tenantId,
+          'p_user_id': userId,
+          'p_phone': phone,
+        });
       }
 
       await _storage.write(key: 'last_login_time', value: DateTime.now().toIso8601String());
