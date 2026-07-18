@@ -2,9 +2,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../domain/entities/invoice.dart';
+import '../../domain/entities/payment.dart';
 import '../../domain/usecases/create_invoice_usecase.dart';
+import '../../domain/usecases/create_payment_usecase.dart';
 import '../../domain/usecases/get_invoice_by_id_usecase.dart';
 import '../../domain/usecases/get_invoices_usecase.dart';
+import '../../domain/usecases/get_payments_by_invoice_usecase.dart';
 import '../../domain/usecases/mark_invoice_paid_usecase.dart';
 import '../../domain/usecases/update_invoice_usecase.dart';
 import '../../domain/usecases/delete_invoice_usecase.dart';
@@ -83,6 +86,35 @@ class FetchPreviousReadingsEvent extends InvoiceEvent {
   List<Object?> get props => [roomId];
 }
 
+/// Load danh sách giao dịch thanh toán của một hóa đơn
+class LoadPaymentsEvent extends InvoiceEvent {
+  final String invoiceId;
+  const LoadPaymentsEvent(this.invoiceId);
+  @override
+  List<Object?> get props => [invoiceId];
+}
+
+/// Ghi nhận thanh toán (chỉ Admin/Owner)
+class CreatePaymentEvent extends InvoiceEvent {
+  final String invoiceId;
+  final double amount;
+  final PaymentMethod paymentMethod;
+  final String? transactionId;
+  /// Phải là true (owner) — BLoC sẽ từ chối nếu false
+  final bool isOwner;
+
+  const CreatePaymentEvent({
+    required this.invoiceId,
+    required this.amount,
+    required this.paymentMethod,
+    this.transactionId,
+    required this.isOwner,
+  });
+  @override
+  List<Object?> get props =>
+      [invoiceId, amount, paymentMethod, transactionId, isOwner];
+}
+
 // ── States ────────────────────────────────────────────────────────────────
 abstract class InvoiceState extends Equatable {
   const InvoiceState();
@@ -137,6 +169,19 @@ class InvoicePreviousReadingsLoaded extends InvoiceState {
   List<Object?> get props => [electricPrev, waterPrev];
 }
 
+/// Danh sách giao dịch thanh toán đã tải
+class PaymentsLoaded extends InvoiceState {
+  final List<Payment> payments;
+  const PaymentsLoaded(this.payments);
+  @override
+  List<Object?> get props => [payments];
+}
+
+/// Đang xử lý tạo thanh toán
+class PaymentCreating extends InvoiceState {
+  const PaymentCreating();
+}
+
 // ── BLoC ──────────────────────────────────────────────────────────────────
 class InvoiceBloc extends Bloc<InvoiceEvent, InvoiceState> {
   final GetInvoicesUseCase _getInvoicesUseCase;
@@ -145,6 +190,8 @@ class InvoiceBloc extends Bloc<InvoiceEvent, InvoiceState> {
   final MarkInvoicePaidUseCase _markInvoicePaidUseCase;
   final UpdateInvoiceUseCase _updateInvoiceUseCase;
   final DeleteInvoiceUseCase _deleteInvoiceUseCase;
+  final CreatePaymentUseCase _createPaymentUseCase;
+  final GetPaymentsByInvoiceUseCase _getPaymentsByInvoiceUseCase;
 
   List<Invoice> _currentInvoices = [];
 
@@ -155,12 +202,16 @@ class InvoiceBloc extends Bloc<InvoiceEvent, InvoiceState> {
     required MarkInvoicePaidUseCase markInvoicePaidUseCase,
     required UpdateInvoiceUseCase updateInvoiceUseCase,
     required DeleteInvoiceUseCase deleteInvoiceUseCase,
+    required CreatePaymentUseCase createPaymentUseCase,
+    required GetPaymentsByInvoiceUseCase getPaymentsByInvoiceUseCase,
   })  : _getInvoicesUseCase = getInvoicesUseCase,
         _getInvoiceByIdUseCase = getInvoiceByIdUseCase,
         _createInvoiceUseCase = createInvoiceUseCase,
         _markInvoicePaidUseCase = markInvoicePaidUseCase,
         _updateInvoiceUseCase = updateInvoiceUseCase,
         _deleteInvoiceUseCase = deleteInvoiceUseCase,
+        _createPaymentUseCase = createPaymentUseCase,
+        _getPaymentsByInvoiceUseCase = getPaymentsByInvoiceUseCase,
         super(const InvoiceInitial()) {
     on<LoadInvoicesEvent>(_onLoadInvoices);
     on<LoadInvoiceDetailEvent>(_onLoadInvoiceDetail);
@@ -169,6 +220,8 @@ class InvoiceBloc extends Bloc<InvoiceEvent, InvoiceState> {
     on<FetchPreviousReadingsEvent>(_onFetchPreviousReadings);
     on<UpdateInvoiceEvent>(_onUpdateInvoice);
     on<DeleteInvoiceEvent>(_onDeleteInvoice);
+    on<LoadPaymentsEvent>(_onLoadPayments);
+    on<CreatePaymentEvent>(_onCreatePayment);
   }
 
   Future<void> _onLoadInvoices(
@@ -303,12 +356,55 @@ class InvoiceBloc extends Bloc<InvoiceEvent, InvoiceState> {
     result.fold(
       (failure) => emit(InvoiceError(failure.message)),
       (_) {
-        _currentInvoices = _currentInvoices.where((i) => i.id != event.invoiceId).toList();
+        _currentInvoices =
+            _currentInvoices.where((i) => i.id != event.invoiceId).toList();
         emit(InvoiceActionSuccess(
           message: 'Xóa hóa đơn thành công!',
           invoices: _currentInvoices,
         ));
         emit(InvoicesLoaded(invoices: _currentInvoices));
+      },
+    );
+  }
+
+  // ── Payment Handlers ──────────────────────────────────────────────────────
+
+  Future<void> _onLoadPayments(
+      LoadPaymentsEvent event, Emitter<InvoiceState> emit) async {
+    final result =
+        await _getPaymentsByInvoiceUseCase(event.invoiceId);
+    result.fold(
+      (failure) => emit(InvoiceError(failure.message)),
+      (payments) => emit(PaymentsLoaded(payments)),
+    );
+  }
+
+  /// Chỉ Admin/Owner được phép tạo giao dịch thanh toán
+  Future<void> _onCreatePayment(
+      CreatePaymentEvent event, Emitter<InvoiceState> emit) async {
+    // Kiểm tra quyền
+    if (!event.isOwner) {
+      emit(const InvoiceError('Chỉ chủ trọ mới được ghi nhận thanh toán.'));
+      return;
+    }
+
+    emit(const PaymentCreating());
+    final result = await _createPaymentUseCase(
+      invoiceId: event.invoiceId,
+      amount: event.amount,
+      paymentMethod: event.paymentMethod,
+      transactionId: event.transactionId,
+    );
+    result.fold(
+      (failure) => emit(InvoiceError(failure.message)),
+      (payment) {
+        emit(const InvoiceActionSuccess(
+          message: 'Ghi nhận thanh toán thành công!',
+        ));
+        // Reload invoice detail để cập nhật status sang PAID
+        add(LoadInvoiceDetailEvent(event.invoiceId));
+        // Reload danh sách giao dịch
+        add(LoadPaymentsEvent(event.invoiceId));
       },
     );
   }

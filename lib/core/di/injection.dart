@@ -39,11 +39,16 @@ import '../../features/tenant_management/domain/usecases/delete_tenant_usecase.d
 import '../../features/tenant_management/presentation/bloc/tenant_bloc.dart';
 
 import '../../features/invoice/data/datasources/invoice_remote_datasource.dart';
+import '../../features/invoice/data/datasources/payment_remote_datasource.dart';
 import '../../features/invoice/data/repositories/invoice_repository_impl.dart';
+import '../../features/invoice/data/repositories/payment_repository_impl.dart';
 import '../../features/invoice/domain/repositories/invoice_repository.dart';
+import '../../features/invoice/domain/repositories/payment_repository.dart';
 import '../../features/invoice/domain/usecases/create_invoice_usecase.dart';
+import '../../features/invoice/domain/usecases/create_payment_usecase.dart';
 import '../../features/invoice/domain/usecases/get_invoices_usecase.dart';
 import '../../features/invoice/domain/usecases/get_invoice_by_id_usecase.dart';
+import '../../features/invoice/domain/usecases/get_payments_by_invoice_usecase.dart';
 import '../../features/invoice/domain/usecases/mark_invoice_paid_usecase.dart';
 import '../../features/invoice/domain/usecases/update_invoice_usecase.dart';
 import '../../features/invoice/domain/usecases/delete_invoice_usecase.dart';
@@ -170,6 +175,19 @@ Future<void> configureDependencies() async {
       () => UpdateInvoiceUseCase(getIt<InvoiceRepository>()));
   getIt.registerLazySingleton(
       () => DeleteInvoiceUseCase(getIt<InvoiceRepository>()));
+
+  // Payment (chitiethoadon)
+  getIt.registerLazySingleton<PaymentRemoteDataSource>(
+    () => PaymentRemoteDataSourceImpl(getIt<SupabaseClient>()),
+  );
+  getIt.registerLazySingleton<PaymentRepository>(
+    () => PaymentRepositoryImpl(getIt<PaymentRemoteDataSource>()),
+  );
+  getIt.registerLazySingleton(
+      () => CreatePaymentUseCase(getIt<PaymentRepository>()));
+  getIt.registerLazySingleton(
+      () => GetPaymentsByInvoiceUseCase(getIt<PaymentRepository>()));
+
   getIt.registerFactory<InvoiceBloc>(
     () => InvoiceBloc(
       createInvoiceUseCase: getIt<CreateInvoiceUseCase>(),
@@ -178,6 +196,8 @@ Future<void> configureDependencies() async {
       markInvoicePaidUseCase: getIt<MarkInvoicePaidUseCase>(),
       updateInvoiceUseCase: getIt<UpdateInvoiceUseCase>(),
       deleteInvoiceUseCase: getIt<DeleteInvoiceUseCase>(),
+      createPaymentUseCase: getIt<CreatePaymentUseCase>(),
+      getPaymentsByInvoiceUseCase: getIt<GetPaymentsByInvoiceUseCase>(),
     ),
   );
 
