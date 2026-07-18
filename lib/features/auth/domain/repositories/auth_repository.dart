@@ -29,6 +29,13 @@ abstract class AuthRepository {
   /// Lấy thông tin user hiện tại
   Future<Either<Failure, AppUser>> getCurrentUser();
 
+  /// Cập nhật thông tin cá nhân
+  Future<Either<Failure, AppUser>> updateProfile({
+    required String userId,
+    required String fullName,
+    required String phone,
+  });
+
   /// Cập nhật chấp nhận Privacy Policy
   Future<Either<Failure, void>> acceptPrivacyPolicy(String userId);
 

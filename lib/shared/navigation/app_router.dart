@@ -24,6 +24,8 @@ import '../../features/invoice/presentation/pages/add_edit_invoice_page.dart';
 import '../../features/invoice/presentation/pages/invoice_detail_page.dart';
 import '../../features/invoice/presentation/pages/payment_page.dart';
 import '../../features/invoice/presentation/pages/utility_management_page.dart';
+import '../../features/auth/presentation/pages/profile_page.dart';
+import '../../features/auth/presentation/pages/edit_profile_page.dart';
 
 // ── Route Name Constants ──────────────────────────────────────────────────
 class AppRoutes {
@@ -46,6 +48,8 @@ class AppRoutes {
   static const String invoiceDetail = '/invoices/:invoiceId';
   static const String payment = '/invoices/:invoiceId/payment';
   static const String utilities = '/utilities';
+  static const String profile = '/profile';
+  static const String editProfile = '/profile/edit';
 }
 
 // ── GoRouter Refresh Stream ───────────────────────────────────────────────
@@ -258,12 +262,25 @@ class AppRouter {
                 ),
               ],
             ),
-            
             // Utilities
             GoRoute(
               path: AppRoutes.utilities,
               name: 'utilities',
               builder: (context, state) => const UtilityManagementPage(),
+            ),
+
+            // Profile
+            GoRoute(
+              path: AppRoutes.profile,
+              name: 'profile',
+              builder: (context, state) => const ProfilePage(),
+              routes: [
+                GoRoute(
+                  path: 'edit',
+                  name: 'editProfile',
+                  builder: (context, state) => const EditProfilePage(),
+                ),
+              ],
             ),
           ],
         ),
@@ -319,6 +336,11 @@ class MainShell extends StatelessWidget {
       label: 'Hóa đơn',
       route: AppRoutes.invoices,
     ),
+    _NavItem(
+      icon: Icons.person_rounded,
+      label: 'Cá nhân',
+      route: AppRoutes.profile,
+    ),
   ];
 
   @override
@@ -330,8 +352,10 @@ class MainShell extends StatelessWidget {
     // Filter items based on role
     final navItems = _navItems.where((item) {
       if (!isOwner) {
-        // Tenants only see Dashboard and Invoices
-        return item.route == AppRoutes.dashboard || item.route == AppRoutes.invoices;
+        // Tenants only see Dashboard, Invoices and Profile
+        return item.route == AppRoutes.dashboard ||
+               item.route == AppRoutes.invoices ||
+               item.route == AppRoutes.profile;
       }
       return true;
     }).toList();

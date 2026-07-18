@@ -6,6 +6,7 @@ import '../../domain/usecases/check_session_usecase.dart';
 import '../../domain/usecases/login_usecase.dart';
 import '../../domain/usecases/logout_usecase.dart';
 import '../../domain/usecases/register_usecase.dart';
+import '../../domain/usecases/update_profile_usecase.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
@@ -14,6 +15,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final LogoutUseCase _logoutUseCase;
   final CheckSessionUseCase _checkSessionUseCase;
   final RegisterUseCase _registerUseCase;
+  final UpdateProfileUseCase _updateProfileUseCase;
   final AuthRemoteDataSource _authDataSource;
 
   AuthBloc({
@@ -21,11 +23,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required LogoutUseCase logoutUseCase,
     required CheckSessionUseCase checkSessionUseCase,
     required RegisterUseCase registerUseCase,
+    required UpdateProfileUseCase updateProfileUseCase,
     required AuthRemoteDataSource authDataSource,
   })  : _loginUseCase = loginUseCase,
         _logoutUseCase = logoutUseCase,
         _checkSessionUseCase = checkSessionUseCase,
         _registerUseCase = registerUseCase,
+        _updateProfileUseCase = updateProfileUseCase,
         _authDataSource = authDataSource,
         super(const AuthInitial()) {
     on<AuthCheckSessionEvent>(_onCheckSession);
@@ -34,6 +38,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthRegisterEvent>(_onRegister);
     on<AuthAcceptPrivacyPolicyEvent>(_onAcceptPrivacyPolicy);
     on<AuthPropertySetupCompletedEvent>(_onPropertySetupCompleted);
+    on<AuthUpdateProfileEvent>(_onUpdateProfile);
   }
 
   Future<void> _onCheckSession(
@@ -146,6 +151,27 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(AuthAuthenticated(event.updatedUser));
+  }
+
+  Future<void> _onUpdateProfile(
+    AuthUpdateProfileEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! AuthAuthenticated) return;
+    
+    emit(const AuthLoading());
+    final result = await _updateProfileUseCase.call(
+      UpdateProfileParams(
+        userId: currentState.user.id,
+        fullName: event.fullName,
+        phone: event.phone,
+      ),
+    );
+    result.fold(
+      (failure) => emit(AuthError(failure.message)),
+      (user) => emit(AuthAuthenticated(user)),
+    );
   }
 
   @override

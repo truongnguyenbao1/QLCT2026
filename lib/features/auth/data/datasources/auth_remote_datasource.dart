@@ -21,6 +21,11 @@ abstract class AuthRemoteDataSource {
   Future<void> logout();
   Future<UserModel?> checkSession();
   Future<UserModel> getCurrentUser();
+  Future<UserModel> updateProfile({
+    required String userId,
+    required String fullName,
+    required String phone,
+  });
   Future<void> acceptPrivacyPolicy(String userId);
   Future<void> changePassword({
     required String currentPassword,
@@ -192,6 +197,38 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           'ngaycapnhat': DateTime.now().toIso8601String(),
         })
         .eq('iduser', userId);
+  }
+
+  @override
+  Future<UserModel> updateProfile({
+    required String userId,
+    required String fullName,
+    required String phone,
+  }) async {
+    try {
+      await _client
+          .from(AppConstants.tableUsers)
+          .update({
+            'tenuser': fullName,
+            'sdt': phone,
+            'ngaycapnhat': DateTime.now().toIso8601String(),
+          })
+          .eq('iduser', userId);
+          
+      // Cập nhật Auth metadata trên Supabase (tùy chọn)
+      await _client.auth.updateUser(
+        sb.UserAttributes(
+          data: {
+            'full_name': fullName,
+            'phone': phone,
+          },
+        ),
+      );
+
+      return _fetchUserProfile(userId);
+    } catch (e) {
+      throw ServerFailure(message: e.toString());
+    }
   }
 
   @override

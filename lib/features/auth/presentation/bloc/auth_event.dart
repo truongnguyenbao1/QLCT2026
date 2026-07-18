@@ -63,3 +63,16 @@ class AuthRegisterEvent extends AuthEvent {
   @override
   List<Object?> get props => [email, password, fullName, phone, role, cccd];
 }
+
+class AuthUpdateProfileEvent extends AuthEvent {
+  final String fullName;
+  final String phone;
+
+  const AuthUpdateProfileEvent({
+    required this.fullName,
+    required this.phone,
+  });
+
+  @override
+  List<Object?> get props => [fullName, phone];
+}

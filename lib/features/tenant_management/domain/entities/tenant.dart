@@ -11,6 +11,7 @@ class Tenant extends Equatable {
   final DateTime? dateOfBirth;
   final String? email;
   final bool isActive;
+  final String? userId; // Thêm userId
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -24,6 +25,7 @@ class Tenant extends Equatable {
     this.dateOfBirth,
     this.email,
     this.isActive = true,
+    this.userId, // Thêm userId
     required this.createdAt,
     required this.updatedAt,
   });
@@ -34,6 +36,7 @@ class Tenant extends Equatable {
     String? cccdNumber,
     String? email,
     bool? isActive,
+    String? userId, // Thêm userId
     String? roomId,
   }) {
     return Tenant(
@@ -46,11 +49,12 @@ class Tenant extends Equatable {
       dateOfBirth: dateOfBirth,
       email: email ?? this.email,
       isActive: isActive ?? this.isActive,
+      userId: userId ?? this.userId, // Thêm userId
       createdAt: createdAt,
       updatedAt: DateTime.now(),
     );
   }
 
   @override
-  List<Object?> get props => [id, fullName, roomId, isActive];
+  List<Object?> get props => [id, fullName, roomId, isActive, userId];
 }

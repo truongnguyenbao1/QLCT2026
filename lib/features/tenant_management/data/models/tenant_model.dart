@@ -9,9 +9,9 @@ class TenantModel extends Tenant {
     required super.fullName,
     required super.phoneNumber,
     required super.cccdNumber,
-    super.dateOfBirth,
     super.email,
     super.isActive,
+    super.userId, // Thêm userId
     required super.createdAt,
     required super.updatedAt,
   });
@@ -29,6 +29,7 @@ class TenantModel extends Tenant {
           : null,
       email: json['email'] as String?,
       isActive: json['is_active'] as bool? ?? true,
+      userId: json['user_id'] as String?, // Thêm userId
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
     );
@@ -45,6 +46,7 @@ class TenantModel extends Tenant {
       'date_of_birth': dateOfBirth?.toIso8601String(),
       'email': email,
       'is_active': isActive,
+      'user_id': userId, // Thêm userId
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
@@ -61,6 +63,7 @@ class TenantModel extends Tenant {
       dateOfBirth: tenant.dateOfBirth,
       email: tenant.email,
       isActive: tenant.isActive,
+      userId: tenant.userId, // Thêm userId
       createdAt: tenant.createdAt,
       updatedAt: tenant.updatedAt,
     );

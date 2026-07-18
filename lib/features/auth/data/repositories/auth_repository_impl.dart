@@ -90,6 +90,26 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Either<Failure, AppUser>> updateProfile({
+    required String userId,
+    required String fullName,
+    required String phone,
+  }) async {
+    try {
+      final user = await _remoteDataSource.updateProfile(
+        userId: userId,
+        fullName: fullName,
+        phone: phone,
+      );
+      return Right(user);
+    } on Failure catch (f) {
+      return Left(f);
+    } catch (e) {
+      return Left(UnexpectedFailure(message: e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, void>> acceptPrivacyPolicy(String userId) async {
     try {
       await _remoteDataSource.acceptPrivacyPolicy(userId);

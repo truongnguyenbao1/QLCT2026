@@ -30,7 +30,7 @@ class TenantRemoteDataSourceImpl implements TenantRemoteDataSource {
   }) async {
     var query = _client
         .from(AppConstants.tableTenants)
-        .select()
+        .select('*, users(tenuser, sdt, email)')
         .order('full_name', ascending: true);
 
     final data = await query as List<dynamic>;
@@ -45,6 +45,21 @@ class TenantRemoteDataSourceImpl implements TenantRemoteDataSource {
           map['cccd_number'] = '';
         }
       }
+      
+      // Đồng bộ thông tin từ users nếu có tài khoản
+      if (map['users'] != null) {
+        final user = map['users'] as Map<String, dynamic>;
+        if (user['tenuser'] != null && user['tenuser'].toString().isNotEmpty) {
+          map['full_name'] = user['tenuser'];
+        }
+        if (user['sdt'] != null && user['sdt'].toString().isNotEmpty) {
+          map['phone_number'] = user['sdt'];
+        }
+        if (user['email'] != null && user['email'].toString().isNotEmpty) {
+          map['email'] = user['email'];
+        }
+      }
+
       tenants.add(TenantModel.fromJson(map));
     }
 
@@ -62,7 +77,7 @@ class TenantRemoteDataSourceImpl implements TenantRemoteDataSource {
   Future<TenantModel> getTenantById(String tenantId) async {
     final data = await _client
         .from(AppConstants.tableTenants)
-        .select()
+        .select('*, users(tenuser, sdt, email)')
         .eq('id', tenantId)
         .single();
     
@@ -74,6 +89,21 @@ class TenantRemoteDataSourceImpl implements TenantRemoteDataSource {
         map['cccd_number'] = '';
       }
     }
+    
+    // Đồng bộ thông tin từ users nếu có tài khoản
+    if (map['users'] != null) {
+      final user = map['users'] as Map<String, dynamic>;
+      if (user['tenuser'] != null && user['tenuser'].toString().isNotEmpty) {
+        map['full_name'] = user['tenuser'];
+      }
+      if (user['sdt'] != null && user['sdt'].toString().isNotEmpty) {
+        map['phone_number'] = user['sdt'];
+      }
+      if (user['email'] != null && user['email'].toString().isNotEmpty) {
+        map['email'] = user['email'];
+      }
+    }
+    
     return TenantModel.fromJson(map);
   }
 
