@@ -9,6 +9,7 @@ class TenantModel extends Tenant {
     required super.fullName,
     required super.phoneNumber,
     required super.cccdNumber,
+    super.dateOfBirth,
     super.email,
     super.isActive,
     super.userId, // Thêm userId

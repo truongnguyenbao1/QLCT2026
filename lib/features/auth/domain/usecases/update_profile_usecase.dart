@@ -2,16 +2,14 @@
 import 'package:dartz/dartz.dart';
 
 import '../../../../core/errors/failures.dart';
-import '../../../../core/usecases/usecase.dart';
 import '../entities/app_user.dart';
 import '../repositories/auth_repository.dart';
 
-class UpdateProfileUseCase implements UseCase<AppUser, UpdateProfileParams> {
+class UpdateProfileUseCase {
   final AuthRepository repository;
 
   UpdateProfileUseCase(this.repository);
 
-  @override
   Future<Either<Failure, AppUser>> call(UpdateProfileParams params) async {
     return await repository.updateProfile(
       userId: params.userId,
