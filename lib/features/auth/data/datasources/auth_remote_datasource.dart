@@ -83,19 +83,16 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
         final encryptedCccd = await _encryptionService.encryptText(cccd);
 
-        // Tìm trong bảng khachthue xem có CCCD này không
+        // Tìm trong bảng khachthue xem có CCCD này không bằng RPC (vượt qua RLS)
         final response = await _client
-            .from(AppConstants.tableTenants)
-            .select()
-            .eq('cccd_number', encryptedCccd)
-            .maybeSingle();
+            .rpc('check_tenant_cccd', params: {'p_encrypted_cccd': encryptedCccd});
 
         if (response == null) {
           throw const ValidationFailure(
               message: 'Không tìm thấy thông tin hợp đồng thuê khớp với CCCD này. Vui lòng liên hệ chủ trọ!');
         }
         
-        tenantData = response;
+        tenantData = response as Map<String, dynamic>;
       }
 
       // 2. Đăng ký tài khoản với Supabase Auth
