@@ -138,6 +138,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           'p_tenant_id': tenantId,
           'p_user_id': userId,
           'p_phone': phone,
+          'p_email': email,
         });
       }
 
