@@ -7,9 +7,9 @@ void main() async {
   );
 
   try {
-    final auth = await client.from('nhatro').select().limit(1);
-    print('nhatro: $auth');
+    final response = await client.from('khachthue').select();
+    print('All tenants: $response');
   } catch (e) {
-    print('nhatro error: $e');
+    print('Error reading tenants: $e');
   }
 }
