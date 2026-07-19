@@ -57,6 +57,11 @@ import '../../features/invoice/presentation/bloc/invoice_bloc.dart';
 import '../../features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import '../../features/dashboard/domain/usecases/get_dashboard_stats_usecase.dart';
 
+import '../../features/payment_settings/data/datasources/payment_settings_remote_datasource.dart';
+import '../../features/payment_settings/data/repositories/payment_settings_repository_impl.dart';
+import '../../features/payment_settings/domain/repositories/payment_settings_repository.dart';
+import '../../features/payment_settings/presentation/bloc/payment_settings_bloc.dart';
+
 final GetIt getIt = GetIt.instance;
 
 Future<void> configureDependencies() async {
@@ -210,5 +215,16 @@ Future<void> configureDependencies() async {
   );
   getIt.registerFactory<DashboardBloc>(
     () => DashboardBloc(getIt<GetDashboardStatsUseCase>()),
+  );
+
+  // ── PAYMENT SETTINGS Feature ──────────────────────────────────────────
+  getIt.registerLazySingleton<PaymentSettingsRemoteDataSource>(
+    () => PaymentSettingsRemoteDataSourceImpl(getIt<SupabaseClient>()),
+  );
+  getIt.registerLazySingleton<PaymentSettingsRepository>(
+    () => PaymentSettingsRepositoryImpl(getIt<PaymentSettingsRemoteDataSource>()),
+  );
+  getIt.registerFactory<PaymentSettingsBloc>(
+    () => PaymentSettingsBloc(getIt<PaymentSettingsRepository>()),
   );
 }

@@ -26,6 +26,8 @@ import '../../features/invoice/presentation/pages/payment_page.dart';
 import '../../features/invoice/presentation/pages/utility_management_page.dart';
 import '../../features/auth/presentation/pages/profile_page.dart';
 import '../../features/auth/presentation/pages/edit_profile_page.dart';
+import '../../features/payment_settings/presentation/pages/payment_settings_page.dart';
+import '../../features/payment_settings/presentation/bloc/payment_settings_bloc.dart';
 
 // ── Route Name Constants ──────────────────────────────────────────────────
 class AppRoutes {
@@ -50,6 +52,7 @@ class AppRoutes {
   static const String utilities = '/utilities';
   static const String profile = '/profile';
   static const String editProfile = '/profile/edit';
+  static const String paymentSettings = '/profile/payment-settings';
 }
 
 // ── GoRouter Refresh Stream ───────────────────────────────────────────────
@@ -279,6 +282,14 @@ class AppRouter {
                   path: 'edit',
                   name: 'editProfile',
                   builder: (context, state) => const EditProfilePage(),
+                ),
+                GoRoute(
+                  path: 'payment-settings',
+                  name: 'paymentSettings',
+                  builder: (context, state) => BlocProvider<PaymentSettingsBloc>(
+                    create: (_) => getIt<PaymentSettingsBloc>(),
+                    child: const PaymentSettingsPage(),
+                  ),
                 ),
               ],
             ),

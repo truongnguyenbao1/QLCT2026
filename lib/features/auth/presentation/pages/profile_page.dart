@@ -96,6 +96,23 @@ class ProfilePage extends StatelessWidget {
                       label: const Text('Chỉnh sửa thông tin'),
                     ),
                   ),
+                  // Nút cài đặt thanh toán (chỉ hiện với chủ trọ)
+                  if (user.isOwner) ...[
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed: () {
+                          context.push(AppRoutes.paymentSettings);
+                        },
+                        icon: const Icon(Icons.qr_code_rounded),
+                        label: const Text('Cài đặt mã thanh toán'),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFF00897B),
+                        ),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 16),
                   SizedBox(
                     width: double.infinity,
