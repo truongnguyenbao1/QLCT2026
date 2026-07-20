@@ -123,10 +123,10 @@ class _PaymentSettingsPageState extends State<PaymentSettingsPage>
       appBar: AppBar(
         title: const Text(
           'Cài đặt thanh toán',
-          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: Colors.black),
         ),
         backgroundColor: AppColors.surface,
-        foregroundColor: AppColors.textPrimary,
+        foregroundColor: Colors.black,
         elevation: 0,
         bottom: TabBar(
           controller: _tabController,
@@ -812,8 +812,9 @@ class _BankDropdown extends StatelessWidget {
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
-      hint: const Text('-- Chọn ngân hàng --'),
+      hint: const Text('-- Chọn ngân hàng --', style: TextStyle(color: Colors.black54)),
       isExpanded: true,
+      style: const TextStyle(color: Colors.black),
       items: VietnamBanks.list.map((bank) {
         return DropdownMenuItem<BankInfo>(
           value: bank,
@@ -839,7 +840,7 @@ class _BankDropdown extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               Text(bank.name,
-                  style: const TextStyle(fontSize: 14)),
+                  style: const TextStyle(fontSize: 14, color: Colors.black)),
             ],
           ),
         );
@@ -932,6 +933,7 @@ class _StyledField extends StatelessWidget {
       inputFormatters: inputFormatters,
       textCapitalization: textCapitalization,
       validator: validator,
+      style: const TextStyle(color: Colors.black),
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
