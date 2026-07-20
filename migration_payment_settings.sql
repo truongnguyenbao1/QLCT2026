@@ -43,11 +43,11 @@ CREATE TRIGGER update_caidat_thanhtoan_updated_at
 CREATE INDEX IF NOT EXISTS idx_caidat_thanhtoan_user ON public.caidat_thanhtoan(user_id);
 
 -- ── Row Level Security ────────────────────────────────────────────────────
--- (Tuỳ chọn - nếu bạn dùng RLS trong Supabase)
--- ALTER TABLE public.caidat_thanhtoan ENABLE ROW LEVEL SECURITY;
+-- (Bắt buộc nếu bạn đã bật RLS trong Supabase)
+ALTER TABLE public.caidat_thanhtoan ENABLE ROW LEVEL SECURITY;
 
--- -- Chủ trọ chỉ xem được cài đặt của chính mình
--- CREATE POLICY "owner_can_manage_own_settings" ON public.caidat_thanhtoan
---     FOR ALL
---     USING (user_id = auth.uid())
---     WITH CHECK (user_id = auth.uid());
+-- Chủ trọ được toàn quyền thao tác trên dữ liệu của chính mình
+CREATE POLICY "owner_can_manage_own_settings" ON public.caidat_thanhtoan
+    FOR ALL
+    USING (user_id = auth.uid())
+    WITH CHECK (user_id = auth.uid());

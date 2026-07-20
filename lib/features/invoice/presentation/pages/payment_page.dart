@@ -11,6 +11,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
+import '../../../../core/di/injection.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../features/auth/presentation/bloc/auth_bloc.dart';
@@ -18,16 +19,32 @@ import '../../../../features/auth/presentation/bloc/auth_state.dart';
 import '../../domain/entities/invoice.dart';
 import '../../domain/entities/payment.dart';
 import '../bloc/invoice_bloc.dart';
+import '../../../../features/payment_settings/presentation/bloc/payment_settings_bloc.dart';
+import '../../../../features/payment_settings/presentation/bloc/payment_settings_event.dart';
+import '../../../../features/payment_settings/presentation/bloc/payment_settings_state.dart';
 
-class PaymentPage extends StatefulWidget {
+class PaymentPage extends StatelessWidget {
   final String invoiceId;
   const PaymentPage({super.key, required this.invoiceId});
 
   @override
-  State<PaymentPage> createState() => _PaymentPageState();
+  Widget build(BuildContext context) {
+    return BlocProvider<PaymentSettingsBloc>(
+      create: (_) => getIt<PaymentSettingsBloc>(),
+      child: _PaymentPageContent(invoiceId: invoiceId),
+    );
+  }
 }
 
-class _PaymentPageState extends State<PaymentPage> {
+class _PaymentPageContent extends StatefulWidget {
+  final String invoiceId;
+  const _PaymentPageContent({required this.invoiceId});
+
+  @override
+  State<_PaymentPageContent> createState() => _PaymentPageContentState();
+}
+
+class _PaymentPageContentState extends State<_PaymentPageContent> {
   final _formKey = GlobalKey<FormState>();
   final _transactionIdController = TextEditingController();
   PaymentMethod _selectedMethod = PaymentMethod.bankTransfer;
@@ -106,7 +123,7 @@ class _PaymentPageState extends State<PaymentPage> {
                 const SizedBox(height: 16),
 
                 // ── QR VietQR ─────────────────────────────────────────
-                _VietQrCard(invoice: invoice)
+                _VietQrSection(invoice: invoice)
                     .animate()
                     .fadeIn(delay: 100.ms, duration: 300.ms),
 
@@ -258,17 +275,87 @@ class _AmountBanner extends StatelessWidget {
   }
 }
 
+}
+
 // ── VietQR Card ───────────────────────────────────────────────────────────
-class _VietQrCard extends StatelessWidget {
+class _VietQrSection extends StatefulWidget {
   final Invoice invoice;
-  const _VietQrCard({required this.invoice});
+  const _VietQrSection({required this.invoice});
+
+  @override
+  State<_VietQrSection> createState() => _VietQrSectionState();
+}
+
+class _VietQrSectionState extends State<_VietQrSection> {
+  @override
+  void initState() {
+    super.initState();
+    // Load payment settings of the owner (createdBy)
+    context.read<PaymentSettingsBloc>().add(LoadPaymentSettingsEvent(widget.invoice.createdBy));
+  }
 
   @override
   Widget build(BuildContext context) {
-    // VietQR placeholder QR - encode invoice info
-    final qrContent =
-        'PAYMENT:${invoice.id}:${invoice.totalAmount}:${invoice.roomNumber}';
+    return BlocBuilder<PaymentSettingsBloc, PaymentSettingsState>(
+      builder: (context, state) {
+        if (state is PaymentSettingsLoaded && state.settings != null && state.settings!.hasBankInfo) {
+          final settings = state.settings!;
+          final bank = settings.bankCode!;
+          final acc = settings.accountNumber!;
+          final name = Uri.encodeComponent(settings.accountName!);
+          final noteRaw = settings.transferNoteTemplate ?? 'Phong {room} thang {month}/{year}';
+          final noteProcessed = noteRaw
+              .replaceAll('{room}', widget.invoice.roomNumber)
+              .replaceAll('{month}', widget.invoice.month.toString())
+              .replaceAll('{year}', widget.invoice.year.toString());
+          final note = Uri.encodeComponent(noteProcessed);
+          final amount = widget.invoice.totalAmount.toInt();
+          final vietQrUrl = 'https://img.vietqr.io/image/$bank-$acc-qr_only.png?accountName=$name&addInfo=$note&amount=$amount';
 
+          return _VietQrCard(
+            invoice: widget.invoice,
+            qrContent: vietQrUrl,
+            isVietQrNetwork: true,
+            noteProcessed: noteProcessed,
+          );
+        } else if (state is PaymentSettingsLoading) {
+          return const Card(
+            child: Padding(
+              padding: EdgeInsets.all(32.0),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+          );
+        } else {
+          // Fallback to placeholder if no bank info
+          final qrContent = 'PAYMENT:${widget.invoice.id}:${widget.invoice.totalAmount}:${widget.invoice.roomNumber}';
+          final noteProcessed = 'Phong ${widget.invoice.roomNumber} T${widget.invoice.month}/${widget.invoice.year}';
+          return _VietQrCard(
+            invoice: widget.invoice,
+            qrContent: qrContent,
+            isVietQrNetwork: false,
+            noteProcessed: noteProcessed,
+          );
+        }
+      },
+    );
+  }
+}
+
+class _VietQrCard extends StatelessWidget {
+  final Invoice invoice;
+  final String qrContent;
+  final bool isVietQrNetwork;
+  final String noteProcessed;
+
+  const _VietQrCard({
+    required this.invoice,
+    required this.qrContent,
+    required this.isVietQrNetwork,
+    required this.noteProcessed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -308,12 +395,33 @@ class _VietQrCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: AppColors.border),
               ),
-              child: QrImageView(
-                data: qrContent,
-                version: QrVersions.auto,
-                size: 180,
-                backgroundColor: Colors.white,
-              ),
+              child: isVietQrNetwork
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.network(
+                        qrContent,
+                        width: 180,
+                        height: 180,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Icon(Icons.qr_code_2_rounded,
+                                size: 100, color: Colors.grey),
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return const SizedBox(
+                            width: 180,
+                            height: 180,
+                            child: Center(child: CircularProgressIndicator()),
+                          );
+                        },
+                      ),
+                    )
+                  : QrImageView(
+                      data: qrContent,
+                      version: QrVersions.auto,
+                      size: 180,
+                      backgroundColor: Colors.white,
+                    ),
             ),
             const SizedBox(height: 12),
             Row(
@@ -323,16 +431,14 @@ class _VietQrCard extends StatelessWidget {
                     size: 14, color: AppColors.textSecondary),
                 const SizedBox(width: 4),
                 Text(
-                  'Nội dung CK: Phong ${invoice.roomNumber} T${invoice.month}/${invoice.year}',
+                  'Nội dung CK: $noteProcessed',
                   style: const TextStyle(
                       color: AppColors.textSecondary, fontSize: 12),
                 ),
                 const SizedBox(width: 4),
                 GestureDetector(
                   onTap: () {
-                    Clipboard.setData(ClipboardData(
-                        text:
-                            'Phong ${invoice.roomNumber} T${invoice.month}/${invoice.year}'));
+                    Clipboard.setData(ClipboardData(text: noteProcessed));
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Đã sao chép!')),
                     );

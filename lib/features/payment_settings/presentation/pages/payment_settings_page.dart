@@ -694,11 +694,26 @@ class _QrPreviewCard extends StatelessWidget {
                     ),
                     child: Column(
                       children: [
-                        QrImageView(
-                          data: qrString,
-                          version: QrVersions.auto,
-                          size: 180,
-                          backgroundColor: Colors.white,
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(
+                            vietQrUrl,
+                            width: 180,
+                            height: 180,
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) =>
+                                const Icon(Icons.qr_code_2_rounded,
+                                    size: 100, color: Colors.grey),
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return const SizedBox(
+                                width: 180,
+                                height: 180,
+                                child: Center(
+                                    child: CircularProgressIndicator()),
+                              );
+                            },
+                          ),
                         ),
                         const SizedBox(height: 12),
                         Container(
