@@ -6,11 +6,12 @@
 //  - Xem trước QR VietQR
 //  - Thiết lập mẫu nội dung chuyển khoản
 // ─────────────────────────────────────────────────────────────────────────────
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
@@ -19,6 +20,10 @@ import '../../domain/entities/payment_settings.dart';
 import '../bloc/payment_settings_bloc.dart';
 import '../bloc/payment_settings_event.dart';
 import '../bloc/payment_settings_state.dart';
+import '../../data/datasources/bank_lookup_service.dart';
+
+// ── Trạng thái tra cứu tên tài khoản ─────────────────────────────────────
+enum _LookupStatus { idle, loading, success, error }
 
 class PaymentSettingsPage extends StatefulWidget {
   const PaymentSettingsPage({super.key});
@@ -39,6 +44,11 @@ class _PaymentSettingsPageState extends State<PaymentSettingsPage>
   bool _showQrPreview = false;
   late TabController _tabController;
 
+  // ── Trạng thái tra cứu tên tài khoản ──────────────────────────────────
+  _LookupStatus _lookupStatus = _LookupStatus.idle;
+  String _lookupMessage = '';
+  Timer? _debounceTimer;
+
   @override
   void initState() {
     super.initState();
@@ -50,10 +60,14 @@ class _PaymentSettingsPageState extends State<PaymentSettingsPage>
           .read<PaymentSettingsBloc>()
           .add(LoadPaymentSettingsEvent(authState.user.id));
     }
+    // Tự động tra cứu khi số TK thay đổi
+    _accountNumberCtrl.addListener(_scheduleLookup);
   }
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
+    _accountNumberCtrl.removeListener(_scheduleLookup);
     _tabController.dispose();
     _accountNumberCtrl.dispose();
     _accountNameCtrl.dispose();
@@ -71,6 +85,9 @@ class _PaymentSettingsPageState extends State<PaymentSettingsPage>
     if (settings.bankCode != null) {
       _selectedBank = VietnamBanks.findByCode(settings.bankCode!);
     }
+    // Reset trạng thái khi load dữ liệu từ server (đã có tên sẵn)
+    _lookupStatus = _LookupStatus.idle;
+    _lookupMessage = '';
   }
 
   void _save() {
@@ -114,6 +131,66 @@ class _PaymentSettingsPageState extends State<PaymentSettingsPage>
       return '';
     }
     return 'BANK:${_selectedBank!.code}:${_accountNumberCtrl.text.trim()}:${_accountNameCtrl.text.trim()}';
+  }
+
+  /// Debounce 1.5s rồi gọi API tra cứu
+  void _scheduleLookup() {
+    _debounceTimer?.cancel();
+    final accountNumber = _accountNumberCtrl.text.trim();
+
+    if (accountNumber.length < 6 || _selectedBank == null) {
+      if (_lookupStatus != _LookupStatus.idle) {
+        setState(() {
+          _lookupStatus = _LookupStatus.idle;
+          _lookupMessage = '';
+        });
+      }
+      return;
+    }
+
+    setState(() {
+      _lookupStatus = _LookupStatus.loading;
+      _lookupMessage = '';
+    });
+
+    _debounceTimer = Timer(const Duration(milliseconds: 1500), () {
+      _performLookup(accountNumber, _selectedBank!);
+    });
+  }
+
+  /// Gọi VietQR Napas 247 để lấy tên tài khoản
+  Future<void> _performLookup(String accountNumber, BankInfo bank) async {
+    try {
+      final name = await BankLookupService().lookupAccountName(
+        bin: bank.bin,
+        accountNumber: accountNumber,
+      );
+      if (!mounted) return;
+      if (name != null && name.isNotEmpty) {
+        setState(() {
+          _accountNameCtrl.text = name;
+          _lookupStatus = _LookupStatus.success;
+          _lookupMessage = 'Đã xác minh qua Napas 247';
+        });
+      } else {
+        setState(() {
+          _lookupStatus = _LookupStatus.error;
+          _lookupMessage = 'Không tìm thấy tài khoản – vui lòng nhập thủ công';
+        });
+      }
+    } on BankLookupNotFoundException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _lookupStatus = _LookupStatus.error;
+        _lookupMessage = e.message;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _lookupStatus = _LookupStatus.error;
+        _lookupMessage = e.toString().replaceAll('BankLookupException: ', '');
+      });
+    }
   }
 
   @override
@@ -199,13 +276,17 @@ class _PaymentSettingsPageState extends State<PaymentSettingsPage>
                         accountNumberCtrl: _accountNumberCtrl,
                         accountNameCtrl: _accountNameCtrl,
                         noteTemplateCtrl: _noteTemplateCtrl,
-                        onBankSelected: (bank) =>
-                            setState(() => _selectedBank = bank),
+                        onBankSelected: (bank) {
+                          setState(() => _selectedBank = bank);
+                          _scheduleLookup();
+                        },
                         showQrPreview: _showQrPreview,
                         onToggleQr: () =>
                             setState(() => _showQrPreview = !_showQrPreview),
                         qrString: _buildQrString(),
                         vietQrUrl: _buildVietQrUrl(),
+                        lookupStatus: _lookupStatus,
+                        lookupMessage: _lookupMessage,
                       ),
 
                       // Tab 2: Ví điện tử
@@ -324,6 +405,8 @@ class _BankTab extends StatelessWidget {
   final VoidCallback onToggleQr;
   final String qrString;
   final String vietQrUrl;
+  final _LookupStatus lookupStatus;
+  final String lookupMessage;
 
   const _BankTab({
     required this.selectedBank,
@@ -335,6 +418,8 @@ class _BankTab extends StatelessWidget {
     required this.onToggleQr,
     required this.qrString,
     required this.vietQrUrl,
+    required this.lookupStatus,
+    required this.lookupMessage,
   });
 
   @override
@@ -379,20 +464,11 @@ class _BankTab extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // Tên chủ tài khoản
-          _StyledField(
+          // Tên chủ tài khoản – tự động tra cứu qua Napas 247
+          _AccountNameLookupField(
             controller: accountNameCtrl,
-            label: 'Tên chủ tài khoản *',
-            hint: 'VD: NGUYEN VAN A',
-            icon: Icons.person_rounded,
-            textCapitalization: TextCapitalization.characters,
-            helperText: 'Nhập CHÍNH XÁC như in trên thẻ ngân hàng',
-            validator: (v) {
-              if (v == null || v.trim().isEmpty) {
-                return 'Vui lòng nhập tên chủ tài khoản';
-              }
-              return null;
-            },
+            lookupStatus: lookupStatus,
+            lookupMessage: lookupMessage,
           ),
           const SizedBox(height: 20),
 
@@ -977,6 +1053,177 @@ class _StyledField extends StatelessWidget {
             const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
     );
+  }
+}
+
+// ── Account Name Lookup Field ────────────────────────────────────────────
+/// Field tên tài khoản có tích hợp tra cứu tự động qua Napas 247.
+/// - Hiển thị spinner khi đang tra cứu
+/// - Chip xanh khi xác minh thành công
+/// - Cảnh báo cam khi lỗi (vẫn cho nhập tay)
+class _AccountNameLookupField extends StatelessWidget {
+  final TextEditingController controller;
+  final _LookupStatus lookupStatus;
+  final String lookupMessage;
+
+  const _AccountNameLookupField({
+    required this.controller,
+    required this.lookupStatus,
+    required this.lookupMessage,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isSuccess = lookupStatus == _LookupStatus.success;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextFormField(
+          controller: controller,
+          textCapitalization: TextCapitalization.characters,
+          style: const TextStyle(color: Colors.black),
+          validator: (v) {
+            if (v == null || v.trim().isEmpty) {
+              return 'Vui lòng nhập tên chủ tài khoản';
+            }
+            return null;
+          },
+          decoration: InputDecoration(
+            labelText: 'Tên chủ tài khoản *',
+            hintText: 'VD: NGUYEN VAN A',
+            prefixIcon: const Icon(Icons.person_rounded),
+            suffixIcon: _buildSuffixIcon(),
+            filled: true,
+            fillColor: isSuccess
+                ? const Color(0xFFE8F5E9)
+                : AppColors.surfaceVariant,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: isSuccess
+                  ? const BorderSide(color: Color(0xFF4CAF50), width: 1.5)
+                  : BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: isSuccess
+                    ? const Color(0xFF2E7D32)
+                    : AppColors.primary,
+                width: 2,
+              ),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.error, width: 1.5),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.error, width: 2),
+            ),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          ),
+        ),
+        // ── Chip trạng thái ──────────────────────────────────────────────
+        if (lookupStatus != _LookupStatus.idle) ...[const SizedBox(height: 6), _buildStatusRow()],
+      ],
+    );
+  }
+
+  Widget _buildSuffixIcon() {
+    switch (lookupStatus) {
+      case _LookupStatus.loading:
+        return const Padding(
+          padding: EdgeInsets.all(14),
+          child: SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        );
+      case _LookupStatus.success:
+        return const Icon(
+          Icons.verified_rounded,
+          color: Color(0xFF43A047),
+          size: 22,
+        );
+      case _LookupStatus.error:
+        return const Icon(
+          Icons.warning_amber_rounded,
+          color: Color(0xFFF57C00),
+          size: 22,
+        );
+      case _LookupStatus.idle:
+        return const SizedBox.shrink();
+    }
+  }
+
+  Widget _buildStatusRow() {
+    switch (lookupStatus) {
+      case _LookupStatus.loading:
+        return Padding(
+          padding: const EdgeInsets.only(left: 4),
+          child: Text(
+            '🔍 Đang tra cứu qua Napas 247...',
+            style: TextStyle(
+              fontSize: 11,
+              color: AppColors.primary.withValues(alpha: 0.85),
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+        );
+      case _LookupStatus.success:
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          decoration: BoxDecoration(
+            color: const Color(0xFFE8F5E9),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFF4CAF50)),
+          ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.verified_rounded, color: Color(0xFF43A047), size: 14),
+              SizedBox(width: 5),
+              Text(
+                'Đã xác minh qua Napas 247',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Color(0xFF2E7D32),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        );
+      case _LookupStatus.error:
+        return Row(
+          children: [
+            const Icon(
+              Icons.info_outline_rounded,
+              color: Color(0xFFF57C00),
+              size: 13,
+            ),
+            const SizedBox(width: 5),
+            Expanded(
+              child: Text(
+                lookupMessage,
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: Color(0xFFE65100),
+                ),
+              ),
+            ),
+          ],
+        );
+      case _LookupStatus.idle:
+        return const SizedBox.shrink();
+    }
   }
 }
 

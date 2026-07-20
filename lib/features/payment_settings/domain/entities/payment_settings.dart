@@ -90,26 +90,26 @@ class VietnamBanks {
   VietnamBanks._();
 
   static const List<BankInfo> list = [
-    BankInfo(code: 'VCB',  name: 'Vietcombank',              shortName: 'Vietcombank'),
-    BankInfo(code: 'TCB',  name: 'Techcombank',               shortName: 'Techcombank'),
-    BankInfo(code: 'MB',   name: 'MB Bank',                   shortName: 'MB'),
-    BankInfo(code: 'VPB',  name: 'VPBank',                    shortName: 'VPBank'),
-    BankInfo(code: 'ACB',  name: 'ACB',                       shortName: 'ACB'),
-    BankInfo(code: 'BIDV', name: 'BIDV',                      shortName: 'BIDV'),
-    BankInfo(code: 'VTB',  name: 'Vietinbank',                shortName: 'Vietinbank'),
-    BankInfo(code: 'TPB',  name: 'TPBank',                    shortName: 'TPBank'),
-    BankInfo(code: 'SHB',  name: 'SHB',                       shortName: 'SHB'),
-    BankInfo(code: 'HDB',  name: 'HDBank',                    shortName: 'HDBank'),
-    BankInfo(code: 'OCB',  name: 'OCB',                       shortName: 'OCB'),
-    BankInfo(code: 'MSB',  name: 'Maritime Bank',             shortName: 'MSB'),
-    BankInfo(code: 'STB',  name: 'Sacombank',                 shortName: 'Sacombank'),
-    BankInfo(code: 'EIB',  name: 'Eximbank',                  shortName: 'Eximbank'),
-    BankInfo(code: 'LPB',  name: 'LienVietPostBank',          shortName: 'LienVietPost'),
-    BankInfo(code: 'NAB',  name: 'Nam A Bank',                shortName: 'Nam A'),
-    BankInfo(code: 'ABB',  name: 'An Bình Bank',              shortName: 'An Bình'),
-    BankInfo(code: 'SEAB', name: 'SeABank',                   shortName: 'SeABank'),
-    BankInfo(code: 'VAB',  name: 'VietABank',                 shortName: 'VietA'),
-    BankInfo(code: 'VBSP', name: 'Agribank',                  shortName: 'Agribank'),
+    BankInfo(code: 'VCB',  name: 'Vietcombank',     shortName: 'Vietcombank',  bin: '970436'),
+    BankInfo(code: 'TCB',  name: 'Techcombank',      shortName: 'Techcombank',  bin: '970407'),
+    BankInfo(code: 'MB',   name: 'MB Bank',           shortName: 'MB',           bin: '970422'),
+    BankInfo(code: 'VPB',  name: 'VPBank',            shortName: 'VPBank',       bin: '970432'),
+    BankInfo(code: 'ACB',  name: 'ACB',               shortName: 'ACB',          bin: '970416'),
+    BankInfo(code: 'BIDV', name: 'BIDV',              shortName: 'BIDV',         bin: '970418'),
+    BankInfo(code: 'VTB',  name: 'Vietinbank',        shortName: 'Vietinbank',   bin: '970415'),
+    BankInfo(code: 'TPB',  name: 'TPBank',            shortName: 'TPBank',       bin: '970423'),
+    BankInfo(code: 'SHB',  name: 'SHB',               shortName: 'SHB',          bin: '970443'),
+    BankInfo(code: 'HDB',  name: 'HDBank',            shortName: 'HDBank',       bin: '970437'),
+    BankInfo(code: 'OCB',  name: 'OCB',               shortName: 'OCB',          bin: '970448'),
+    BankInfo(code: 'MSB',  name: 'Maritime Bank',     shortName: 'MSB',          bin: '970426'),
+    BankInfo(code: 'STB',  name: 'Sacombank',         shortName: 'Sacombank',    bin: '970403'),
+    BankInfo(code: 'EIB',  name: 'Eximbank',          shortName: 'Eximbank',     bin: '970431'),
+    BankInfo(code: 'LPB',  name: 'LienVietPostBank',  shortName: 'LienVietPost', bin: '970449'),
+    BankInfo(code: 'NAB',  name: 'Nam A Bank',        shortName: 'Nam A',        bin: '970428'),
+    BankInfo(code: 'ABB',  name: 'An Bình Bank',      shortName: 'An Bình',      bin: '970425'),
+    BankInfo(code: 'SEAB', name: 'SeABank',           shortName: 'SeABank',      bin: '970440'),
+    BankInfo(code: 'VAB',  name: 'VietABank',         shortName: 'VietA',        bin: '970427'),
+    BankInfo(code: 'VBSP', name: 'Agribank',          shortName: 'Agribank',     bin: '970405'),
   ];
 
   static BankInfo? findByCode(String code) {
@@ -125,11 +125,14 @@ class BankInfo extends Equatable {
   final String code;
   final String name;
   final String shortName;
+  /// Mã BIN 6 số chuẩn Napas – dùng cho VietQR Lookup API
+  final String bin;
 
   const BankInfo({
     required this.code,
     required this.name,
     required this.shortName,
+    required this.bin,
   });
 
   @override
