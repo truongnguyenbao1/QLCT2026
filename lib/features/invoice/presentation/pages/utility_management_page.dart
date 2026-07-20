@@ -179,7 +179,7 @@ class _UtilityManagementViewState extends State<_UtilityManagementView> {
                                       child: const Text('Chốt sổ'),
                                     ),
                               onTap: hasInvoice ? () {
-                                context.push('${AppRoutes.invoiceDetail}/${invoice.id}');
+                                context.push('/invoices/${invoice.id}');
                               } : null,
                             ),
                           );
