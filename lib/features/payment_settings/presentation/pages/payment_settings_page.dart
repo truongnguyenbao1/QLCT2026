@@ -697,7 +697,7 @@ class _QrPreviewCard extends StatelessWidget {
                         ClipRRect(
                           borderRadius: BorderRadius.circular(12),
                           child: Image.network(
-                            vietQrUrl,
+                            qrString,
                             width: 180,
                             height: 180,
                             fit: BoxFit.contain,

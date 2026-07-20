@@ -274,9 +274,6 @@ class _AmountBanner extends StatelessWidget {
     );
   }
 }
-
-}
-
 // ── VietQR Card ───────────────────────────────────────────────────────────
 class _VietQrSection extends StatefulWidget {
   final Invoice invoice;
