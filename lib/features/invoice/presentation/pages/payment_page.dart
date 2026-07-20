@@ -59,6 +59,7 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
   final _transactionIdController = TextEditingController();
   PaymentMethod _selectedMethod = PaymentMethod.bankTransfer;
   bool _showForm = false;
+  Invoice? _invoice;
 
   @override
   void initState() {
@@ -87,7 +88,9 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
       ),
       body: BlocConsumer<InvoiceBloc, InvoiceState>(
         listener: (context, state) {
-          if (state is InvoiceActionSuccess) {
+          if (state is InvoiceDetailLoaded) {
+            _invoice = state.invoice;
+          } else if (state is InvoiceActionSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message),
@@ -108,15 +111,15 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
           }
         },
         builder: (context, state) {
-          // Tìm hóa đơn từ state
-          Invoice? invoice;
           if (state is InvoiceDetailLoaded) {
-            invoice = state.invoice;
+            _invoice = state.invoice;
           }
 
-          if (invoice == null) {
+          if (_invoice == null) {
             return const Center(child: CircularProgressIndicator());
           }
+          
+          final invoice = _invoice!;
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
