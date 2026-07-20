@@ -22,6 +22,7 @@ import '../bloc/invoice_bloc.dart';
 import '../../../../features/payment_settings/presentation/bloc/payment_settings_bloc.dart';
 import '../../../../features/payment_settings/presentation/bloc/payment_settings_event.dart';
 import '../../../../features/payment_settings/presentation/bloc/payment_settings_state.dart';
+import '../../../../features/payment_settings/domain/entities/payment_settings.dart';
 
 class PaymentPage extends StatelessWidget {
   final String invoiceId;
@@ -123,7 +124,7 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
                 const SizedBox(height: 16),
 
                 // ── QR VietQR ─────────────────────────────────────────
-                _VietQrSection(invoice: invoice)
+                _PaymentMethodsSection(invoice: invoice)
                     .animate()
                     .fadeIn(delay: 100.ms, duration: 300.ms),
 
@@ -147,7 +148,7 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
                 ],
 
                 if (!isOwner && !invoice.isPaid) ...[
-                  const _TenantInfoCard()
+                  _TenantActionSection(invoice: invoice)
                       .animate()
                       .fadeIn(delay: 200.ms, duration: 300.ms),
                   const SizedBox(height: 16),
@@ -274,20 +275,19 @@ class _AmountBanner extends StatelessWidget {
     );
   }
 }
-// ── VietQR Card ───────────────────────────────────────────────────────────
-class _VietQrSection extends StatefulWidget {
+// ── Phương thức thanh toán ───────────────────────────────────────────────
+class _PaymentMethodsSection extends StatefulWidget {
   final Invoice invoice;
-  const _VietQrSection({required this.invoice});
+  const _PaymentMethodsSection({required this.invoice});
 
   @override
-  State<_VietQrSection> createState() => _VietQrSectionState();
+  State<_PaymentMethodsSection> createState() => _PaymentMethodsSectionState();
 }
 
-class _VietQrSectionState extends State<_VietQrSection> {
+class _PaymentMethodsSectionState extends State<_PaymentMethodsSection> {
   @override
   void initState() {
     super.initState();
-    // Load payment settings of the owner (createdBy)
     context.read<PaymentSettingsBloc>().add(LoadPaymentSettingsEvent(widget.invoice.createdBy));
   }
 
@@ -295,44 +295,83 @@ class _VietQrSectionState extends State<_VietQrSection> {
   Widget build(BuildContext context) {
     return BlocBuilder<PaymentSettingsBloc, PaymentSettingsState>(
       builder: (context, state) {
-        if (state is PaymentSettingsLoaded && state.settings != null && state.settings!.hasBankInfo) {
-          final settings = state.settings!;
-          final bank = settings.bankCode!;
-          final acc = settings.accountNumber!;
-          final name = Uri.encodeComponent(settings.accountName!);
-          final noteRaw = settings.transferNoteTemplate ?? 'Phong {room} thang {month}/{year}';
-          final noteProcessed = noteRaw
-              .replaceAll('{room}', widget.invoice.roomNumber)
-              .replaceAll('{month}', widget.invoice.month.toString())
-              .replaceAll('{year}', widget.invoice.year.toString());
-          final note = Uri.encodeComponent(noteProcessed);
-          final amount = widget.invoice.totalAmount.toInt();
-          final vietQrUrl = 'https://img.vietqr.io/image/$bank-$acc-qr_only.png?accountName=$name&addInfo=$note&amount=$amount';
-
-          return _VietQrCard(
-            invoice: widget.invoice,
-            qrContent: vietQrUrl,
-            isVietQrNetwork: true,
-            noteProcessed: noteProcessed,
-          );
-        } else if (state is PaymentSettingsLoading) {
+        if (state is PaymentSettingsLoading) {
           return const Card(
             child: Padding(
               padding: EdgeInsets.all(32.0),
               child: Center(child: CircularProgressIndicator()),
             ),
           );
-        } else {
-          // Fallback to placeholder if no bank info
-          final qrContent = 'PAYMENT:${widget.invoice.id}:${widget.invoice.totalAmount}:${widget.invoice.roomNumber}';
-          final noteProcessed = 'Phong ${widget.invoice.roomNumber} T${widget.invoice.month}/${widget.invoice.year}';
-          return _VietQrCard(
-            invoice: widget.invoice,
-            qrContent: qrContent,
-            isVietQrNetwork: false,
-            noteProcessed: noteProcessed,
+        }
+
+        bool hasBank = false;
+        bool hasMomo = false;
+        PaymentSettings? settings;
+
+        if (state is PaymentSettingsLoaded && state.settings != null) {
+          settings = state.settings;
+          hasBank = settings!.hasBankInfo;
+          hasMomo = settings.hasMomo;
+        }
+
+        final noteRaw = settings?.transferNoteTemplate ?? 'Phong {room} thang {month}/{year}';
+        final noteProcessed = noteRaw
+            .replaceAll('{room}', widget.invoice.roomNumber)
+            .replaceAll('{month}', widget.invoice.month.toString())
+            .replaceAll('{year}', widget.invoice.year.toString());
+        final amount = widget.invoice.totalAmount.toInt();
+
+        // 1. Chỉ có Momo
+        if (hasMomo && !hasBank) {
+          return _MomoCard(invoice: widget.invoice, phone: settings!.momoPhone!, amount: amount, note: noteProcessed);
+        }
+        
+        // 2. Chỉ có Bank hoặc không có gì (Fallback)
+        if (!hasMomo && hasBank) {
+          final vietQrUrl = 'https://img.vietqr.io/image/${settings!.bankCode!}-${settings.accountNumber!}-qr_only.png?accountName=${Uri.encodeComponent(settings.accountName!)}&addInfo=${Uri.encodeComponent(noteProcessed)}&amount=$amount';
+          return _VietQrCard(invoice: widget.invoice, qrContent: vietQrUrl, isVietQrNetwork: true, noteProcessed: noteProcessed);
+        }
+
+        // 3. Có cả hai
+        if (hasBank && hasMomo) {
+          final vietQrUrl = 'https://img.vietqr.io/image/${settings!.bankCode!}-${settings.accountNumber!}-qr_only.png?accountName=${Uri.encodeComponent(settings.accountName!)}&addInfo=${Uri.encodeComponent(noteProcessed)}&amount=$amount';
+          return DefaultTabController(
+            length: 2,
+            child: Card(
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: const BorderSide(color: AppColors.border),
+              ),
+              child: Column(
+                children: [
+                  const TabBar(
+                    labelColor: AppColors.primary,
+                    unselectedLabelColor: AppColors.textSecondary,
+                    indicatorColor: AppColors.primary,
+                    tabs: [
+                      Tab(text: 'Ngân hàng', icon: Icon(Icons.account_balance_rounded, size: 18)),
+                      Tab(text: 'Ví MoMo', icon: Icon(Icons.phone_android_rounded, size: 18)),
+                    ],
+                  ),
+                  SizedBox(
+                    height: 380, // Fixed height for tab view to prevent layout jump
+                    child: TabBarView(
+                      children: [
+                        _VietQrCard(invoice: widget.invoice, qrContent: vietQrUrl, isVietQrNetwork: true, noteProcessed: noteProcessed, insideTab: true),
+                        _MomoCard(invoice: widget.invoice, phone: settings.momoPhone!, amount: amount, note: noteProcessed, insideTab: true),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           );
         }
+
+        // 4. Fallback khi chưa cài đặt gì
+        final qrContent = 'PAYMENT:${widget.invoice.id}:${widget.invoice.totalAmount}:${widget.invoice.roomNumber}';
+        return _VietQrCard(invoice: widget.invoice, qrContent: qrContent, isVietQrNetwork: false, noteProcessed: noteProcessed);
       },
     );
   }
@@ -343,114 +382,238 @@ class _VietQrCard extends StatelessWidget {
   final String qrContent;
   final bool isVietQrNetwork;
   final String noteProcessed;
+  final bool insideTab;
 
   const _VietQrCard({
     required this.invoice,
     required this.qrContent,
     required this.isVietQrNetwork,
     required this.noteProcessed,
+    this.insideTab = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final content = Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryContainer,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.qr_code_rounded,
+                    color: AppColors.primary, size: 20),
+              ),
+              const SizedBox(width: 10),
+              const Text(
+                'Quét mã VietQR để chuyển khoản',
+                style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    color: AppColors.textPrimary),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: isVietQrNetwork
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      qrContent,
+                      width: 180,
+                      height: 180,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) =>
+                          const Icon(Icons.qr_code_2_rounded,
+                              size: 100, color: Colors.grey),
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return const SizedBox(
+                          width: 180,
+                          height: 180,
+                          child: Center(child: CircularProgressIndicator()),
+                        );
+                      },
+                    ),
+                  )
+                : QrImageView(
+                    data: qrContent,
+                    version: QrVersions.auto,
+                    size: 180,
+                    backgroundColor: Colors.white,
+                  ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.info_outline,
+                  size: 14, color: AppColors.textSecondary),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  'Nội dung CK: $noteProcessed',
+                  style: const TextStyle(
+                      color: AppColors.textSecondary, fontSize: 12),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 4),
+              GestureDetector(
+                onTap: () {
+                  Clipboard.setData(ClipboardData(text: noteProcessed));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Đã sao chép nội dung!')),
+                  );
+                },
+                child: const Icon(Icons.copy_rounded,
+                    size: 14, color: AppColors.primary),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    if (insideTab) return content;
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: const BorderSide(color: AppColors.border),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryContainer,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(Icons.qr_code_rounded,
-                      color: AppColors.primary, size: 20),
-                ),
-                const SizedBox(width: 10),
-                const Text(
-                  'Quét mã VietQR để chuyển khoản',
-                  style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                      color: AppColors.textPrimary),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: isVietQrNetwork
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        qrContent,
-                        width: 180,
-                        height: 180,
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) =>
-                            const Icon(Icons.qr_code_2_rounded,
-                                size: 100, color: Colors.grey),
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return const SizedBox(
-                            width: 180,
-                            height: 180,
-                            child: Center(child: CircularProgressIndicator()),
-                          );
-                        },
-                      ),
-                    )
-                  : QrImageView(
-                      data: qrContent,
-                      version: QrVersions.auto,
-                      size: 180,
-                      backgroundColor: Colors.white,
-                    ),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.info_outline,
-                    size: 14, color: AppColors.textSecondary),
-                const SizedBox(width: 4),
-                Text(
-                  'Nội dung CK: $noteProcessed',
-                  style: const TextStyle(
-                      color: AppColors.textSecondary, fontSize: 12),
-                ),
-                const SizedBox(width: 4),
-                GestureDetector(
-                  onTap: () {
-                    Clipboard.setData(ClipboardData(text: noteProcessed));
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Đã sao chép!')),
-                    );
-                  },
-                  child: const Icon(Icons.copy_rounded,
-                      size: 14, color: AppColors.primary),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+      child: content,
     );
   }
 }
+
+class _MomoCard extends StatelessWidget {
+  final Invoice invoice;
+  final String phone;
+  final int amount;
+  final String note;
+  final bool insideTab;
+
+  const _MomoCard({
+    required this.invoice,
+    required this.phone,
+    required this.amount,
+    required this.note,
+    this.insideTab = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Định dạng QR MoMo cá nhân: 2|99|SĐT|||0|0|SOTIEN|NOIDUNG
+    final momoQrString = '2|99|$phone|||0|0|$amount|$note';
+    
+    final content = Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFCE4EC),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.phone_android_rounded,
+                    color: Color(0xFFD81B60), size: 20),
+              ),
+              const SizedBox(width: 10),
+              const Text(
+                'Quét mã qua ứng dụng MoMo',
+                style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    color: AppColors.textPrimary),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: QrImageView(
+              data: momoQrString,
+              version: QrVersions.auto,
+              size: 180,
+              backgroundColor: Colors.white,
+              eyeStyle: const QrEyeStyle(
+                eyeShape: QrEyeShape.square,
+                color: Color(0xFFD81B60),
+              ),
+              dataModuleStyle: const QrDataModuleStyle(
+                dataModuleShape: QrDataModuleShape.square,
+                color: Color(0xFFD81B60),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                'SĐT: ',
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+              ),
+              Text(
+                phone,
+                style: const TextStyle(
+                  color: Color(0xFFD81B60),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: () {
+                  Clipboard.setData(ClipboardData(text: phone));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Đã sao chép SĐT MoMo!')),
+                  );
+                },
+                child: const Icon(Icons.copy_rounded,
+                    size: 14, color: Color(0xFFD81B60)),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    if (insideTab) return content;
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: AppColors.border),
+      ),
+      child: content,
+    );
+  }
+}
+
 
 // ── Section ghi nhận thanh toán (Owner only) ─────────────────────────────
 class _OwnerPaymentSection extends StatelessWidget {
@@ -653,25 +816,86 @@ class _OwnerPaymentSection extends StatelessWidget {
 }
 
 // ── Thông tin cho tenant ──────────────────────────────────────────────────
-class _TenantInfoCard extends StatelessWidget {
-  const _TenantInfoCard();
+class _TenantActionSection extends StatefulWidget {
+  final Invoice invoice;
+  const _TenantActionSection({required this.invoice});
+
+  @override
+  State<_TenantActionSection> createState() => _TenantActionSectionState();
+}
+
+class _TenantActionSectionState extends State<_TenantActionSection> {
+  bool _isConfirming = false;
+
+  void _confirmPayment() {
+    setState(() => _isConfirming = true);
+    final updatedInvoice = widget.invoice.copyWith(status: InvoiceStatus.confirmedByTenant);
+    context.read<InvoiceBloc>().add(UpdateInvoiceEvent(updatedInvoice));
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (widget.invoice.status == InvoiceStatus.confirmedByTenant) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.warning.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
+        ),
+        child: const Row(
+          children: [
+            Icon(Icons.hourglass_empty_rounded, color: AppColors.warning, size: 20),
+            SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Bạn đã xác nhận chuyển khoản. Vui lòng chờ chủ trọ kiểm tra và cập nhật trạng thái hóa đơn.',
+                style: TextStyle(color: AppColors.warning, fontSize: 13, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.infoContainer,
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
       ),
-      child: const Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Icon(Icons.info_rounded, color: AppColors.info, size: 20),
-          SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'Sau khi chuyển khoản, bấm "Tôi đã chuyển tiền" ở trang chi tiết hóa đơn để thông báo chủ trọ.',
-              style: TextStyle(color: AppColors.info, fontSize: 13),
+          const Row(
+            children: [
+              Icon(Icons.info_rounded, color: AppColors.primary, size: 20),
+              SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Sau khi hoàn tất chuyển khoản, hãy nhấn nút bên dưới để thông báo cho chủ trọ.',
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 48,
+            child: FilledButton.icon(
+              onPressed: _isConfirming ? null : _confirmPayment,
+              icon: _isConfirming
+                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Icon(Icons.check_circle_rounded),
+              label: Text(
+                _isConfirming ? 'Đang xử lý...' : 'Xác nhận đã chuyển khoản',
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
             ),
           ),
         ],

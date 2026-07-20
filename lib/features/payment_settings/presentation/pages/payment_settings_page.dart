@@ -506,6 +506,7 @@ class _BankTab extends StatelessWidget {
             showQrPreview: showQrPreview,
             onToggle: onToggleQr,
             qrString: qrString,
+            vietQrUrl: vietQrUrl,
             selectedBank: selectedBank,
             accountNumber: accountNumberCtrl.text,
             accountName: accountNameCtrl.text,
@@ -656,6 +657,7 @@ class _QrPreviewCard extends StatelessWidget {
   final bool showQrPreview;
   final VoidCallback onToggle;
   final String qrString;
+  final String vietQrUrl;
   final BankInfo? selectedBank;
   final String accountNumber;
   final String accountName;
@@ -664,6 +666,7 @@ class _QrPreviewCard extends StatelessWidget {
     required this.showQrPreview,
     required this.onToggle,
     required this.qrString,
+    required this.vietQrUrl,
     required this.selectedBank,
     required this.accountNumber,
     required this.accountName,
@@ -773,7 +776,7 @@ class _QrPreviewCard extends StatelessWidget {
                         ClipRRect(
                           borderRadius: BorderRadius.circular(12),
                           child: Image.network(
-                            qrString,
+                            vietQrUrl,
                             width: 180,
                             height: 180,
                             fit: BoxFit.contain,

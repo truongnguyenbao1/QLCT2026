@@ -152,6 +152,62 @@ class Invoice extends Equatable {
   bool get isPending => status == InvoiceStatus.pending ||
       status == InvoiceStatus.confirmedByTenant;
 
+  Invoice copyWith({
+    String? id,
+    String? roomId,
+    String? roomNumber,
+    String? tenantId,
+    String? tenantName,
+    int? month,
+    int? year,
+    double? electricPrevReading,
+    double? electricCurrReading,
+    double? electricUnitPrice,
+    double? waterPrevReading,
+    double? waterCurrReading,
+    double? waterUnitPrice,
+    double? rentAmount,
+    double? serviceAmount,
+    double? otherAmount,
+    String? otherDescription,
+    InvoiceStatus? status,
+    DateTime? dueDate,
+    DateTime? paidAt,
+    String? paymentMethod,
+    String? transactionId,
+    DateTime? createdAt,
+    String? createdBy,
+    bool? isLocked,
+  }) {
+    return Invoice(
+      id: id ?? this.id,
+      roomId: roomId ?? this.roomId,
+      roomNumber: roomNumber ?? this.roomNumber,
+      tenantId: tenantId ?? this.tenantId,
+      tenantName: tenantName ?? this.tenantName,
+      month: month ?? this.month,
+      year: year ?? this.year,
+      electricPrevReading: electricPrevReading ?? this.electricPrevReading,
+      electricCurrReading: electricCurrReading ?? this.electricCurrReading,
+      electricUnitPrice: electricUnitPrice ?? this.electricUnitPrice,
+      waterPrevReading: waterPrevReading ?? this.waterPrevReading,
+      waterCurrReading: waterCurrReading ?? this.waterCurrReading,
+      waterUnitPrice: waterUnitPrice ?? this.waterUnitPrice,
+      rentAmount: rentAmount ?? this.rentAmount,
+      serviceAmount: serviceAmount ?? this.serviceAmount,
+      otherAmount: otherAmount ?? this.otherAmount,
+      otherDescription: otherDescription ?? this.otherDescription,
+      status: status ?? this.status,
+      dueDate: dueDate ?? this.dueDate,
+      paidAt: paidAt ?? this.paidAt,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
+      transactionId: transactionId ?? this.transactionId,
+      createdAt: createdAt ?? this.createdAt,
+      createdBy: createdBy ?? this.createdBy,
+      isLocked: isLocked ?? this.isLocked,
+    );
+  }
+
   @override
   List<Object?> get props => [id, roomId, month, year, status, totalAmount];
 }
