@@ -14,6 +14,7 @@ class PaymentSettingsBloc
       : super(const PaymentSettingsInitial()) {
     on<LoadPaymentSettingsEvent>(_onLoad);
     on<SavePaymentSettingsEvent>(_onSave);
+    on<UploadMomoQrEvent>(_onUploadMomoQr);
   }
 
   Future<void> _onLoad(
@@ -51,6 +52,7 @@ class PaymentSettingsBloc
         accountName: event.accountName,
         transferNoteTemplate: event.transferNoteTemplate,
         momoPhone: event.momoPhone,
+        momoQrUrl: event.momoQrUrl,
         vnpayQr: event.vnpayQr,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
@@ -60,6 +62,32 @@ class PaymentSettingsBloc
       emit(PaymentSettingsSaved(saved));
     } catch (e) {
       emit(PaymentSettingsError('Lưu thất bại: $e'));
+    }
+  }
+
+  Future<void> _onUploadMomoQr(
+    UploadMomoQrEvent event,
+    Emitter<PaymentSettingsState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! PaymentSettingsLoaded || currentState.settings == null) {
+      emit(const PaymentSettingsError('Chưa tải cài đặt'));
+      return;
+    }
+
+    emit(const PaymentSettingsSaving());
+    try {
+      final url = await _repository.uploadMomoQr(event.userId, event.filePath);
+      
+      // Update the settings with the new URL
+      final updatedSettings = currentState.settings!.copyWith(momoQrUrl: url);
+      final saved = await _repository.save(updatedSettings);
+      
+      emit(PaymentSettingsSaved(saved));
+    } catch (e) {
+      emit(PaymentSettingsError('Tải ảnh thất bại: $e'));
+      // Fallback to previous state
+      emit(PaymentSettingsLoaded(currentState.settings));
     }
   }
 }

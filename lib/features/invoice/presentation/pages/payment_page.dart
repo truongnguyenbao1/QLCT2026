@@ -330,7 +330,13 @@ class _PaymentMethodsSectionState extends State<_PaymentMethodsSection> {
 
         // 1. Chỉ có Momo
         if (hasMomo && !hasBank) {
-          return _MomoCard(invoice: widget.invoice, phone: settings!.momoPhone!, amount: amount, note: noteProcessed);
+          return _MomoCard(
+            invoice: widget.invoice, 
+            phone: settings!.momoPhone ?? '', 
+            momoQrUrl: settings.momoQrUrl, 
+            amount: amount, 
+            note: noteProcessed
+          );
         }
         
         // 2. Chỉ có Bank hoặc không có gì (Fallback)
@@ -366,7 +372,14 @@ class _PaymentMethodsSectionState extends State<_PaymentMethodsSection> {
                     child: TabBarView(
                       children: [
                         _VietQrCard(invoice: widget.invoice, qrContent: vietQrUrl, isVietQrNetwork: true, noteProcessed: noteProcessed, insideTab: true),
-                        _MomoCard(invoice: widget.invoice, phone: settings.momoPhone!, amount: amount, note: noteProcessed, insideTab: true),
+                        _MomoCard(
+                          invoice: widget.invoice, 
+                          phone: settings.momoPhone ?? '', 
+                          momoQrUrl: settings.momoQrUrl, 
+                          amount: amount, 
+                          note: noteProcessed, 
+                          insideTab: true
+                        ),
                       ],
                     ),
                   ),
@@ -510,6 +523,7 @@ class _VietQrCard extends StatelessWidget {
 class _MomoCard extends StatelessWidget {
   final Invoice invoice;
   final String phone;
+  final String? momoQrUrl;
   final int amount;
   final String note;
   final bool insideTab;
@@ -517,6 +531,7 @@ class _MomoCard extends StatelessWidget {
   const _MomoCard({
     required this.invoice,
     required this.phone,
+    this.momoQrUrl,
     required this.amount,
     required this.note,
     this.insideTab = false,
@@ -526,6 +541,8 @@ class _MomoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     // Định dạng QR MoMo cá nhân: 2|99|SĐT|||0|0|SOTIEN|NOIDUNG
     final momoQrString = '2|99|$phone|||0|0|$amount|$note';
+    
+    final bool isCustomQr = momoQrUrl != null && momoQrUrl!.isNotEmpty;
     
     final content = Padding(
       padding: const EdgeInsets.all(20),
@@ -554,6 +571,25 @@ class _MomoCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
+          if (isCustomQr)
+            Container(
+              padding: const EdgeInsets.all(12),
+              margin: const EdgeInsets.only(bottom: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF3E0),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFFFCC80)),
+              ),
+              child: Text(
+                'Lưu ý: Bạn phải tự nhập số tiền thanh toán là ${AppFormatters.formatCurrency(amount.toDouble())}',
+                style: const TextStyle(
+                  color: Color(0xFFE65100),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -561,29 +597,51 @@ class _MomoCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: AppColors.border),
             ),
-            child: QrImageView(
-              data: momoQrString,
-              version: QrVersions.auto,
-              size: 180,
-              backgroundColor: Colors.white,
-              eyeStyle: const QrEyeStyle(
-                eyeShape: QrEyeShape.square,
-                color: Color(0xFFD81B60),
-              ),
-              dataModuleStyle: const QrDataModuleStyle(
-                dataModuleShape: QrDataModuleShape.square,
-                color: Color(0xFFD81B60),
-              ),
-            ),
+            child: isCustomQr
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      momoQrUrl!,
+                      width: 180,
+                      height: 180,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) =>
+                          const Icon(Icons.qr_code_2_rounded,
+                              size: 100, color: Colors.grey),
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return const SizedBox(
+                          width: 180,
+                          height: 180,
+                          child: Center(child: CircularProgressIndicator(color: Color(0xFFD81B60))),
+                        );
+                      },
+                    ),
+                  )
+                : QrImageView(
+                    data: momoQrString,
+                    version: QrVersions.auto,
+                    size: 180,
+                    backgroundColor: Colors.white,
+                    eyeStyle: const QrEyeStyle(
+                      eyeShape: QrEyeShape.square,
+                      color: Color(0xFFD81B60),
+                    ),
+                    dataModuleStyle: const QrDataModuleStyle(
+                      dataModuleShape: QrDataModuleShape.square,
+                      color: Color(0xFFD81B60),
+                    ),
+                  ),
           ),
           const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text(
-                'SĐT: ',
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
-              ),
+          if (phone.isNotEmpty)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  'SĐT: ',
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                ),
               Text(
                 phone,
                 style: const TextStyle(

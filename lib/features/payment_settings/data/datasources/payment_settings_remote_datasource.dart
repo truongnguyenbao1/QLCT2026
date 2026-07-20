@@ -1,4 +1,4 @@
-// lib/features/payment_settings/data/datasources/payment_settings_remote_datasource.dart
+import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/payment_settings_model.dart';
@@ -6,6 +6,7 @@ import '../models/payment_settings_model.dart';
 abstract class PaymentSettingsRemoteDataSource {
   Future<PaymentSettingsModel?> getByUserId(String userId);
   Future<PaymentSettingsModel> upsert(Map<String, dynamic> data, String userId);
+  Future<String> uploadMomoQr(String userId, String filePath);
 }
 
 class PaymentSettingsRemoteDataSourceImpl
@@ -58,5 +59,17 @@ class PaymentSettingsRemoteDataSourceImpl
     }
 
     return PaymentSettingsModel.fromJson(result);
+  }
+
+  @override
+  Future<String> uploadMomoQr(String userId, String filePath) async {
+    final fileName = '$userId.png'; // Ghi đè file cũ nếu có
+    await _client.storage.from('payment_qrs').upload(
+          fileName,
+          File(filePath),
+          fileOptions: const FileOptions(cacheControl: '3600', upsert: true),
+        );
+    
+    return _client.storage.from('payment_qrs').getPublicUrl(fileName);
   }
 }

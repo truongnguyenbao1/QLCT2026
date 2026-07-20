@@ -25,4 +25,9 @@ class PaymentSettingsRepositoryImpl implements PaymentSettingsRepository {
 
     return _dataSource.upsert(data, settings.userId);
   }
+
+  @override
+  Future<String> uploadMomoQr(String userId, String filePath) async {
+    return _dataSource.uploadMomoQr(userId, filePath);
+  }
 }

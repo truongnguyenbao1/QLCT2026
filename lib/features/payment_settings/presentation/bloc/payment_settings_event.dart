@@ -26,6 +26,7 @@ class SavePaymentSettingsEvent extends PaymentSettingsEvent {
   final String? accountName;
   final String? transferNoteTemplate;
   final String? momoPhone;
+  final String? momoQrUrl;
   final String? vnpayQr;
 
   const SavePaymentSettingsEvent({
@@ -36,6 +37,7 @@ class SavePaymentSettingsEvent extends PaymentSettingsEvent {
     this.accountName,
     this.transferNoteTemplate,
     this.momoPhone,
+    this.momoQrUrl,
     this.vnpayQr,
   });
 
@@ -46,5 +48,16 @@ class SavePaymentSettingsEvent extends PaymentSettingsEvent {
         accountNumber,
         accountName,
         momoPhone,
+        momoQrUrl,
       ];
+}
+
+class UploadMomoQrEvent extends PaymentSettingsEvent {
+  final String userId;
+  final String filePath;
+
+  const UploadMomoQrEvent({required this.userId, required this.filePath});
+
+  @override
+  List<Object?> get props => [userId, filePath];
 }

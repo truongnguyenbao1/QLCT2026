@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart' as image_picker;
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
@@ -96,6 +97,11 @@ class _PaymentSettingsPageState extends State<PaymentSettingsPage>
     final authState = context.read<AuthBloc>().state;
     if (authState is! AuthAuthenticated) return;
 
+    final state = context.read<PaymentSettingsBloc>().state;
+    String? currentQrUrl;
+    if (state is PaymentSettingsLoaded) currentQrUrl = state.settings?.momoQrUrl;
+    if (state is PaymentSettingsSaved) currentQrUrl = state.settings.momoQrUrl;
+
     context.read<PaymentSettingsBloc>().add(
           SavePaymentSettingsEvent(
             userId: authState.user.id,
@@ -107,6 +113,44 @@ class _PaymentSettingsPageState extends State<PaymentSettingsPage>
                 ? 'Phong {room} thang {month}/{year}'
                 : _noteTemplateCtrl.text.trim(),
             momoPhone: _momoPhoneCtrl.text.trim(),
+            momoQrUrl: currentQrUrl,
+          ),
+        );
+  }
+
+  Future<void> _pickAndUploadMomoQr() async {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is! AuthAuthenticated) return;
+
+    final picker = image_picker.ImagePicker();
+    final pickedFile = await picker.pickImage(source: image_picker.ImageSource.gallery);
+    if (pickedFile == null) return;
+
+    if (!mounted) return;
+    context.read<PaymentSettingsBloc>().add(
+          UploadMomoQrEvent(
+            userId: authState.user.id,
+            filePath: pickedFile.path,
+          ),
+        );
+  }
+
+  void _removeMomoQr() {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is! AuthAuthenticated) return;
+
+    context.read<PaymentSettingsBloc>().add(
+          SavePaymentSettingsEvent(
+            userId: authState.user.id,
+            bankCode: _selectedBank?.code,
+            bankName: _selectedBank?.name,
+            accountNumber: _accountNumberCtrl.text.trim(),
+            accountName: _accountNameCtrl.text.trim().toUpperCase(),
+            transferNoteTemplate: _noteTemplateCtrl.text.trim().isEmpty
+                ? 'Phong {room} thang {month}/{year}'
+                : _noteTemplateCtrl.text.trim(),
+            momoPhone: _momoPhoneCtrl.text.trim(),
+            momoQrUrl: '', // Set empty to clear
           ),
         );
   }
@@ -290,7 +334,15 @@ class _PaymentSettingsPageState extends State<PaymentSettingsPage>
                       ),
 
                       // Tab 2: Ví điện tử
-                      _WalletTab(momoPhoneCtrl: _momoPhoneCtrl),
+                      _WalletTab(
+                        momoPhoneCtrl: _momoPhoneCtrl,
+                        momoQrUrl: (state is PaymentSettingsLoaded) 
+                            ? state.settings?.momoQrUrl 
+                            : (state is PaymentSettingsSaved) ? state.settings.momoQrUrl : null,
+                        isUploading: isSaving,
+                        onUploadImage: _pickAndUploadMomoQr,
+                        onRemoveImage: _removeMomoQr,
+                      ),
                     ],
                   ),
                 ),
@@ -522,8 +574,18 @@ class _BankTab extends StatelessWidget {
 // ── Tab Ví điện tử ─────────────────────────────────────────────────────────
 class _WalletTab extends StatelessWidget {
   final TextEditingController momoPhoneCtrl;
+  final String? momoQrUrl;
+  final VoidCallback onUploadImage;
+  final VoidCallback onRemoveImage;
+  final bool isUploading;
 
-  const _WalletTab({required this.momoPhoneCtrl});
+  const _WalletTab({
+    required this.momoPhoneCtrl,
+    this.momoQrUrl,
+    required this.onUploadImage,
+    required this.onRemoveImage,
+    required this.isUploading,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -602,6 +664,8 @@ class _WalletTab extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
+          const SizedBox(height: 16),
+
           _StyledField(
             controller: momoPhoneCtrl,
             label: 'Số điện thoại MoMo',
@@ -610,6 +674,60 @@ class _WalletTab extends StatelessWidget {
             keyboardType: TextInputType.phone,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           ),
+          const SizedBox(height: 24),
+
+          // ── Tải ảnh mã QR ─────────────────────────────────────────
+          const _SectionHeader(
+            icon: Icons.qr_code_2_rounded,
+            title: 'Mã QR Hộ kinh doanh (Tùy chọn)',
+            subtitle: 'Tải lên ảnh mã QR MoMo của bạn',
+          ),
+          const SizedBox(height: 12),
+          
+          if (momoQrUrl != null && momoQrUrl!.isNotEmpty)
+            Stack(
+              alignment: Alignment.topRight,
+              children: [
+                Container(
+                  width: double.infinity,
+                  height: 300,
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.border),
+                    image: DecorationImage(
+                      image: NetworkImage(momoQrUrl!),
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: onRemoveImage,
+                  icon: const Icon(Icons.delete_rounded, color: Colors.red),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    shadowColor: Colors.black26,
+                    elevation: 2,
+                  ),
+                ),
+              ],
+            ),
+          
+          OutlinedButton.icon(
+            onPressed: isUploading ? null : onUploadImage,
+            icon: isUploading 
+                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                : const Icon(Icons.upload_file_rounded),
+            label: Text(
+              isUploading ? 'Đang tải lên...' : (momoQrUrl != null && momoQrUrl!.isNotEmpty ? 'Đổi ảnh QR khác' : 'Tải ảnh QR lên'),
+            ),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              side: const BorderSide(color: AppColors.primary),
+              foregroundColor: AppColors.primary,
+            ),
+          ),
+
           const SizedBox(height: 24),
 
           // ── Thông tin ─────────────────────────────────────────────
@@ -627,7 +745,7 @@ class _WalletTab extends StatelessWidget {
                     Icon(Icons.info_rounded, color: AppColors.info, size: 18),
                     SizedBox(width: 8),
                     Text(
-                      'Tích hợp sắp ra mắt',
+                      'Lưu ý về mã QR',
                       style: TextStyle(
                         color: AppColors.info,
                         fontWeight: FontWeight.w700,
@@ -638,7 +756,7 @@ class _WalletTab extends StatelessWidget {
                 ),
                 SizedBox(height: 8),
                 Text(
-                  'QR MoMo sẽ được hiển thị tự động trên trang thanh toán hóa đơn. Hiện tại SĐT được lưu lại để tích hợp sau.',
+                  'Nếu bạn tải lên mã QR Hộ kinh doanh, khách thuê sẽ tự quét ảnh này và phải tự nhập số tiền.',
                   style: TextStyle(color: AppColors.info, fontSize: 12),
                 ),
               ],

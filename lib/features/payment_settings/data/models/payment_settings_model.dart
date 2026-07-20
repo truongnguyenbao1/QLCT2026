@@ -11,6 +11,7 @@ class PaymentSettingsModel extends PaymentSettings {
     super.accountName,
     super.transferNoteTemplate,
     super.momoPhone,
+    super.momoQrUrl,
     super.vnpayQr,
     required super.createdAt,
     required super.updatedAt,
@@ -26,6 +27,7 @@ class PaymentSettingsModel extends PaymentSettings {
       accountName: json['account_name'] as String?,
       transferNoteTemplate: json['transfer_note_template'] as String?,
       momoPhone: json['momo_phone'] as String?,
+      momoQrUrl: json['momo_qr_url'] as String?,
       vnpayQr: json['vnpay_qr'] as String?,
       createdAt: DateTime.parse(
           json['created_at'] as String? ?? DateTime.now().toIso8601String()),
@@ -44,6 +46,7 @@ class PaymentSettingsModel extends PaymentSettings {
       'account_name': accountName,
       'transfer_note_template': transferNoteTemplate,
       'momo_phone': momoPhone,
+      'momo_qr_url': momoQrUrl,
       'vnpay_qr': vnpayQr,
     };
   }
@@ -64,6 +67,7 @@ class PaymentSettingsModel extends PaymentSettings {
       accountName: s.accountName,
       transferNoteTemplate: s.transferNoteTemplate,
       momoPhone: s.momoPhone,
+      momoQrUrl: s.momoQrUrl,
       vnpayQr: s.vnpayQr,
       createdAt: s.createdAt,
       updatedAt: s.updatedAt,

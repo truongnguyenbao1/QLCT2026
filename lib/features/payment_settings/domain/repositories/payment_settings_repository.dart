@@ -8,4 +8,7 @@ abstract class PaymentSettingsRepository {
 
   /// Lưu (upsert) cài đặt thanh toán
   Future<PaymentSettings> save(PaymentSettings settings);
+
+  /// Tải ảnh QR MoMo lên Storage và trả về URL
+  Future<String> uploadMomoQr(String userId, String filePath);
 }

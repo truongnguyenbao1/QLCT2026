@@ -17,6 +17,7 @@ class PaymentSettings extends Equatable {
 
   // ── Ví điện tử ───────────────────────────────────────────────────────
   final String? momoPhone;  // SĐT Momo
+  final String? momoQrUrl;  // Link ảnh mã QR Momo
   final String? vnpayQr;    // Mã VNPay QR
 
   // ── Metadata ──────────────────────────────────────────────────────────
@@ -32,6 +33,7 @@ class PaymentSettings extends Equatable {
     this.accountName,
     this.transferNoteTemplate,
     this.momoPhone,
+    this.momoQrUrl,
     this.vnpayQr,
     required this.createdAt,
     required this.updatedAt,
@@ -46,7 +48,7 @@ class PaymentSettings extends Equatable {
       accountName != null &&
       accountName!.isNotEmpty;
 
-  bool get hasMomo => momoPhone != null && momoPhone!.isNotEmpty;
+  bool get hasMomo => (momoPhone != null && momoPhone!.isNotEmpty) || (momoQrUrl != null && momoQrUrl!.isNotEmpty);
 
   PaymentSettings copyWith({
     String? bankCode,
@@ -55,6 +57,7 @@ class PaymentSettings extends Equatable {
     String? accountName,
     String? transferNoteTemplate,
     String? momoPhone,
+    String? momoQrUrl,
     String? vnpayQr,
   }) {
     return PaymentSettings(
@@ -66,6 +69,7 @@ class PaymentSettings extends Equatable {
       accountName: accountName ?? this.accountName,
       transferNoteTemplate: transferNoteTemplate ?? this.transferNoteTemplate,
       momoPhone: momoPhone ?? this.momoPhone,
+      momoQrUrl: momoQrUrl ?? this.momoQrUrl,
       vnpayQr: vnpayQr ?? this.vnpayQr,
       createdAt: createdAt,
       updatedAt: DateTime.now(),
@@ -77,11 +81,15 @@ class PaymentSettings extends Equatable {
         id,
         userId,
         bankCode,
+        bankName,
         accountNumber,
         accountName,
         transferNoteTemplate,
         momoPhone,
+        momoQrUrl,
         vnpayQr,
+        createdAt,
+        updatedAt,
       ];
 }
 
