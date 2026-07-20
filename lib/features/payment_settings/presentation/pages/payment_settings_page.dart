@@ -6,7 +6,10 @@
 //  - Xem trước QR VietQR
 //  - Thiết lập mẫu nội dung chuyển khoản
 // ─────────────────────────────────────────────────────────────────────────────
-import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter/material.
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -37,6 +40,7 @@ class _PaymentSettingsPageState extends State<PaymentSettingsPage>
 
   BankInfo? _selectedBank;
   bool _showQrPreview = false;
+  bool _isLookingUpName = false;
   late TabController _tabController;
 
   @override
@@ -114,6 +118,63 @@ class _PaymentSettingsPageState extends State<PaymentSettingsPage>
       return '';
     }
     return 'BANK:${_selectedBank!.code}:${_accountNumberCtrl.text.trim()}:${_accountNameCtrl.text.trim()}';
+  }
+
+  Future<void> _lookupAccountName() async {
+    if (_selectedBank == null || _accountNumberCtrl.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng chọn ngân hàng và nhập số tài khoản trước.')),
+      );
+      return;
+    }
+
+    setState(() => _isLookingUpName = true);
+    try {
+      final client = HttpClient();
+      final request = await client.postUrl(Uri.parse('https://api.vietqr.io/v2/lookup'));
+      request.headers.set('Content-Type', 'application/json');
+      // Để API hoạt động thật, cần thay bằng Client ID và API Key lấy từ casso.vn
+      request.headers.set('x-client-id', 'REPLACE_ME_CLIENT_ID');
+      request.headers.set('x-api-key', 'REPLACE_ME_API_KEY');
+
+      request.add(utf8.encode(jsonEncode({
+        "bin": _selectedBank!.code,
+        "accountNumber": _accountNumberCtrl.text.trim(),
+      })));
+
+      final response = await request.close();
+      final responseBody = await response.transform(utf8.decoder).join();
+      final json = jsonDecode(responseBody);
+
+      if (json['code'] == '00') {
+        setState(() {
+          _accountNameCtrl.text = json['data']['accountName'];
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Lấy tên tài khoản thành công!'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Không thể tự động lấy tên: ${json['desc'] ?? 'Lỗi API'}'),
+            backgroundColor: AppColors.warning,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Tính năng tự động lấy tên cần API Key VietQR. Vui lòng cấu hình code hoặc nhập tay.'),
+          backgroundColor: AppColors.warning,
+          duration: Duration(seconds: 4),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isLookingUpName = false);
+    }
   }
 
   @override
@@ -206,6 +267,8 @@ class _PaymentSettingsPageState extends State<PaymentSettingsPage>
                             setState(() => _showQrPreview = !_showQrPreview),
                         qrString: _buildQrString(),
                         vietQrUrl: _buildVietQrUrl(),
+                        isLookingUpName: _isLookingUpName,
+                        onLookupName: _lookupAccountName,
                       ),
 
                       // Tab 2: Ví điện tử
@@ -324,6 +387,8 @@ class _BankTab extends StatelessWidget {
   final VoidCallback onToggleQr;
   final String qrString;
   final String vietQrUrl;
+  final bool isLookingUpName;
+  final VoidCallback onLookupName;
 
   const _BankTab({
     required this.selectedBank,
@@ -335,6 +400,8 @@ class _BankTab extends StatelessWidget {
     required this.onToggleQr,
     required this.qrString,
     required this.vietQrUrl,
+    required this.isLookingUpName,
+    required this.onLookupName,
   });
 
   @override
@@ -367,6 +434,15 @@ class _BankTab extends StatelessWidget {
             icon: Icons.credit_card_rounded,
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            suffix: isLookingUpName
+                ? const Padding(
+                    padding: EdgeInsets.all(12.0),
+                    child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+                  )
+                : TextButton(
+                    onPressed: onLookupName,
+                    child: const Text('Kiểm tra'),
+                  ),
             validator: (v) {
               if (v == null || v.trim().isEmpty) {
                 return 'Vui lòng nhập số tài khoản';
@@ -912,6 +988,7 @@ class _StyledField extends StatelessWidget {
   final String? Function(String?)? validator;
   final String? helperText;
   final TextCapitalization textCapitalization;
+  final Widget? suffix;
 
   const _StyledField({
     required this.controller,
@@ -923,6 +1000,7 @@ class _StyledField extends StatelessWidget {
     this.validator,
     this.helperText,
     this.textCapitalization = TextCapitalization.none,
+    this.suffix,
   });
 
   @override
@@ -940,6 +1018,7 @@ class _StyledField extends StatelessWidget {
         helperText: helperText,
         helperMaxLines: 2,
         prefixIcon: Icon(icon),
+        suffixIcon: suffix,
         filled: true,
         fillColor: AppColors.surfaceVariant,
         border: OutlineInputBorder(
