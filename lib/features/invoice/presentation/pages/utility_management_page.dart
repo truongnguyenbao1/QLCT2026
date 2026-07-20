@@ -162,11 +162,26 @@ class _UtilityManagementViewState extends State<_UtilityManagementView> {
                                 ),
                               ),
                               title: Text('Phòng ${room.roomNumber}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                              subtitle: const Text('Phòng đang thuê'),
+                              subtitle: hasInvoice
+                                  ? Padding(
+                                      padding: const EdgeInsets.only(top: 6.0),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text('⚡ Điện: ${invoice.electricPrevReading.toInt()} \u2192 ${invoice.electricCurrReading.toInt()} (${invoice.electricUnitsUsed.toInt()} kWh)', style: const TextStyle(fontSize: 13)),
+                                          const SizedBox(height: 2),
+                                          Text('💧 Nước: ${invoice.waterPrevReading.toInt()} \u2192 ${invoice.waterCurrReading.toInt()} (${invoice.waterUnitsUsed.toInt()} m³)', style: const TextStyle(fontSize: 13)),
+                                        ],
+                                      ),
+                                    )
+                                  : const Text('Chưa ghi chỉ số tháng này'),
                               trailing: hasInvoice
-                                  ? Text(
-                                      AppFormatters.formatCurrency(invoice.totalAmount),
-                                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green, fontSize: 15),
+                                  ? IconButton(
+                                      icon: const Icon(Icons.edit_outlined, color: Colors.blueGrey),
+                                      tooltip: 'Sửa chỉ số',
+                                      onPressed: () {
+                                        context.push('/invoices/${invoice.id}/edit', extra: invoice);
+                                      },
                                     )
                                   : FilledButton.tonal(
                                       style: FilledButton.styleFrom(
@@ -178,9 +193,7 @@ class _UtilityManagementViewState extends State<_UtilityManagementView> {
                                       },
                                       child: const Text('Chốt sổ'),
                                     ),
-                              onTap: hasInvoice ? () {
-                                context.push('/invoices/${invoice.id}');
-                              } : null,
+                              onTap: null,
                             ),
                           );
                         },
