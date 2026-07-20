@@ -250,7 +250,10 @@ class AppRouter {
                       name: 'payment',
                       builder: (context, state) {
                         final invoiceId = state.pathParameters['invoiceId']!;
-                        return PaymentPage(invoiceId: invoiceId);
+                        return BlocProvider<PaymentSettingsBloc>(
+                          create: (_) => getIt<PaymentSettingsBloc>(),
+                          child: PaymentPage(invoiceId: invoiceId),
+                        );
                       },
                     ),
                     GoRoute(

@@ -30,8 +30,17 @@ class PaymentPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<PaymentSettingsBloc>(
-      create: (_) => getIt<PaymentSettingsBloc>(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<PaymentSettingsBloc>(
+          create: (_) => getIt<PaymentSettingsBloc>(),
+        ),
+        BlocProvider<InvoiceBloc>(
+          create: (_) => getIt<InvoiceBloc>()
+            ..add(LoadInvoiceDetailEvent(invoiceId))
+            ..add(LoadPaymentsEvent(invoiceId)),
+        ),
+      ],
       child: _PaymentPageContent(invoiceId: invoiceId),
     );
   }
@@ -54,8 +63,6 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
   @override
   void initState() {
     super.initState();
-    // Load lịch sử giao dịch
-    context.read<InvoiceBloc>().add(LoadPaymentsEvent(widget.invoiceId));
   }
 
   @override

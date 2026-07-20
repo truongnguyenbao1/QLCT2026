@@ -51,3 +51,8 @@ CREATE POLICY "owner_can_manage_own_settings" ON public.caidat_thanhtoan
     FOR ALL
     USING (user_id = auth.uid())
     WITH CHECK (user_id = auth.uid());
+
+-- Cho phép tất cả người dùng (khách thuê) đọc thông tin thanh toán
+CREATE POLICY "anyone_can_read_settings" ON public.caidat_thanhtoan
+    FOR SELECT
+    USING (true);
