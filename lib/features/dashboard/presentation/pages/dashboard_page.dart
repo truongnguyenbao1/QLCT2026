@@ -464,31 +464,15 @@ class _TenantDashboardContentState extends State<_TenantDashboardContent> {
     try {
       final client = getIt<SupabaseClient>();
       
-      // Fetch room and property info
-      final roomData = await client
-          .from('phong')
-          .select('room_number, floor, property_id')
-          .eq('id', widget.user!.roomId!)
-          .maybeSingle();
+      final response = await client.rpc('get_tenant_dashboard_info', params: {
+        'p_user_id': widget.user!.id,
+      });
 
-      if (roomData != null) {
-        final roomNumber = roomData['room_number'];
-        final floor = roomData['floor'];
+      if (response != null && response['room_id'] != null) {
+        final roomNumber = response['room_number'];
+        final floor = response['floor'] ?? 1;
         _roomName = 'Phòng $roomNumber - T$floor';
-
-        final propertyId = widget.user!.propertyId ?? roomData['property_id'];
-        if (propertyId != null) {
-          final propData = await client
-              .from('nhatro')
-              .select('name')
-              .eq('id', propertyId)
-              .maybeSingle();
-          if (propData != null) {
-            _propertyName = propData['name'] as String;
-          } else {
-            _propertyName = 'Nhà trọ không xác định';
-          }
-        }
+        _propertyName = response['property_name'] ?? 'Nhà trọ không xác định';
       } else {
         _propertyName = 'Chưa rõ';
         _roomName = 'Không tìm thấy phòng';
