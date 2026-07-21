@@ -79,6 +79,13 @@ class MarkInvoicePaidEvent extends InvoiceEvent {
   List<Object?> get props => [invoiceId, paymentMethod, transactionId];
 }
 
+class TenantConfirmPaymentEvent extends InvoiceEvent {
+  final String invoiceId;
+  const TenantConfirmPaymentEvent(this.invoiceId);
+  @override
+  List<Object?> get props => [invoiceId];
+}
+
 class FetchPreviousReadingsEvent extends InvoiceEvent {
   final String roomId;
   const FetchPreviousReadingsEvent(this.roomId);
@@ -217,6 +224,7 @@ class InvoiceBloc extends Bloc<InvoiceEvent, InvoiceState> {
     on<LoadInvoiceDetailEvent>(_onLoadInvoiceDetail);
     on<CreateInvoiceEvent>(_onCreateInvoice);
     on<MarkInvoicePaidEvent>(_onMarkInvoicePaid);
+    on<TenantConfirmPaymentEvent>(_onTenantConfirmPayment);
     on<FetchPreviousReadingsEvent>(_onFetchPreviousReadings);
     on<UpdateInvoiceEvent>(_onUpdateInvoice);
     on<DeleteInvoiceEvent>(_onDeleteInvoice);
@@ -301,6 +309,24 @@ class InvoiceBloc extends Bloc<InvoiceEvent, InvoiceState> {
         ));
         emit(InvoiceDetailLoaded(updatedInvoice));
         emit(InvoicesLoaded(invoices: _currentInvoices));
+      },
+    );
+  }
+
+  Future<void> _onTenantConfirmPayment(
+    TenantConfirmPaymentEvent event,
+    Emitter<InvoiceState> emit,
+  ) async {
+    emit(const InvoicesLoading());
+    // Directly call the repository to confirm payment
+    final result = await _getInvoicesUseCase.repository.tenantConfirmPayment(event.invoiceId);
+
+    result.fold(
+      (failure) => emit(InvoiceError(failure.message)),
+      (updatedInvoice) {
+        emit(const InvoiceActionSuccess(message: 'Đã thông báo cho chủ trọ!'));
+        // Reload detail or list depending on where they are
+        add(LoadInvoiceDetailEvent(updatedInvoice.id));
       },
     );
   }

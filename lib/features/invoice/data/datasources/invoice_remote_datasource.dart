@@ -297,10 +297,32 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
 
   @override
   Future<InvoiceModel> tenantConfirmPayment(String invoiceId) async {
-    return updateInvoiceStatus(
-      invoiceId: invoiceId,
-      status: InvoiceStatus.confirmedByTenant,
-    );
+    try {
+      final response = await _client.rpc('tenant_confirm_payment', params: {
+        'p_invoice_id': invoiceId,
+      });
+      // The RPC returns basic invoice details, but we can just fetch the whole invoice again,
+      // or return a partial one. Wait, the RPC returns exactly what we need?
+      // Actually, returning a full InvoiceModel might require khachthue info.
+      // Let's just fetch the updated invoice using the standard query after RPC.
+      final data = await _client
+          .from(AppConstants.tableInvoices)
+          .select('''
+            *,
+            phong!inner(room_number),
+            khachthue(full_name)
+          ''')
+          .eq('id', invoiceId)
+          .single();
+
+      final map = Map<String, dynamic>.from(data);
+      map['room_number'] = data['phong']?['room_number'] ?? '';
+      map['tenant_name'] = data['khachthue']?['full_name'];
+      return InvoiceModel.fromJson(map);
+    } catch (e) {
+      if (e is Failure) rethrow;
+      throw ServerFailure(message: 'Lỗi xác nhận thanh toán: $e');
+    }
   }
 
   @override

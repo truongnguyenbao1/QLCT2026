@@ -1138,8 +1138,7 @@ class _TenantActionSectionState extends State<_TenantActionSection> {
 
   void _confirmPayment() {
     setState(() => _isConfirming = true);
-    final updatedInvoice = widget.invoice.copyWith(status: InvoiceStatus.confirmedByTenant);
-    context.read<InvoiceBloc>().add(UpdateInvoiceEvent(updatedInvoice));
+    context.read<InvoiceBloc>().add(TenantConfirmPaymentEvent(widget.invoice.id));
   }
 
   @override
