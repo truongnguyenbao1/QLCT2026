@@ -99,13 +99,18 @@ class AppRouter {
           return AppRoutes.privacyPolicy;
         }
 
+        // Cần hoàn thiện profile (đăng nhập Google lần đầu)
+        if (authState is AuthNeedProfileCompletion && !isRegisterPage) {
+          return '${AppRoutes.register}?email=${Uri.encodeComponent(authState.email)}&fullName=${Uri.encodeComponent(authState.fullName)}';
+        }
+
         // Chủ trọ chưa đăng ký dãy trọ
         if (authState is AuthNeedPropertySetup && !isSetupPage) {
           return AppRoutes.setupProperty;
         }
 
         // Chưa đăng nhập → chuyển đến login (trừ trang register)
-        if (!isLoggedIn && !isLoginPage && !isRegisterPage && authState is! AuthNeedPrivacyAcceptance && authState is! AuthNeedPropertySetup) {
+        if (!isLoggedIn && !isLoginPage && !isRegisterPage && authState is! AuthNeedPrivacyAcceptance && authState is! AuthNeedPropertySetup && authState is! AuthNeedProfileCompletion) {
           return AppRoutes.login;
         }
 
@@ -126,7 +131,14 @@ class AppRouter {
         GoRoute(
           path: AppRoutes.register,
           name: 'register',
-          builder: (context, state) => const RegisterPage(),
+          builder: (context, state) {
+            final email = state.uri.queryParameters['email'];
+            final fullName = state.uri.queryParameters['fullName'];
+            return RegisterPage(
+              initialEmail: email,
+              initialFullName: fullName,
+            );
+          },
         ),
         GoRoute(
           path: AppRoutes.privacyPolicy,

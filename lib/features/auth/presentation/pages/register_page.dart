@@ -11,7 +11,10 @@ import '../bloc/auth_state.dart';
 import '../../domain/entities/app_user.dart';
 
 class RegisterPage extends StatefulWidget {
-  const RegisterPage({super.key});
+  final String? initialEmail;
+  final String? initialFullName;
+
+  const RegisterPage({super.key, this.initialEmail, this.initialFullName});
 
   @override
   State<RegisterPage> createState() => _RegisterPageState();
@@ -31,6 +34,17 @@ class _RegisterPageState extends State<RegisterPage> {
   UserRole _selectedRole = UserRole.tenant;
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.initialEmail != null) {
+      _emailController.text = widget.initialEmail!;
+    }
+    if (widget.initialFullName != null) {
+      _fullNameController.text = widget.initialFullName!;
+    }
+  }
+
+  @override
   void dispose() {
     _fullNameController.dispose();
     _emailController.dispose();
@@ -46,7 +60,7 @@ class _RegisterPageState extends State<RegisterPage> {
     context.read<AuthBloc>().add(
           AuthRegisterEvent(
             email: _emailController.text.trim(),
-            password: _passwordController.text,
+            password: widget.initialEmail != null ? 'google_oauth_dummy' : _passwordController.text,
             fullName: _fullNameController.text.trim(),
             phone: _phoneController.text.trim(),
             role: _selectedRole,
@@ -222,13 +236,16 @@ class _RegisterPageState extends State<RegisterPage> {
                               const SizedBox(height: 6),
                               TextFormField(
                                 controller: _emailController,
-                                style: const TextStyle(color: Color(0xFF111827)),
-                                keyboardType: TextInputType.emailAddress,
-                                textInputAction: TextInputAction.next,
+                                enabled: widget.initialEmail == null, // Không cho sửa email nếu đăng nhập từ Google
                                 decoration: _inputDecoration(
                                   hint: 'example@email.com',
                                   icon: Icons.email_outlined,
+                                ).copyWith(
+                                  filled: widget.initialEmail != null,
+                                  fillColor: widget.initialEmail != null ? Colors.grey[200] : null,
                                 ),
+                                keyboardType: TextInputType.emailAddress,
+                                textInputAction: TextInputAction.next,
                                 validator: (v) {
                                   if (v == null || v.isEmpty) return 'Vui lòng nhập email';
                                   if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(v)) {
@@ -277,73 +294,73 @@ class _RegisterPageState extends State<RegisterPage> {
                                   },
                                 ),
                                 const SizedBox(height: 18),
-                              ],
-
-                              // Password
-                              _buildLabel('Mật khẩu'),
-                              const SizedBox(height: 6),
-                              TextFormField(
-                                controller: _passwordController,
-                                style: const TextStyle(color: Color(0xFF111827)),
-                                obscureText: _obscurePassword,
-                                textInputAction: TextInputAction.next,
-                                decoration: _inputDecoration(
-                                  hint: 'Tối thiểu 6 ký tự',
-                                  icon: Icons.lock_outline_rounded,
-                                  suffixIcon: IconButton(
-                                    icon: Icon(
-                                      _obscurePassword
-                                          ? Icons.visibility_outlined
-                                          : Icons.visibility_off_outlined,
-                                      color: Colors.grey[500],
-                                      size: 20,
+                              ],                                // Ẩn trường mật khẩu nếu đăng nhập từ Google
+                                if (widget.initialEmail == null) ...[
+                                  // Password
+                                  _buildLabel('Mật khẩu'),
+                                  const SizedBox(height: 6),
+                                  TextFormField(
+                                    controller: _passwordController,
+                                    style: const TextStyle(color: Color(0xFF111827)),
+                                    obscureText: _obscurePassword,
+                                    textInputAction: TextInputAction.next,
+                                    decoration: _inputDecoration(
+                                      hint: 'Tối thiểu 6 ký tự',
+                                      icon: Icons.lock_outline_rounded,
+                                      suffixIcon: IconButton(
+                                        icon: Icon(
+                                          _obscurePassword
+                                              ? Icons.visibility_outlined
+                                              : Icons.visibility_off_outlined,
+                                          color: Colors.grey[500],
+                                        ),
+                                        onPressed: () {
+                                          setState(() {
+                                            _obscurePassword = !_obscurePassword;
+                                          });
+                                        },
+                                      ),
                                     ),
-                                    onPressed: () => setState(() =>
-                                        _obscurePassword = !_obscurePassword),
+                                    validator: (v) => (v == null || v.length < 6)
+                                        ? 'Mật khẩu phải có ít nhất 6 ký tự'
+                                        : null,
                                   ),
-                                ),
-                                validator: (v) {
-                                  if (v == null || v.isEmpty) return 'Vui lòng nhập mật khẩu';
-                                  if (v.length < 6) return 'Mật khẩu phải có ít nhất 6 ký tự';
-                                  return null;
-                                },
-                              ),
-                              const SizedBox(height: 18),
+                                  const SizedBox(height: 18),
 
-                              // Confirm Password
-                              _buildLabel('Xác nhận mật khẩu'),
-                              const SizedBox(height: 6),
-                              TextFormField(
-                                controller: _confirmPasswordController,
-                                style: const TextStyle(color: Color(0xFF111827)),
-                                obscureText: _obscureConfirm,
-                                textInputAction: TextInputAction.done,
-                                onFieldSubmitted: (_) => _onRegister(),
-                                decoration: _inputDecoration(
-                                  hint: 'Nhập lại mật khẩu',
-                                  icon: Icons.lock_reset_rounded,
-                                  suffixIcon: IconButton(
-                                    icon: Icon(
-                                      _obscureConfirm
-                                          ? Icons.visibility_outlined
-                                          : Icons.visibility_off_outlined,
-                                      color: Colors.grey[500],
-                                      size: 20,
+                                  // Confirm Password
+                                  _buildLabel('Xác nhận mật khẩu'),
+                                  const SizedBox(height: 6),
+                                  TextFormField(
+                                    controller: _confirmPasswordController,
+                                    style: const TextStyle(color: Color(0xFF111827)),
+                                    obscureText: _obscureConfirm,
+                                    textInputAction: TextInputAction.done,
+                                    onFieldSubmitted: (_) => _onRegister(),
+                                    decoration: _inputDecoration(
+                                      hint: 'Nhập lại mật khẩu',
+                                      icon: Icons.lock_outline_rounded,
+                                      suffixIcon: IconButton(
+                                        icon: Icon(
+                                          _obscureConfirm
+                                              ? Icons.visibility_outlined
+                                              : Icons.visibility_off_outlined,
+                                          color: Colors.grey[500],
+                                        ),
+                                        onPressed: () {
+                                          setState(() {
+                                            _obscureConfirm = !_obscureConfirm;
+                                          });
+                                        },
+                                      ),
                                     ),
-                                    onPressed: () => setState(
-                                        () => _obscureConfirm = !_obscureConfirm),
+                                    validator: (v) {
+                                      if (v == null || v.isEmpty) return 'Vui lòng xác nhận mật khẩu';
+                                      if (v != _passwordController.text) return 'Mật khẩu không khớp';
+                                      return null;
+                                    },
                                   ),
-                                ),
-                                validator: (v) {
-                                  if (v == null || v.isEmpty) {
-                                    return 'Vui lòng xác nhận mật khẩu';
-                                  }
-                                  if (v != _passwordController.text) {
-                                    return 'Mật khẩu không khớp';
-                                  }
-                                  return null;
-                                },
-                              ),
+                                  const SizedBox(height: 24),
+                                ],
                               const SizedBox(height: 28),
 
                               // Submit Button

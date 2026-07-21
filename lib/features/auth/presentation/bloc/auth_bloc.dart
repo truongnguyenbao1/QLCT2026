@@ -9,6 +9,11 @@ import '../../domain/usecases/register_usecase.dart';
 import '../../domain/usecases/update_profile_usecase.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' as sb;
+import '../../../../core/constants/app_constants.dart';
+import '../../../../core/di/injection.dart';
+import '../../../../core/security/encryption_service.dart';
+import '../../domain/entities/app_user.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final LoginUseCase _loginUseCase;
@@ -52,6 +57,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       (user) {
         if (user == null) {
           emit(const AuthUnauthenticated());
+        } else if (user.phone == null || user.phone!.isEmpty) {
+          emit(AuthNeedProfileCompletion(email: user.email, fullName: user.fullName));
         } else if (!user.hasAcceptedPrivacyPolicy) {
           emit(AuthNeedPrivacyAcceptance(user));
         } else if (user.isOwner && (user.propertyId == null || user.propertyId!.isEmpty)) {
@@ -98,6 +105,59 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(const AuthLoading());
+
+    // Nếu đã có session (ví dụ vừa login bằng Google) thì chỉ cần cập nhật profile
+    final session = sb.Supabase.instance.client.auth.currentSession;
+    if (session != null && session.user.email == event.email) {
+      try {
+        final userId = session.user.id;
+        
+        // Liên kết CCCD nếu là khách thuê
+        if (event.role == UserRole.tenant && event.cccd != null && event.cccd!.isNotEmpty) {
+          final encryptedCccd = await getIt<EncryptionService>().encryptText(event.cccd!);
+          final response = await sb.Supabase.instance.client.rpc('check_tenant_cccd', params: {'p_encrypted_cccd': encryptedCccd});
+          
+          if (response == null) {
+            emit(const AuthError('Không tìm thấy thông tin hợp đồng thuê khớp với CCCD này. Vui lòng liên hệ chủ trọ!'));
+            return;
+          }
+          final tenantData = response as Map<String, dynamic>;
+          final tenantId = tenantData['id'];
+          final roomId = tenantData['room_id'];
+          final propertyId = tenantData['property_id'];
+
+          await sb.Supabase.instance.client.from(AppConstants.tableUsers).update({
+            'room_id': roomId,
+            'property_id': propertyId,
+            'role': event.role.code,
+            'tenuser': event.fullName,
+            'sdt': event.phone,
+          }).eq('iduser', userId);
+
+          await sb.Supabase.instance.client.rpc('link_tenant_to_user', params: {
+            'p_tenant_id': tenantId,
+            'p_user_id': userId,
+            'p_phone': event.phone,
+            'p_email': event.email,
+          });
+        } else {
+          // Là chủ trọ
+          await sb.Supabase.instance.client.from(AppConstants.tableUsers).update({
+            'role': event.role.code,
+            'tenuser': event.fullName,
+            'sdt': event.phone,
+          }).eq('iduser', userId);
+        }
+        
+        // Kích hoạt check session để reload lại user
+        add(const AuthCheckSessionEvent());
+        return;
+      } catch (e) {
+        emit(AuthError(e.toString()));
+        return;
+      }
+    }
+
     final result = await _registerUseCase.call(
       RegisterParams(
         email: event.email,

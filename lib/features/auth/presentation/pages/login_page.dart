@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 
 import '../../../../core/constants/app_colors.dart';
@@ -43,9 +44,12 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _loginWithGoogle() async {
     try {
+      // Lưu last_login_time trước khi bị trình duyệt chuyển hướng (để hàm checkSession không đăng xuất do timeout)
+      const storage = FlutterSecureStorage();
+      await storage.write(key: 'last_login_time', value: DateTime.now().toIso8601String());
+
       await sb.Supabase.instance.client.auth.signInWithOAuth(
         sb.OAuthProvider.google,
-        redirectTo: 'io.supabase.quanlynhatro://login-callback',
       );
     } catch (e) {
       if (mounted) {
@@ -111,7 +115,9 @@ class _LoginPageState extends State<LoginPage> {
 
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is AuthNeedPrivacyAcceptance) {
+        if (state is AuthNeedProfileCompletion) {
+          context.go('${AppRoutes.register}?email=${Uri.encodeComponent(state.email)}&fullName=${Uri.encodeComponent(state.fullName)}');
+        } else if (state is AuthNeedPrivacyAcceptance) {
           context.go(AppRoutes.privacyPolicy);
         } else if (state is AuthNeedPropertySetup) {
           context.go(AppRoutes.setupProperty);

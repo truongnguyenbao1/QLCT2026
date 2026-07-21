@@ -43,6 +43,17 @@ class AuthNeedPropertySetup extends AuthState {
   List<Object?> get props => [user];
 }
 
+/// Đăng nhập bằng Google nhưng chưa cung cấp đủ thông tin bắt buộc (ví dụ: role, SĐT)
+class AuthNeedProfileCompletion extends AuthState {
+  final String email;
+  final String fullName;
+
+  const AuthNeedProfileCompletion({required this.email, required this.fullName});
+
+  @override
+  List<Object?> get props => [email, fullName];
+}
+
 class AuthError extends AuthState {
   final String message;
   const AuthError(this.message);
