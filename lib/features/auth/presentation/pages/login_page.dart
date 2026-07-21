@@ -393,27 +393,13 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                               const SizedBox(height: 16),
 
-                              // Google & Zalo Social Logins
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: _socialButton(
-                                      label: 'Google',
-                                      icon: Icons.g_mobiledata_rounded,
-                                      iconColor: const Color(0xFFEA4335),
-                                      onTap: _loginWithGoogle,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: _socialButton(
-                                      label: 'Zalo',
-                                      icon: Icons.chat_bubble_rounded,
-                                      iconColor: const Color(0xFF0068FF),
-                                      onTap: _loginWithZalo,
-                                    ),
-                                  ),
-                                ],
+                              // Google Social Login
+                              SizedBox(
+                                width: double.infinity,
+                                child: _socialButton(
+                                  label: 'Google',
+                                  onTap: _loginWithGoogle,
+                                ),
                               ),
                             ],
                           ),
@@ -480,8 +466,6 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget _socialButton({
     required String label,
-    required IconData icon,
-    required Color iconColor,
     required VoidCallback onTap,
   }) {
     return OutlinedButton(
@@ -495,7 +479,11 @@ class _LoginPageState extends State<LoginPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: iconColor, size: 22),
+          Image.network(
+            'https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/512px-Google_%22G%22_Logo.svg.png',
+            width: 22,
+            height: 22,
+          ),
           const SizedBox(width: 8),
           Text(
             label,
