@@ -436,12 +436,16 @@ class _VietQrCard extends StatelessWidget {
                     color: AppColors.primary, size: 20),
               ),
               const SizedBox(width: 10),
-              const Text(
-                'Quét mã VietQR để chuyển khoản',
-                style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                    color: AppColors.textPrimary),
+              Expanded(
+                child: Text(
+                  isVietQrNetwork 
+                    ? 'Quét mã VietQR để chuyển khoản' 
+                    : 'Chủ trọ chưa cài đặt thẻ ngân hàng',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                      color: AppColors.textPrimary),
+                ),
               ),
             ],
           ),

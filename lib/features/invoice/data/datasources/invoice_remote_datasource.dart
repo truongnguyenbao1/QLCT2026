@@ -52,7 +52,7 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
           .from(AppConstants.tableInvoices)
           .select('''
             *,
-            phong!inner(room_number, property_id),
+            phong!inner(room_number, property_id, nhatro(owner_id)),
             khachthue(full_name)
           ''');
 
@@ -80,6 +80,9 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
         final map = Map<String, dynamic>.from(e);
         map['room_number'] = e['phong']?['room_number'] ?? '';
         map['tenant_name'] = e['khachthue']?['full_name'];
+        if (map['created_by'] == null || map['created_by'].toString().isEmpty) {
+          map['created_by'] = e['phong']?['nhatro']?['owner_id'];
+        }
         return InvoiceModel.fromJson(map);
       }).toList();
     } catch (e) {
@@ -94,7 +97,7 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
           .from(AppConstants.tableInvoices)
           .select('''
             *,
-            phong!inner(room_number),
+            phong!inner(room_number, property_id, nhatro(owner_id)),
             khachthue(full_name)
           ''')
           .eq('id', invoiceId)
@@ -103,6 +106,9 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
       final map = Map<String, dynamic>.from(data);
       map['room_number'] = data['phong']?['room_number'] ?? '';
       map['tenant_name'] = data['khachthue']?['full_name'];
+      if (map['created_by'] == null || map['created_by'].toString().isEmpty) {
+        map['created_by'] = data['phong']?['nhatro']?['owner_id'];
+      }
       return InvoiceModel.fromJson(map);
     } catch (e) {
       throw NotFoundFailure(message: 'Không tìm thấy hóa đơn: $invoiceId');
