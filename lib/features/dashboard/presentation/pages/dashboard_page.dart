@@ -11,6 +11,8 @@ import '../../../../shared/navigation/app_router.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../../../../features/auth/domain/entities/app_user.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState;
+import '../widgets/notification_bell.dart';
+
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
 
@@ -70,11 +72,9 @@ class _DashboardViewState extends State<_DashboardView> {
               centerTitle: false,
               floating: true,
             actions: [
-              IconButton(
-                icon: const Icon(Icons.notifications_outlined),
-                onPressed: () {},
-                tooltip: 'Thông báo',
-              ),
+              if (authState is AuthAuthenticated)
+                NotificationBell(userId: authState.user.id),
+
               IconButton(
                 icon: const Icon(Icons.logout),
                 onPressed: () {

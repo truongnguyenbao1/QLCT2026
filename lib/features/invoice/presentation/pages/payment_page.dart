@@ -96,6 +96,12 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
         listener: (context, state) {
           if (state is InvoiceDetailLoaded) {
             _invoice = state.invoice;
+            
+            // Tự động điền mã giao dịch cho chủ trọ nếu nó đang trống
+            if (_transactionIdController.text.isEmpty) {
+              final note = 'Phong ${_invoice!.roomNumber} thang ${_invoice!.month}/${_invoice!.year}';
+              _transactionIdController.text = note;
+            }
           } else if (state is InvoiceActionSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
