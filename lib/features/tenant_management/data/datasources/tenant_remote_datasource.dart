@@ -133,7 +133,7 @@ class TenantRemoteDataSourceImpl implements TenantRemoteDataSource {
           'tenant_id': data['id'],
           'room_id': tenant.roomId,
           'start_date': DateTime.now().toIso8601String(),
-          'end_date': DateTime.now().add(const Duration(days: 36500)).toIso8601String(), // Vô thời hạn (100 năm)
+          'end_date': null, // Để trống khi đang thuê
           'deposit_amount': 0,
           'status': 'ACTIVE'
         });

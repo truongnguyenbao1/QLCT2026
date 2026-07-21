@@ -15,7 +15,7 @@ SELECT
     k.id AS tenant_id,
     k.room_id AS room_id,
     k.created_at AS start_date,
-    '2099-12-31'::timestamptz AS end_date, -- Mặc định vô thời hạn
+    NULL AS end_date, -- Để trống khi đang thuê
     0 AS deposit_amount,
     'ACTIVE' AS status
 FROM public.khachthue k

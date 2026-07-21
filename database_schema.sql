@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS public.thuephong (
     tenant_id UUID NOT NULL REFERENCES public.khachthue(id) ON DELETE CASCADE,
     room_id UUID NOT NULL REFERENCES public.phong(id) ON DELETE CASCADE,
     start_date TIMESTAMPTZ NOT NULL,
-    end_date TIMESTAMPTZ NOT NULL,
+    end_date TIMESTAMPTZ,
     deposit_amount NUMERIC NOT NULL DEFAULT 0,
     status VARCHAR(50) NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'TERMINATED', 'EXPIRED')),
     contract_url TEXT, -- Lưu trữ trên Supabase Storage
