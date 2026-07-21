@@ -470,8 +470,7 @@ class _TenantDashboardContentState extends State<_TenantDashboardContent> {
 
       if (response != null && response['room_id'] != null) {
         final roomNumber = response['room_number'];
-        final floor = response['floor'] ?? 1;
-        _roomName = 'Phòng $roomNumber - T$floor';
+        _roomName = 'Phòng $roomNumber';
         _propertyName = response['property_name'] ?? 'Nhà trọ không xác định';
       } else {
         _propertyName = 'Chưa rõ';
