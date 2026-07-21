@@ -618,28 +618,7 @@ class _ActionButtons extends StatelessWidget {
 
         return Column(
           children: [
-            if (!isOwner &&
-                invoice.status == InvoiceStatus.pending) ...[
-              // Tenant xác nhận đã chuyển tiền
-              FilledButton.icon(
-                icon: isLoading ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.check_circle_rounded),
-                label: const Text('✅ Tôi đã chuyển tiền'),
-                onPressed: isLoading ? null : () {
-                  _showConfirmDialog(
-                    context,
-                    title: 'Xác nhận đã chuyển tiền',
-                    message:
-                        'Bạn xác nhận đã chuyển ${AppFormatters.formatCurrency(invoice.totalAmount)} cho chủ trọ?',
-                    onConfirm: () {
-                      context.read<InvoiceBloc>().add(
-                            MarkInvoicePaidEvent(invoiceId: invoice.id),
-                          );
-                    },
-                  );
-                },
-              ),
-              const SizedBox(height: 12),
-            ],
+
 
             if (isOwner &&
                 invoice.status == InvoiceStatus.confirmedByTenant) ...[

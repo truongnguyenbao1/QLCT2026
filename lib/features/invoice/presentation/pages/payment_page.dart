@@ -157,13 +157,18 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
                     selectedMethod: _selectedMethod,
                     onMethodChanged: (m) =>
                         setState(() => _selectedMethod = m!),
-                    onSubmit: () => _submitPayment(invoice!),
+                    onSubmit: () => _submitPayment(invoice),
                     isLoading: state is PaymentCreating,
                   ).animate().fadeIn(delay: 200.ms, duration: 300.ms),
                   const SizedBox(height: 16),
                 ],
 
-
+                if (!isOwner && !invoice.isPaid) ...[
+                  _TenantActionSection(invoice: invoice)
+                      .animate()
+                      .fadeIn(delay: 200.ms, duration: 300.ms),
+                  const SizedBox(height: 16),
+                ],
 
                 // ── Lịch sử giao dịch ────────────────────────────────
                 _PaymentHistorySection(invoiceId: widget.invoiceId)
@@ -1101,11 +1106,100 @@ class _ReadonlyField extends StatelessWidget {
                   style: TextStyle(
                       fontSize: 11, color: (Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextSecondary : AppColors.textSecondary))),
               Text(value,
-                  style: TextStyle(
+                  style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
-                      color: (Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextPrimary : AppColors.textPrimary))),
+                      color: AppColors.textPrimary)),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Thông tin cho tenant ──────────────────────────────────────────────────
+class _TenantActionSection extends StatefulWidget {
+  final Invoice invoice;
+  const _TenantActionSection({required this.invoice});
+
+  @override
+  State<_TenantActionSection> createState() => _TenantActionSectionState();
+}
+
+class _TenantActionSectionState extends State<_TenantActionSection> {
+  bool _isConfirming = false;
+
+  void _confirmPayment() {
+    setState(() => _isConfirming = true);
+    final updatedInvoice = widget.invoice.copyWith(status: InvoiceStatus.confirmedByTenant);
+    context.read<InvoiceBloc>().add(UpdateInvoiceEvent(updatedInvoice));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.invoice.status == InvoiceStatus.confirmedByTenant) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.warning.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.hourglass_empty_rounded, color: AppColors.warning, size: 20),
+            const SizedBox(width: 10),
+            const Expanded(
+              child: Text(
+                'Bạn đã xác nhận chuyển khoản. Vui lòng chờ chủ trọ kiểm tra và cập nhật trạng thái hóa đơn.',
+                style: TextStyle(color: AppColors.warning, fontSize: 13, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.info_rounded, color: AppColors.primary, size: 20),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Sau khi hoàn tất chuyển khoản, hãy nhấn nút bên dưới để thông báo cho chủ trọ.',
+                  style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextSecondary : AppColors.textSecondary, fontSize: 13),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 48,
+            child: FilledButton.icon(
+              onPressed: _isConfirming ? null : _confirmPayment,
+              icon: _isConfirming
+                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Icon(Icons.check_circle_rounded),
+              label: Text(
+                _isConfirming ? 'Đang xử lý...' : 'Xác nhận đã chuyển khoản',
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
           ),
         ],
       ),
