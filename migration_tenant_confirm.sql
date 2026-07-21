@@ -25,7 +25,11 @@ BEGIN
         'room_id', v_invoice.room_id,
         'month', v_invoice.month,
         'year', v_invoice.year,
-        'total_amount', v_invoice.total_amount,
+        'total_amount', (v_invoice.rent_amount + 
+                         (v_invoice.electric_curr_reading - v_invoice.electric_prev_reading) * v_invoice.electric_unit_price + 
+                         (v_invoice.water_curr_reading - v_invoice.water_prev_reading) * v_invoice.water_unit_price + 
+                         v_invoice.service_amount + 
+                         COALESCE(v_invoice.other_amount, 0)),
         'room_number', (SELECT room_number FROM public.phong WHERE id = v_invoice.room_id)
     ) INTO v_result;
 

@@ -36,16 +36,29 @@ class _NotificationBellState extends State<NotificationBell> {
     } catch (_) {}
   }
 
+  String _cleanNotificationContent(String content) {
+    return content.replaceAll(RegExp(r'\s*\[invoice_id:[a-f0-9\-]+\]'), '');
+  }
+
   void _handleNotificationTap(Map<String, dynamic> notification) {
     if (notification['status'] == 'UNREAD') {
       _markAsRead(notification['id']);
     }
     
-    // Extract invoiceId from content
     final content = notification['content'] as String;
-    final match = RegExp(r'Mã hóa đơn: ([a-f0-9\-]+)\.').firstMatch(content);
+    
+    // 1. Thử match theo định dạng ẩn mới [invoice_id:...]
+    final match = RegExp(r'\[invoice_id:([a-f0-9\-]+)\]').firstMatch(content);
     if (match != null) {
       final invoiceId = match.group(1);
+      context.push('/invoices/$invoiceId/payment');
+      return;
+    }
+    
+    // 2. Thử match theo định dạng text cũ "Mã hóa đơn: ..."
+    final oldMatch = RegExp(r'Mã hóa đơn: ([a-f0-9\-]+)\.').firstMatch(content);
+    if (oldMatch != null) {
+      final invoiceId = oldMatch.group(1);
       context.push('/invoices/$invoiceId/payment');
     }
   }
@@ -121,7 +134,7 @@ class _NotificationBellState extends State<NotificationBell> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        n['content'] ?? '',
+                        _cleanNotificationContent(n['content'] ?? ''),
                         style: TextStyle(
                           fontSize: 13,
                           color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextSecondary : AppColors.textSecondary,

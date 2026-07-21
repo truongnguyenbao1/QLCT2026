@@ -7,21 +7,21 @@ CREATE OR REPLACE FUNCTION notify_landlord_on_tenant_confirm()
 RETURNS TRIGGER AS $$
 DECLARE
     v_room_name VARCHAR(100);
-    v_tenant_id UUID;
     v_tenant_name VARCHAR(100);
+    v_sender_id UUID;
 BEGIN
     -- Chỉ kích hoạt khi trạng thái chuyển thành CONFIRMED_BY_TENANT
-    IF NEW.status = 'CONFIRMED_BY_TENANT' AND OLD.status != 'CONFIRMED_BY_TENANT' THEN
+    IF NEW.status = 'CONFIRMED_BY_TENANT' AND (OLD.status IS NULL OR OLD.status != 'CONFIRMED_BY_TENANT') THEN
         
-        -- Lấy tên phòng
-        SELECT name INTO v_room_name FROM public.phong WHERE id = NEW.room_id;
+        -- Lấy số phòng (bảng phong dùng cột room_number, không phải name)
+        SELECT room_number INTO v_room_name FROM public.phong WHERE id = NEW.room_id;
         
-        -- Lấy thông tin khách thuê (nếu có)
-        SELECT tenant_id INTO v_tenant_id FROM public.thuephong WHERE room_id = NEW.room_id AND status = 'ACTIVE' LIMIT 1;
-        
-        IF v_tenant_id IS NOT NULL THEN
-            SELECT full_name INTO v_tenant_name FROM public.users WHERE iduser = v_tenant_id;
-        ELSE
+        -- Lấy tên khách thuê & user_id làm sender_id
+        IF NEW.tenant_id IS NOT NULL THEN
+            SELECT full_name, user_id INTO v_tenant_name, v_sender_id FROM public.khachthue WHERE id = NEW.tenant_id;
+        END IF;
+
+        IF v_tenant_name IS NULL THEN
             v_tenant_name := 'Khách thuê';
         END IF;
 
@@ -36,10 +36,10 @@ BEGIN
             sent_at
         ) VALUES (
             NEW.room_id,
-            v_tenant_id,
+            v_sender_id,
             NEW.created_by, -- Chủ trọ là người tạo hóa đơn
             'Xác nhận thanh toán',
-            v_tenant_name || ' phòng ' || v_room_name || ' vừa xác nhận đã chuyển tiền hóa đơn tháng ' || NEW.month || '/' || NEW.year || '. Mã hóa đơn: ' || NEW.id || '. Vui lòng kiểm tra tài khoản.',
+            v_tenant_name || ' phòng ' || COALESCE(v_room_name, '') || ' vừa xác nhận đã chuyển tiền hóa đơn tháng ' || NEW.month || '/' || NEW.year || '. Vui lòng kiểm tra tài khoản. [invoice_id:' || NEW.id || ']',
             'UNREAD',
             NOW()
         );
