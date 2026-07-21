@@ -10,10 +10,11 @@ DECLARE
     v_floor INT;
     v_property_name VARCHAR;
 BEGIN
-    -- Ưu tiên lấy từ bảng thuephong (hợp đồng đang active)
+    -- Ưu tiên lấy từ bảng thuephong (hợp đồng đang active MỚI NHẤT)
     SELECT room_id INTO v_room_id 
     FROM public.thuephong 
     WHERE tenant_id = p_user_id AND status = 'ACTIVE' 
+    ORDER BY created_at DESC
     LIMIT 1;
 
     -- Nếu không có trong thuephong, lấy từ bảng users
