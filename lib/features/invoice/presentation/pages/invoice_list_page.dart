@@ -35,8 +35,11 @@ class _InvoiceListViewState extends State<_InvoiceListView> {
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            onPressed: () {
-               context.go('/invoices/create');
+            onPressed: () async {
+               await context.push('/invoices/create');
+               if (context.mounted) {
+                 context.read<InvoiceBloc>().add(const LoadInvoicesEvent());
+               }
             },
           ),
           PopupMenuButton<InvoiceStatus?>(
@@ -116,8 +119,11 @@ class _InvoiceListViewState extends State<_InvoiceListView> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () {
-          context.push('/invoices/${invoice.id}');
+        onTap: () async {
+          await context.push('/invoices/${invoice.id}');
+          if (context.mounted) {
+            context.read<InvoiceBloc>().add(const LoadInvoicesEvent());
+          }
         },
         child: Padding(
           padding: const EdgeInsets.all(16.0),
