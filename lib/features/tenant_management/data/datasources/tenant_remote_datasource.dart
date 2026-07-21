@@ -127,9 +127,19 @@ class TenantRemoteDataSourceImpl implements TenantRemoteDataSource {
             .from('phong')
             .update({'status': 'OCCUPIED'})
             .eq('id', tenant.roomId!);
+            
+        // Tự động tạo bản ghi xác nhận thuê phòng (thuephong)
+        await _client.from('thuephong').insert({
+          'tenant_id': data['id'],
+          'room_id': tenant.roomId,
+          'start_date': DateTime.now().toIso8601String(),
+          'end_date': DateTime.now().add(const Duration(days: 36500)).toIso8601String(), // Vô thời hạn (100 năm)
+          'deposit_amount': 0,
+          'status': 'ACTIVE'
+        });
       }
     } catch (e) {
-      // Bỏ qua lỗi cập nhật trạng thái phòng (non-blocking)
+      // Bỏ qua lỗi (non-blocking)
     }
 
         

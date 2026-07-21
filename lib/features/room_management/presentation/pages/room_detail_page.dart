@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState;
 import 'package:go_router/go_router.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/utils/formatters.dart';
@@ -101,13 +102,25 @@ class RoomDetailPage extends StatelessWidget {
                             context.read<TenantBloc>().add(UpdateTenantEvent(updatedTenant));
                           }
                         }
-                        
                         // Tải lại danh sách khách thuê sau một chút delay để DB kịp update
                         Future.delayed(const Duration(milliseconds: 500), () {
                           if (context.mounted) {
                             context.read<TenantBloc>().add(LoadTenantsEvent(roomId: room.id, propertyId: propertyId, isActive: true));
                           }
                         });
+                        
+                        // Cập nhật hợp đồng (thuephong) thành đã kết thúc
+                        try {
+                           getIt<SupabaseClient>()
+                              .from('thuephong')
+                              .update({
+                                'status': 'TERMINATED',
+                                'end_date': DateTime.now().toIso8601String(),
+                              })
+                              .eq('room_id', room.id)
+                              .eq('status', 'ACTIVE')
+                              .then((_) {});
+                        } catch (_) {}
                       }
                     }
                   },

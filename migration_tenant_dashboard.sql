@@ -10,24 +10,24 @@ DECLARE
     v_floor INT;
     v_property_name VARCHAR;
 BEGIN
-    -- Ưu tiên lấy từ bảng thuephong (hợp đồng đang active MỚI NHẤT)
-    SELECT room_id INTO v_room_id 
-    FROM public.thuephong 
-    WHERE tenant_id = p_user_id AND status = 'ACTIVE' 
-    ORDER BY created_at DESC
+    -- Ưu tiên lấy từ bảng khachthue (vì bảng khách thuê chứa room_id cập nhật nhất và liên kết trực tiếp với user_id)
+    SELECT room_id, property_id INTO v_room_id, v_property_id
+    FROM public.khachthue 
+    WHERE user_id = p_user_id AND is_active = TRUE
+    ORDER BY created_at DESC 
     LIMIT 1;
 
-    -- Nếu không có trong thuephong, lấy từ bảng users
+    -- Nếu không có trong khachthue, lấy từ bảng users (dự phòng)
     IF v_room_id IS NULL THEN
-        SELECT room_id INTO v_room_id
+        SELECT room_id, property_id INTO v_room_id, v_property_id
         FROM public.users 
         WHERE iduser = p_user_id;
     END IF;
 
     -- Nếu có room_id thì lấy thông tin phòng và nhà trọ
     IF v_room_id IS NOT NULL THEN
-        SELECT room_number, floor, property_id 
-        INTO v_room_number, v_floor, v_property_id 
+        SELECT room_number, floor 
+        INTO v_room_number, v_floor 
         FROM public.phong 
         WHERE id = v_room_id;
         

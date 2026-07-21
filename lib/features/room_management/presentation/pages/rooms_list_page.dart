@@ -473,6 +473,16 @@ class _RoomCard extends StatelessWidget {
                                   .from('khachthue')
                                   .update({'is_active': false, 'room_id': null})
                                   .eq('room_id', room.id);
+                                  
+                               // Cập nhật hợp đồng (thuephong) thành đã kết thúc
+                               await getIt<SupabaseClient>()
+                                  .from('thuephong')
+                                  .update({
+                                    'status': 'TERMINATED',
+                                    'end_date': DateTime.now().toIso8601String(),
+                                  })
+                                  .eq('room_id', room.id)
+                                  .eq('status', 'ACTIVE');
                             } catch (_) {}
                           }
                         }
