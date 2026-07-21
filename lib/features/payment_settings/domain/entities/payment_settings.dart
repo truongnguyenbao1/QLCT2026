@@ -44,9 +44,7 @@ class PaymentSettings extends Equatable {
       bankCode != null &&
       bankCode!.isNotEmpty &&
       accountNumber != null &&
-      accountNumber!.isNotEmpty &&
-      accountName != null &&
-      accountName!.isNotEmpty;
+      accountNumber!.isNotEmpty;
 
   bool get hasMomo => (momoPhone != null && momoPhone!.isNotEmpty) || (momoQrUrl != null && momoQrUrl!.isNotEmpty);
 

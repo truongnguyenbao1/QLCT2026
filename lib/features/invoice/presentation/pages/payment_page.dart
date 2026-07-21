@@ -344,13 +344,15 @@ class _PaymentMethodsSectionState extends State<_PaymentMethodsSection> {
         
         // 2. Chỉ có Bank hoặc không có gì (Fallback)
         if (!hasMomo && hasBank) {
-          final vietQrUrl = 'https://img.vietqr.io/image/${settings!.bankCode!}-${settings.accountNumber!}-qr_only.png?accountName=${Uri.encodeComponent(settings.accountName!)}&addInfo=${Uri.encodeComponent(noteProcessed)}&amount=$amount';
+          final accountName = settings!.accountName ?? '';
+          final vietQrUrl = 'https://img.vietqr.io/image/${settings.bankCode!}-${settings.accountNumber!}-qr_only.png?accountName=${Uri.encodeComponent(accountName)}&addInfo=${Uri.encodeComponent(noteProcessed)}&amount=$amount';
           return _VietQrCard(invoice: widget.invoice, qrContent: vietQrUrl, isVietQrNetwork: true, noteProcessed: noteProcessed);
         }
 
         // 3. Có cả hai
         if (hasBank && hasMomo) {
-          final vietQrUrl = 'https://img.vietqr.io/image/${settings!.bankCode!}-${settings.accountNumber!}-qr_only.png?accountName=${Uri.encodeComponent(settings.accountName!)}&addInfo=${Uri.encodeComponent(noteProcessed)}&amount=$amount';
+          final accountName = settings!.accountName ?? '';
+          final vietQrUrl = 'https://img.vietqr.io/image/${settings!.bankCode!}-${settings!.accountNumber!}-qr_only.png?accountName=${Uri.encodeComponent(accountName)}&addInfo=${Uri.encodeComponent(noteProcessed)}&amount=$amount';
           return DefaultTabController(
             length: 2,
             child: Card(
@@ -377,8 +379,8 @@ class _PaymentMethodsSectionState extends State<_PaymentMethodsSection> {
                         _VietQrCard(invoice: widget.invoice, qrContent: vietQrUrl, isVietQrNetwork: true, noteProcessed: noteProcessed, insideTab: true),
                         _MomoCard(
                           invoice: widget.invoice, 
-                          phone: settings.momoPhone ?? '', 
-                          momoQrUrl: settings.momoQrUrl, 
+                          phone: settings!.momoPhone ?? '', 
+                          momoQrUrl: settings!.momoQrUrl, 
                           amount: amount, 
                           note: noteProcessed, 
                           insideTab: true
