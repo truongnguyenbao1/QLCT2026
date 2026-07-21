@@ -87,9 +87,9 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Thanh toán hóa đơn'),
+        title: Text('Thanh toán hóa đơn'),
         backgroundColor: AppColors.surface,
-        foregroundColor: AppColors.textPrimary,
+        foregroundColor: (Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextPrimary : AppColors.textPrimary),
         elevation: 0,
       ),
       body: BlocConsumer<InvoiceBloc, InvoiceState>(
@@ -122,7 +122,7 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
           }
 
           if (_invoice == null) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(child: CircularProgressIndicator());
           }
           
           final invoice = _invoice!;
@@ -235,12 +235,12 @@ class _AmountBanner extends StatelessWidget {
                 children: [
                   Text(
                     'Phòng ${invoice.roomNumber}',
-                    style: const TextStyle(
+                    style: TextStyle(
                         color: Colors.white70, fontSize: 13),
                   ),
                   Text(
                     invoice.billingPeriod,
-                    style: const TextStyle(
+                    style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w700,
                         fontSize: 16),
@@ -256,7 +256,7 @@ class _AmountBanner extends StatelessWidget {
                 ),
                 child: Text(
                   invoice.status.displayName,
-                  style: const TextStyle(
+                  style: TextStyle(
                       color: Colors.white,
                       fontSize: 12,
                       fontWeight: FontWeight.w600),
@@ -267,7 +267,7 @@ class _AmountBanner extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             AppFormatters.formatCurrency(invoice.totalAmount),
-            style: const TextStyle(
+            style: TextStyle(
               color: Colors.white,
               fontSize: 32,
               fontWeight: FontWeight.w800,
@@ -279,7 +279,7 @@ class _AmountBanner extends StatelessWidget {
             invoice.isPaid
                 ? 'Đã thanh toán'
                 : 'Hạn: ${AppFormatters.formatDate(invoice.dueDate)}',
-            style: const TextStyle(color: Colors.white70, fontSize: 13),
+            style: TextStyle(color: Colors.white70, fontSize: 13),
           ),
         ],
       ),
@@ -382,9 +382,9 @@ class _PaymentMethodsSectionState extends State<_PaymentMethodsSection> {
               ),
               child: Column(
                 children: [
-                  const TabBar(
+                  TabBar(
                     labelColor: AppColors.primary,
-                    unselectedLabelColor: AppColors.textSecondary,
+                    unselectedLabelColor: (Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextSecondary : AppColors.textSecondary),
                     indicatorColor: AppColors.primary,
                     tabs: [
                       Tab(text: 'Ngân hàng', icon: Icon(Icons.account_balance_rounded, size: 18)),
@@ -451,7 +451,7 @@ class _VietQrCard extends StatelessWidget {
                   color: AppColors.primaryContainer,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.qr_code_rounded,
+                child: Icon(Icons.qr_code_rounded,
                     color: AppColors.primary, size: 20),
               ),
               const SizedBox(width: 10),
@@ -460,10 +460,10 @@ class _VietQrCard extends StatelessWidget {
                   isVietQrNetwork 
                     ? 'Quét mã VietQR để chuyển khoản' 
                     : 'Chủ trọ chưa cài đặt thẻ ngân hàng',
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
-                      color: AppColors.textPrimary),
+                      color: (Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextPrimary : AppColors.textPrimary)),
                 ),
               ),
             ],
@@ -485,7 +485,7 @@ class _VietQrCard extends StatelessWidget {
                       height: 180,
                       fit: BoxFit.contain,
                       errorBuilder: (context, error, stackTrace) =>
-                          const Icon(Icons.qr_code_2_rounded,
+                          Icon(Icons.qr_code_2_rounded,
                               size: 100, color: Colors.grey),
                       loadingBuilder: (context, child, loadingProgress) {
                         if (loadingProgress == null) return child;
@@ -508,14 +508,14 @@ class _VietQrCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.info_outline,
-                  size: 14, color: AppColors.textSecondary),
+              Icon(Icons.info_outline,
+                  size: 14, color: (Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextSecondary : AppColors.textSecondary)),
               const SizedBox(width: 4),
               Expanded(
                 child: Text(
                   'Nội dung CK: $noteProcessed',
-                  style: const TextStyle(
-                      color: AppColors.textSecondary, fontSize: 12),
+                  style: TextStyle(
+                      color: (Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextSecondary : AppColors.textSecondary), fontSize: 12),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -527,7 +527,7 @@ class _VietQrCard extends StatelessWidget {
                     const SnackBar(content: Text('Đã sao chép nội dung!')),
                   );
                 },
-                child: const Icon(Icons.copy_rounded,
+                child: Icon(Icons.copy_rounded,
                     size: 14, color: AppColors.primary),
               ),
             ],
@@ -585,16 +585,16 @@ class _MomoCard extends StatelessWidget {
                   color: const Color(0xFFFCE4EC),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.phone_android_rounded,
+                child: Icon(Icons.phone_android_rounded,
                     color: Color(0xFFD81B60), size: 20),
               ),
               const SizedBox(width: 10),
-              const Text(
+              Text(
                 'Quét mã qua ứng dụng MoMo',
                 style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
-                    color: AppColors.textPrimary),
+                    color: (Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextPrimary : AppColors.textPrimary)),
               ),
             ],
           ),
@@ -610,7 +610,7 @@ class _MomoCard extends StatelessWidget {
               ),
               child: Text(
                 'Lưu ý: Bạn phải tự nhập số tiền thanh toán là ${AppFormatters.formatCurrency(amount.toDouble())}',
-                style: const TextStyle(
+                style: TextStyle(
                   color: Color(0xFFE65100),
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -634,7 +634,7 @@ class _MomoCard extends StatelessWidget {
                       height: 180,
                       fit: BoxFit.contain,
                       errorBuilder: (context, error, stackTrace) =>
-                          const Icon(Icons.qr_code_2_rounded,
+                          Icon(Icons.qr_code_2_rounded,
                               size: 100, color: Colors.grey),
                       loadingBuilder: (context, child, loadingProgress) {
                         if (loadingProgress == null) return child;
@@ -666,13 +666,13 @@ class _MomoCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text(
+                Text(
                   'SĐT: ',
-                  style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                  style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextSecondary : AppColors.textSecondary), fontSize: 13),
                 ),
               Text(
                 phone,
-                style: const TextStyle(
+                style: TextStyle(
                   color: Color(0xFFD81B60),
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
@@ -686,7 +686,7 @@ class _MomoCard extends StatelessWidget {
                     const SnackBar(content: Text('Đã sao chép SĐT MoMo!')),
                   );
                 },
-                child: const Icon(Icons.copy_rounded,
+                child: Icon(Icons.copy_rounded,
                     size: 14, color: Color(0xFFD81B60)),
               ),
             ],
@@ -753,11 +753,11 @@ class _OwnerPaymentSection extends StatelessWidget {
                     color: AppColors.primaryContainer,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.admin_panel_settings_rounded,
+                  child: Icon(Icons.admin_panel_settings_rounded,
                       color: AppColors.primary, size: 20),
                 ),
                 const SizedBox(width: 10),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -766,12 +766,12 @@ class _OwnerPaymentSection extends StatelessWidget {
                         style: TextStyle(
                             fontWeight: FontWeight.w700,
                             fontSize: 14,
-                            color: AppColors.textPrimary),
+                            color: (Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextPrimary : AppColors.textPrimary)),
                       ),
                       Text(
                         'Chỉ dành cho chủ trọ',
                         style: TextStyle(
-                            fontSize: 11, color: AppColors.textSecondary),
+                            fontSize: 11, color: (Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextSecondary : AppColors.textSecondary)),
                       ),
                     ],
                   ),
@@ -806,12 +806,12 @@ class _OwnerPaymentSection extends StatelessWidget {
                     const SizedBox(height: 16),
 
                     // Phương thức thanh toán
-                    const Text(
+                    Text(
                       'Phương thức thanh toán',
                       style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary),
+                          color: (Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextPrimary : AppColors.textPrimary)),
                     ),
                     const SizedBox(height: 8),
                     Wrap(
@@ -826,7 +826,7 @@ class _OwnerPaymentSection extends StatelessWidget {
                           labelStyle: TextStyle(
                             color: selected
                                 ? Colors.white
-                                : AppColors.textPrimary,
+                                : (Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextPrimary : AppColors.textPrimary),
                             fontWeight: FontWeight.w500,
                           ),
                           avatar: Icon(
@@ -834,7 +834,7 @@ class _OwnerPaymentSection extends StatelessWidget {
                             size: 16,
                             color: selected
                                 ? Colors.white
-                                : AppColors.textSecondary,
+                                : (Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextSecondary : AppColors.textSecondary),
                           ),
                         );
                       }).toList(),
@@ -847,7 +847,7 @@ class _OwnerPaymentSection extends StatelessWidget {
                       decoration: InputDecoration(
                         labelText: 'Mã giao dịch (tùy chọn)',
                         hintText: 'VD: FT26199...',
-                        prefixIcon: const Icon(Icons.tag_rounded),
+                        prefixIcon: Icon(Icons.tag_rounded),
                         border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12)),
                         filled: true,
@@ -869,12 +869,12 @@ class _OwnerPaymentSection extends StatelessWidget {
                                 child: CircularProgressIndicator(
                                     strokeWidth: 2, color: Colors.white),
                               )
-                            : const Icon(Icons.check_circle_rounded),
+                            : Icon(Icons.check_circle_rounded),
                         label: Text(
                           isLoading
                               ? 'Đang xử lý...'
                               : '✅ Xác nhận đã nhận tiền',
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontSize: 15, fontWeight: FontWeight.w700),
                         ),
                         style: FilledButton.styleFrom(
@@ -936,16 +936,16 @@ class _PaymentHistorySection extends StatelessWidget {
                     color: AppColors.successContainer,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.history_rounded,
+                  child: Icon(Icons.history_rounded,
                       color: AppColors.success, size: 20),
                 ),
                 const SizedBox(width: 10),
-                const Text(
+                Text(
                   'Lịch sử giao dịch',
                   style: TextStyle(
                       fontWeight: FontWeight.w700,
                       fontSize: 14,
-                      color: AppColors.textPrimary),
+                      color: (Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextPrimary : AppColors.textPrimary)),
                 ),
               ],
             ),
@@ -958,7 +958,7 @@ class _PaymentHistorySection extends StatelessWidget {
               builder: (context, state) {
                 if (state is PaymentsLoaded) {
                   if (state.payments.isEmpty) {
-                    return const _EmptyPayments();
+                    return _EmptyPayments();
                   }
                   return Column(
                     children: state.payments
@@ -967,14 +967,14 @@ class _PaymentHistorySection extends StatelessWidget {
                   );
                 }
                 if (state is InvoicesLoading) {
-                  return const Center(
+                  return Center(
                     child: Padding(
                       padding: EdgeInsets.all(16.0),
                       child: CircularProgressIndicator(),
                     ),
                   );
                 }
-                return const _EmptyPayments();
+                return _EmptyPayments();
               },
             ),
           ],
@@ -985,21 +985,21 @@ class _PaymentHistorySection extends StatelessWidget {
 }
 
 class _EmptyPayments extends StatelessWidget {
-  const _EmptyPayments();
+  _EmptyPayments();
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
+    return Padding(
       padding: EdgeInsets.symmetric(vertical: 16),
       child: Center(
         child: Column(
           children: [
             Icon(Icons.receipt_long_outlined,
-                size: 40, color: AppColors.textTertiary),
+                size: 40, color: (Theme.of(context).brightness == Brightness.dark ? AppColors.textDisabled : AppColors.textTertiary)),
             SizedBox(height: 8),
             Text(
               'Chưa có giao dịch nào',
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+              style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextSecondary : AppColors.textSecondary), fontSize: 13),
             ),
           ],
         ),
@@ -1030,7 +1030,7 @@ class _PaymentTile extends StatelessWidget {
               color: AppColors.success.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.check_rounded,
+            child: Icon(Icons.check_rounded,
                 color: AppColors.success, size: 18),
           ),
           const SizedBox(width: 12),
@@ -1040,28 +1040,28 @@ class _PaymentTile extends StatelessWidget {
               children: [
                 Text(
                   payment.paymentMethod.displayName,
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 13,
-                      color: AppColors.textPrimary),
+                      color: (Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextPrimary : AppColors.textPrimary)),
                 ),
                 if (payment.transactionId != null)
                   Text(
                     'Mã GD: ${payment.transactionId}',
-                    style: const TextStyle(
-                        color: AppColors.textSecondary, fontSize: 11),
+                    style: TextStyle(
+                        color: (Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextSecondary : AppColors.textSecondary), fontSize: 11),
                   ),
                 Text(
                   AppFormatters.formatDateTime(payment.paidAt),
-                  style: const TextStyle(
-                      color: AppColors.textTertiary, fontSize: 11),
+                  style: TextStyle(
+                      color: (Theme.of(context).brightness == Brightness.dark ? AppColors.textDisabled : AppColors.textTertiary), fontSize: 11),
                 ),
               ],
             ),
           ),
           Text(
             AppFormatters.formatCurrency(payment.amount),
-            style: const TextStyle(
+            style: TextStyle(
               color: AppColors.success,
               fontWeight: FontWeight.w700,
               fontSize: 15,
@@ -1092,19 +1092,19 @@ class _ReadonlyField extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: AppColors.textSecondary),
+          Icon(icon, size: 20, color: (Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextSecondary : AppColors.textSecondary)),
           const SizedBox(width: 12),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(label,
-                  style: const TextStyle(
-                      fontSize: 11, color: AppColors.textSecondary)),
+                  style: TextStyle(
+                      fontSize: 11, color: (Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextSecondary : AppColors.textSecondary))),
               Text(value,
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary)),
+                      color: (Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextPrimary : AppColors.textPrimary))),
             ],
           ),
         ],
