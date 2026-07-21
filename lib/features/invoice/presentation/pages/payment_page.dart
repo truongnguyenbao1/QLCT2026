@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -24,10 +25,15 @@ import '../../../../features/payment_settings/presentation/bloc/payment_settings
 import '../../../../features/payment_settings/presentation/bloc/payment_settings_state.dart';
 import '../../../../features/payment_settings/domain/entities/payment_settings.dart';
 
-class PaymentPage extends StatelessWidget {
+class PaymentPage extends StatefulWidget {
   final String invoiceId;
   const PaymentPage({super.key, required this.invoiceId});
 
+  @override
+  State<PaymentPage> createState() => _PaymentPageState();
+}
+
+class _PaymentPageState extends State<PaymentPage> {
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
@@ -37,11 +43,11 @@ class PaymentPage extends StatelessWidget {
         ),
         BlocProvider<InvoiceBloc>(
           create: (_) => getIt<InvoiceBloc>()
-            ..add(LoadInvoiceDetailEvent(invoiceId))
-            ..add(LoadPaymentsEvent(invoiceId)),
+            ..add(LoadInvoiceDetailEvent(widget.invoiceId))
+            ..add(LoadPaymentsEvent(widget.invoiceId)),
         ),
       ],
-      child: _PaymentPageContent(invoiceId: invoiceId),
+      child: _PaymentPageContent(invoiceId: widget.invoiceId),
     );
   }
 }
@@ -298,7 +304,25 @@ class _PaymentMethodsSectionState extends State<_PaymentMethodsSection> {
   @override
   void initState() {
     super.initState();
-    context.read<PaymentSettingsBloc>().add(LoadPaymentSettingsEvent(widget.invoice.createdBy));
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    String ownerId = widget.invoice.createdBy;
+    if (ownerId.isEmpty) {
+      try {
+        final client = Supabase.instance.client;
+        final res = await client
+            .from('phong')
+            .select('nhatro(owner_id)')
+            .eq('id', widget.invoice.roomId)
+            .single();
+        ownerId = res['nhatro']['owner_id'] as String? ?? '';
+      } catch (_) {}
+    }
+    if (mounted) {
+      context.read<PaymentSettingsBloc>().add(LoadPaymentSettingsEvent(ownerId));
+    }
   }
 
   @override
