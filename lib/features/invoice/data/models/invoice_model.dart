@@ -61,9 +61,14 @@ class InvoiceModel extends Invoice {
   }
 
   factory InvoiceModel.fromJson(Map<String, dynamic> json) {
-    // Thông tin chi tiết nằm trong mảng (do join 1-1 với Supabase)
-    final detailsList = json['chitiethoadon'] as List<dynamic>?;
-    final details = detailsList?.isNotEmpty == true ? detailsList!.first as Map<String, dynamic> : <String, dynamic>{};
+    // Thông tin chi tiết nằm trong mảng hoặc object (do join 1-1 với Supabase)
+    dynamic detailsRaw = json['chitiethoadon'];
+    Map<String, dynamic> details = <String, dynamic>{};
+    if (detailsRaw is List && detailsRaw.isNotEmpty) {
+      details = detailsRaw.first as Map<String, dynamic>;
+    } else if (detailsRaw is Map) {
+      details = detailsRaw as Map<String, dynamic>;
+    }
 
     return InvoiceModel(
       id: json['id'] as String,
@@ -104,7 +109,7 @@ class InvoiceModel extends Invoice {
       'total_amount': totalAmount,
       'status': status.code,
       'due_date': dueDate.toIso8601String(),
-      'created_by': createdBy,
+      'created_by': createdBy.isEmpty ? null : createdBy,
       'is_locked': isLocked,
     };
   }
