@@ -373,11 +373,6 @@ class MainShell extends StatelessWidget {
       label: 'Cá nhân',
       route: AppRoutes.profile,
     ),
-    _NavItem(
-      icon: Icons.notifications_rounded,
-      label: 'Thông báo',
-      route: AppRoutes.notifications,
-    ),
   ];
 
   @override
