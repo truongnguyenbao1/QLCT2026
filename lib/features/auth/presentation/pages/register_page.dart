@@ -105,11 +105,14 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
           ),
           child: SafeArea(
-            child: Center(
+            child: SizedBox(
+              width: double.infinity,
+              height: double.infinity,
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 440),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 440),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -440,6 +443,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           ),
                         ],
                       ).animate().fadeIn(delay: 300.ms, duration: 400.ms),
+                    ],
                     ],
                   ),
                 ),
