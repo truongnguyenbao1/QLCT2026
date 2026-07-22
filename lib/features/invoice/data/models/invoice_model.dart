@@ -89,11 +89,15 @@ class InvoiceModel extends Invoice {
       status: InvoiceStatusExt.fromCode(
           json['status'] as String? ?? 'PENDING'),
       dueDate: DateTime.parse(json['due_date'] as String),
-      paidAt: json['paid_at'] != null
-          ? DateTime.parse(json['paid_at'] as String)
+      paidAt: (json['chitiethoadon'] as List<dynamic>?)?.isNotEmpty == true
+          ? DateTime.parse((json['chitiethoadon'] as List<dynamic>).first['paid_at'] as String)
           : null,
-      paymentMethod: json['payment_method'] as String?,
-      transactionId: json['transaction_id'] as String?,
+      paymentMethod: (json['chitiethoadon'] as List<dynamic>?)?.isNotEmpty == true
+          ? (json['chitiethoadon'] as List<dynamic>).first['payment_method'] as String?
+          : null,
+      transactionId: (json['chitiethoadon'] as List<dynamic>?)?.isNotEmpty == true
+          ? (json['chitiethoadon'] as List<dynamic>).first['transaction_id'] as String?
+          : null,
       createdAt: DateTime.parse(json['created_at'] as String),
       createdBy: json['created_by'] as String? ?? '',
       isLocked: json['is_locked'] as bool? ?? false,
@@ -118,9 +122,6 @@ class InvoiceModel extends Invoice {
       'other_description': otherDescription,
       'status': status.code,
       'due_date': dueDate.toIso8601String(),
-      'paid_at': paidAt?.toIso8601String(),
-      'payment_method': paymentMethod,
-      'transaction_id': transactionId,
       'created_by': createdBy,
       'is_locked': isLocked,
     };
@@ -140,9 +141,6 @@ class InvoiceModel extends Invoice {
       'other_description': otherDescription,
       'status': status.code,
       'due_date': dueDate.toIso8601String(),
-      'paid_at': paidAt?.toIso8601String(),
-      'payment_method': paymentMethod,
-      'transaction_id': transactionId,
       'is_locked': isLocked,
     };
   }

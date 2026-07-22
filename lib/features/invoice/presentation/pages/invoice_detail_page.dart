@@ -87,19 +87,21 @@ class _InvoiceDetailContent extends StatelessWidget {
       appBar: AppBar(
         title: Text('Hóa đơn ${invoice.billingPeriod}'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.share_rounded),
-            onPressed: () async {
-              await PrintInvoiceDialog.show(context, invoice);
-            },
-            tooltip: 'In / Chia sẻ hóa đơn',
-          ),
-          IconButton(
-            icon: const Icon(Icons.print_rounded),
-            onPressed: () => PrintInvoiceDialog.show(context, invoice),
-            tooltip: 'In hóa đơn',
-            color: AppColors.primary,
-          ),
+          if (isOwner) ...[
+            IconButton(
+              icon: const Icon(Icons.share_rounded),
+              onPressed: () async {
+                await PrintInvoiceDialog.show(context, invoice);
+              },
+              tooltip: 'In / Chia sẻ hóa đơn',
+            ),
+            IconButton(
+              icon: const Icon(Icons.print_rounded),
+              onPressed: () => PrintInvoiceDialog.show(context, invoice),
+              tooltip: 'In hóa đơn',
+              color: AppColors.primary,
+            ),
+          ],
           if (!invoice.isPaid && isOwner)
             PopupMenuButton<String>(
               onSelected: (value) {
@@ -178,7 +180,7 @@ class _InvoiceDetailContent extends StatelessWidget {
                   .fadeIn(delay: 400.ms, duration: 300.ms)
                   .slideY(begin: 0.2),
             ] else ...[
-              _PaidConfirmation(invoice: invoice)
+              _PaidConfirmation(invoice: invoice, isOwner: isOwner)
                   .animate()
                   .fadeIn(delay: 400.ms, duration: 300.ms),
             ],
@@ -700,7 +702,8 @@ class _ActionButtons extends StatelessWidget {
 // ── Paid Confirmation Banner ──────────────────────────────────────────────
 class _PaidConfirmation extends StatelessWidget {
   final Invoice invoice;
-  const _PaidConfirmation({required this.invoice});
+  final bool isOwner;
+  const _PaidConfirmation({required this.invoice, required this.isOwner});
 
   @override
   Widget build(BuildContext context) {
@@ -737,17 +740,19 @@ class _PaidConfirmation extends StatelessWidget {
               style: const TextStyle(color: AppColors.success, fontSize: 13),
             ),
           ],
-          const SizedBox(height: 16),
-          // Nút in biên lai thanh toán
-          OutlinedButton.icon(
-            onPressed: () => PrintInvoiceDialog.show(context, invoice),
-            icon: const Icon(Icons.print_rounded, size: 18),
-            label: const Text('In biên lai'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.success,
-              side: const BorderSide(color: AppColors.success),
+          if (isOwner) ...[
+            const SizedBox(height: 16),
+            // Nút in biên lai thanh toán
+            OutlinedButton.icon(
+              onPressed: () => PrintInvoiceDialog.show(context, invoice),
+              icon: const Icon(Icons.print_rounded, size: 18),
+              label: const Text('In biên lai'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.success,
+                side: const BorderSide(color: AppColors.success),
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );
