@@ -62,6 +62,11 @@ import '../../features/payment_settings/data/repositories/payment_settings_repos
 import '../../features/payment_settings/domain/repositories/payment_settings_repository.dart';
 import '../../features/payment_settings/presentation/bloc/payment_settings_bloc.dart';
 
+import '../../features/notifications/data/datasources/notification_remote_datasource.dart';
+import '../../features/notifications/data/repositories/notification_repository_impl.dart';
+import '../../features/notifications/domain/repositories/notification_repository.dart';
+import '../../features/notifications/presentation/bloc/notification_bloc.dart';
+
 final GetIt getIt = GetIt.instance;
 
 Future<void> configureDependencies() async {
@@ -226,5 +231,16 @@ Future<void> configureDependencies() async {
   );
   getIt.registerFactory<PaymentSettingsBloc>(
     () => PaymentSettingsBloc(getIt<PaymentSettingsRepository>()),
+  );
+
+  // ── NOTIFICATIONS Feature ───────────────────────────────────────────────
+  getIt.registerLazySingleton<NotificationRemoteDataSource>(
+    () => NotificationRemoteDataSourceImpl(getIt<SupabaseClient>()),
+  );
+  getIt.registerLazySingleton<NotificationRepository>(
+    () => NotificationRepositoryImpl(getIt<NotificationRemoteDataSource>()),
+  );
+  getIt.registerFactory<NotificationBloc>(
+    () => NotificationBloc(getIt<NotificationRepository>()),
   );
 }

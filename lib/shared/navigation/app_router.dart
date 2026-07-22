@@ -28,6 +28,7 @@ import '../../features/auth/presentation/pages/profile_page.dart';
 import '../../features/auth/presentation/pages/edit_profile_page.dart';
 import '../../features/payment_settings/presentation/pages/payment_settings_page.dart';
 import '../../features/payment_settings/presentation/bloc/payment_settings_bloc.dart';
+import '../../features/notifications/presentation/pages/notifications_page.dart';
 
 // ── Route Name Constants ──────────────────────────────────────────────────
 class AppRoutes {
@@ -53,6 +54,7 @@ class AppRoutes {
   static const String profile = '/profile';
   static const String editProfile = '/profile/edit';
   static const String paymentSettings = '/profile/payment-settings';
+  static const String notifications = '/notifications';
 }
 
 // ── GoRouter Refresh Stream ───────────────────────────────────────────────
@@ -309,6 +311,9 @@ class AppRouter {
               ],
             ),
           ],
+        GoRoute(
+          path: AppRoutes.notifications,
+          builder: (context, state) => const NotificationsPage(),
         ),
       ],
       errorBuilder: (context, state) => Scaffold(
@@ -366,6 +371,11 @@ class MainShell extends StatelessWidget {
       icon: Icons.person_rounded,
       label: 'Cá nhân',
       route: AppRoutes.profile,
+    ),
+    _NavItem(
+      icon: Icons.notifications_rounded,
+      label: 'Thông báo',
+      route: AppRoutes.notifications,
     ),
   ];
 

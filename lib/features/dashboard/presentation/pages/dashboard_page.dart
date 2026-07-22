@@ -12,16 +12,23 @@ import '../bloc/dashboard_bloc.dart';
 import '../../../../features/auth/domain/entities/app_user.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState;
 import '../widgets/notification_bell.dart';
+import '../../../notifications/presentation/bloc/notification_bloc.dart';
+import '../../../notifications/presentation/pages/create_issue_page.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<DashboardBloc>(
-      create: (_) {
-        return getIt<DashboardBloc>();
-      },
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<DashboardBloc>(
+          create: (_) => getIt<DashboardBloc>(),
+        ),
+        BlocProvider<NotificationBloc>(
+          create: (_) => getIt<NotificationBloc>(),
+        ),
+      ],
       child: const _DashboardView(),
     );
   }
@@ -442,6 +449,8 @@ class _TenantDashboardContentState extends State<_TenantDashboardContent> {
     const Color(0xFF34A853),
     const Color(0xFFFBBC05),
   ];
+  
+  String? _currentRoomId;
 
   @override
   void initState() {
@@ -470,8 +479,17 @@ class _TenantDashboardContentState extends State<_TenantDashboardContent> {
 
       if (response != null && response['room_id'] != null) {
         final roomNumber = response['room_number'];
+        _currentRoomId = response['room_id'];
         _roomName = 'Phòng $roomNumber';
         _propertyName = response['property_name'] ?? 'Nhà trọ không xác định';
+        
+        // Load thông báo cho khách thuê
+        context.read<NotificationBloc>().add(
+          LoadNotificationsEvent(
+            receiverId: widget.user!.id,
+            roomId: _currentRoomId,
+          ),
+        );
       } else {
         _propertyName = 'Chưa rõ';
         _roomName = 'Không tìm thấy phòng';
@@ -652,39 +670,99 @@ class _TenantDashboardContentState extends State<_TenantDashboardContent> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              TextButton(
-                onPressed: () {},
-                child: const Text('Xem tất cả'),
-              ),
+              if (_currentRoomId != null)
+                TextButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => CreateIssuePage(
+                          roomId: _currentRoomId!,
+                          roomNumber: _roomName.replaceAll('Phòng ', ''),
+                        ),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.add_comment),
+                  label: const Text('Báo sự cố'),
+                ),
             ],
           ),
           const SizedBox(height: 8),
 
-          // Mock Notifications
-          _NotificationCard(
-            icon: Icons.receipt_long_rounded,
-            iconColor: Colors.orange,
-            title: 'Đã có hóa đơn tháng mới',
-            time: '2 giờ trước',
-            onTap: () {
-              context.push(AppRoutes.invoices);
+          BlocBuilder<NotificationBloc, NotificationState>(
+            builder: (context, state) {
+              if (state is NotificationLoading) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (state is NotificationsLoaded) {
+                if (state.notifications.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Text('Chưa có thông báo nào.'),
+                  );
+                }
+                return Column(
+                  children: state.notifications.take(5).map((notif) {
+                    IconData icon = Icons.info_outline;
+                    Color iconColor = Colors.blue;
+                    if (notif.type.code == 'ISSUE') {
+                      icon = Icons.warning_amber_rounded;
+                      iconColor = Colors.orange;
+                    } else if (notif.type.code == 'ANNOUNCEMENT') {
+                      icon = Icons.campaign_rounded;
+                      iconColor = Colors.green;
+                    }
+
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: _NotificationCard(
+                        icon: icon,
+                        iconColor: iconColor,
+                        title: notif.title,
+                        time: '${notif.sentAt.day}/${notif.sentAt.month}/${notif.sentAt.year}',
+                        onTap: () {
+                          // Hiện chi tiết thông báo
+                          showDialog(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              title: Text(notif.title),
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(notif.content),
+                                  if (notif.imageUrl != null) ...[
+                                    const SizedBox(height: 12),
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.network(notif.imageUrl!, height: 150, width: double.infinity, fit: BoxFit.cover),
+                                    ),
+                                  ]
+                                ],
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    context.read<NotificationBloc>().add(MarkNotificationAsReadEvent(notif.id));
+                                    Navigator.pop(ctx);
+                                  },
+                                  child: const Text('Đóng'),
+                                )
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  }).toList(),
+                );
+              }
+              if (state is NotificationError) {
+                return Text('Lỗi tải thông báo: ${state.message}', style: const TextStyle(color: Colors.red));
+              }
+              return const SizedBox();
             },
-          ),
-          const SizedBox(height: 12),
-          _NotificationCard(
-            icon: Icons.cleaning_services_rounded,
-            iconColor: Colors.blue,
-            title: 'Lịch dọn dẹp vệ sinh chung',
-            time: 'Hôm qua',
-            onTap: () {},
-          ),
-          const SizedBox(height: 12),
-          _NotificationCard(
-            icon: Icons.info_outline_rounded,
-            iconColor: Colors.green,
-            title: 'Quy định mới về giờ giấc',
-            time: 'Tuần trước',
-            onTap: () {},
           ),
         ],
       ),

@@ -17,11 +17,13 @@ class AppConstants {
   static const String tablePayments = 'chitiethoadon';
   static const String tableAuditLogs = 'nhatky_hethong';
   static const String tableMeterReadings = 'chiso';
+  static const String tableNotifications = 'thongbao';
 
   // ── Storage Buckets ───────────────────────────────────────────────────
   static const String bucketContracts = 'contracts';
   static const String bucketCccdImages = 'cccd-images';
   static const String bucketPropertyImages = 'property-images';
+  static const String bucketAttachments = 'attachments';
 
   // ── Hive Box Names ────────────────────────────────────────────────────
   static const String hiveBoxSettings = 'settings';
