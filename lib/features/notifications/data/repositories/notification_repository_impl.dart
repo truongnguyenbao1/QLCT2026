@@ -1,5 +1,5 @@
 // lib/features/notifications/data/repositories/notification_repository_impl.dart
-import 'dart:io';
+import 'dart:typed_data';
 
 import '../../domain/repositories/notification_repository.dart';
 import '../datasources/notification_remote_datasource.dart';
@@ -16,8 +16,8 @@ class NotificationRepositoryImpl implements NotificationRepository {
   }
 
   @override
-  Future<NotificationModel> sendNotification(NotificationModel notification, {File? imageFile}) {
-    return remoteDataSource.sendNotification(notification, imageFile: imageFile);
+  Future<NotificationModel> sendNotification(NotificationModel notification, {Uint8List? imageBytes, String? imageExt}) {
+    return remoteDataSource.sendNotification(notification, imageBytes: imageBytes, imageExt: imageExt);
   }
 
   @override

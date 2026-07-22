@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
@@ -25,7 +25,8 @@ class _CreateNotificationDialogState extends State<CreateNotificationDialog> {
   final _contentController = TextEditingController();
   
   String? _selectedRoomId;
-  File? _imageFile;
+  XFile? _imageFile;
+  Uint8List? _imageBytes;
   final ImagePicker _picker = ImagePicker();
   
   late AuthAuthenticated _authState;
@@ -53,8 +54,10 @@ class _CreateNotificationDialogState extends State<CreateNotificationDialog> {
   Future<void> _pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
     if (pickedFile != null) {
+      final bytes = await pickedFile.readAsBytes();
       setState(() {
-        _imageFile = File(pickedFile.path);
+        _imageFile = pickedFile;
+        _imageBytes = bytes;
       });
     }
   }
@@ -64,8 +67,6 @@ class _CreateNotificationDialogState extends State<CreateNotificationDialog> {
 
     final isOwner = _authState.user.isOwner;
     final roomId = isOwner ? _selectedRoomId : _authState.user.roomId;
-    // For owner, receiver is null (all tenants in the room/property)
-    // For tenant, receiver is null (goes to owner of the room, or we just leave null and owner sees all)
     
     final type = isOwner ? AppNotificationType.announcement : AppNotificationType.issue;
     
@@ -80,7 +81,8 @@ class _CreateNotificationDialogState extends State<CreateNotificationDialog> {
       sentAt: DateTime.now(),
     );
 
-    context.read<NotificationBloc>().add(SendNotificationEvent(notification, imageFile: _imageFile));
+    String? ext = _imageFile?.name.split('.').last;
+    context.read<NotificationBloc>().add(SendNotificationEvent(notification, imageBytes: _imageBytes, imageExt: ext));
     Navigator.of(context).pop();
   }
 
@@ -158,14 +160,14 @@ class _CreateNotificationDialogState extends State<CreateNotificationDialog> {
                 ),
                 const SizedBox(height: 16),
                 
-                if (_imageFile != null)
+                if (_imageBytes != null)
                   Stack(
                     alignment: Alignment.topRight,
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
-                        child: Image.file(
-                          _imageFile!,
+                        child: Image.memory(
+                          _imageBytes!,
                           height: 150,
                           width: double.infinity,
                           fit: BoxFit.cover,
@@ -174,7 +176,10 @@ class _CreateNotificationDialogState extends State<CreateNotificationDialog> {
                       IconButton(
                         icon: const Icon(Icons.close, color: Colors.white),
                         style: IconButton.styleFrom(backgroundColor: Colors.black54),
-                        onPressed: () => setState(() => _imageFile = null),
+                        onPressed: () => setState(() {
+                          _imageFile = null;
+                          _imageBytes = null;
+                        }),
                       ),
                     ],
                   )

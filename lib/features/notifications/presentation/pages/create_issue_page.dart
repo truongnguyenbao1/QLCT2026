@@ -1,5 +1,5 @@
 // lib/features/notifications/presentation/pages/create_issue_page.dart
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -31,15 +31,18 @@ class _CreateIssuePageState extends State<CreateIssuePage> {
   final _formKey = GlobalKey<FormState>();
   final _titleCtrl = TextEditingController();
   final _contentCtrl = TextEditingController();
-  File? _selectedImage;
+  XFile? _selectedImage;
+  Uint8List? _imageBytes;
   bool _isLoading = false;
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final picked = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
     if (picked != null) {
+      final bytes = await picked.readAsBytes();
       setState(() {
-        _selectedImage = File(picked.path);
+        _selectedImage = picked;
+        _imageBytes = bytes;
       });
     }
   }
@@ -62,7 +65,8 @@ class _CreateIssuePageState extends State<CreateIssuePage> {
       sentAt: DateTime.now(),
     );
 
-    context.read<NotificationBloc>().add(SendNotificationEvent(notification, imageFile: _selectedImage));
+    String? ext = _selectedImage?.name.split('.').last;
+    context.read<NotificationBloc>().add(SendNotificationEvent(notification, imageBytes: _imageBytes, imageExt: ext));
   }
 
   @override
@@ -154,10 +158,10 @@ class _CreateIssuePageState extends State<CreateIssuePage> {
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: theme.colorScheme.outlineVariant),
                       ),
-                      child: _selectedImage != null
+                      child: _imageBytes != null
                           ? ClipRRect(
                               borderRadius: BorderRadius.circular(12),
-                              child: Image.file(_selectedImage!, fit: BoxFit.cover),
+                              child: Image.memory(_imageBytes!, fit: BoxFit.cover),
                             )
                           : Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -172,11 +176,14 @@ class _CreateIssuePageState extends State<CreateIssuePage> {
                             ),
                     ),
                   ),
-                  if (_selectedImage != null)
+                  if (_imageBytes != null)
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton.icon(
-                        onPressed: () => setState(() => _selectedImage = null),
+                        onPressed: () => setState(() {
+                          _selectedImage = null;
+                          _imageBytes = null;
+                        }),
                         icon: const Icon(Icons.delete_outline, color: Colors.red),
                         label: const Text('Xóa ảnh', style: TextStyle(color: Colors.red)),
                       ),

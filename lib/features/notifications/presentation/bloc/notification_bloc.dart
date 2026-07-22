@@ -1,5 +1,5 @@
 // lib/features/notifications/presentation/bloc/notification_bloc.dart
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
@@ -29,12 +29,13 @@ class LoadNotificationsEvent extends NotificationEvent {
 
 class SendNotificationEvent extends NotificationEvent {
   final NotificationModel notification;
-  final File? imageFile;
+  final Uint8List? imageBytes;
+  final String? imageExt;
 
-  const SendNotificationEvent(this.notification, {this.imageFile});
+  const SendNotificationEvent(this.notification, {this.imageBytes, this.imageExt});
 
   @override
-  List<Object?> get props => [notification, imageFile];
+  List<Object?> get props => [notification, imageBytes, imageExt];
 }
 
 class MarkNotificationAsReadEvent extends NotificationEvent {
@@ -119,7 +120,7 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
   Future<void> _onSendNotification(SendNotificationEvent event, Emitter<NotificationState> emit) async {
     emit(NotificationLoading());
     try {
-      await repository.sendNotification(event.notification, imageFile: event.imageFile);
+      await repository.sendNotification(event.notification, imageBytes: event.imageBytes, imageExt: event.imageExt);
       emit(const NotificationActionSuccess('Gửi thành công!'));
     } catch (e) {
       if (e is Failure) {

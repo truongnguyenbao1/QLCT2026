@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -83,10 +83,11 @@ class MarkInvoicePaidEvent extends InvoiceEvent {
 
 class TenantConfirmPaymentEvent extends InvoiceEvent {
   final String invoiceId;
-  final File? imageFile;
-  const TenantConfirmPaymentEvent(this.invoiceId, {this.imageFile});
+  final Uint8List? imageBytes;
+  final String? imageExt;
+  const TenantConfirmPaymentEvent(this.invoiceId, {this.imageBytes, this.imageExt});
   @override
-  List<Object?> get props => [invoiceId, imageFile];
+  List<Object?> get props => [invoiceId, imageBytes, imageExt];
 }
 
 class FetchPreviousReadingsEvent extends InvoiceEvent {
@@ -321,10 +322,10 @@ class InvoiceBloc extends Bloc<InvoiceEvent, InvoiceState> {
     Emitter<InvoiceState> emit,
   ) async {
     emit(const InvoicesLoading());
-    // Directly call the repository to confirm payment
-    final result = await _getInvoicesUseCase.repository.tenantConfirmPayment(
-      event.invoiceId, 
-      imageFile: event.imageFile,
+    final result = await _updateInvoiceUseCase.repository.tenantConfirmPayment(
+      event.invoiceId,
+      imageBytes: event.imageBytes,
+      imageExt: event.imageExt,
     );
 
     result.fold(

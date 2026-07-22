@@ -1,5 +1,5 @@
 // lib/features/invoice/data/datasources/invoice_remote_datasource.dart
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
@@ -26,7 +26,7 @@ abstract class InvoiceRemoteDataSource {
   });
   Future<InvoiceModel> updateInvoice(InvoiceModel invoice);
   Future<void> deleteInvoice(String invoiceId);
-  Future<InvoiceModel> tenantConfirmPayment(String invoiceId, {File? imageFile});
+  Future<InvoiceModel> tenantConfirmPayment(String invoiceId, {Uint8List? imageBytes, String? imageExt});
   Future<InvoiceModel> ownerConfirmPayment(String invoiceId);
   Future<List<InvoiceModel>> getInvoicesByQuarter({
     required String propertyId,
@@ -317,17 +317,16 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
   }
 
   @override
-  Future<InvoiceModel> tenantConfirmPayment(String invoiceId, {File? imageFile}) async {
+  Future<InvoiceModel> tenantConfirmPayment(String invoiceId, {Uint8List? imageBytes, String? imageExt}) async {
     try {
       String? imageUrl;
       
-      if (imageFile != null) {
-        final ext = imageFile.path.split('.').last;
-        final fileName = '${const Uuid().v4()}.$ext';
+      if (imageBytes != null && imageExt != null) {
+        final fileName = '${const Uuid().v4()}.$imageExt';
         
-        await _client.storage.from(AppConstants.bucketAttachments).upload(
+        await _client.storage.from(AppConstants.bucketAttachments).uploadBinary(
           fileName,
-          imageFile,
+          imageBytes,
           fileOptions: const FileOptions(cacheControl: '3600', upsert: false),
         );
         

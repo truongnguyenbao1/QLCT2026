@@ -5,7 +5,7 @@
 //  - Form ghi nhận thanh toán (Owner only)
 //  - Lịch sử giao dịch từ bảng chitiethoadon
 // ─────────────────────────────────────────────────────────────────────────────
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -1138,21 +1138,25 @@ class _TenantActionSection extends StatefulWidget {
 
 class _TenantActionSectionState extends State<_TenantActionSection> {
   bool _isConfirming = false;
-  File? _imageFile;
+  XFile? _imageFile;
+  Uint8List? _imageBytes;
   final ImagePicker _picker = ImagePicker();
 
   Future<void> _pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
     if (pickedFile != null) {
+      final bytes = await pickedFile.readAsBytes();
       setState(() {
-        _imageFile = File(pickedFile.path);
+        _imageFile = pickedFile;
+        _imageBytes = bytes;
       });
     }
   }
 
   void _confirmPayment() {
     setState(() => _isConfirming = true);
-    context.read<InvoiceBloc>().add(TenantConfirmPaymentEvent(widget.invoice.id, imageFile: _imageFile));
+    String? ext = _imageFile?.name.split('.').last;
+    context.read<InvoiceBloc>().add(TenantConfirmPaymentEvent(widget.invoice.id, imageBytes: _imageBytes, imageExt: ext));
   }
 
   @override
@@ -1203,14 +1207,14 @@ class _TenantActionSectionState extends State<_TenantActionSection> {
             ],
           ),
           const SizedBox(height: 16),
-          if (_imageFile != null)
+          if (_imageBytes != null)
             Stack(
               alignment: Alignment.topRight,
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: Image.file(
-                    _imageFile!,
+                  child: Image.memory(
+                    _imageBytes!,
                     height: 150,
                     width: double.infinity,
                     fit: BoxFit.cover,
@@ -1219,7 +1223,10 @@ class _TenantActionSectionState extends State<_TenantActionSection> {
                 IconButton(
                   icon: const Icon(Icons.close, color: Colors.white),
                   style: IconButton.styleFrom(backgroundColor: Colors.black54),
-                  onPressed: () => setState(() => _imageFile = null),
+                  onPressed: () => setState(() {
+                    _imageFile = null;
+                    _imageBytes = null;
+                  }),
                 ),
               ],
             )

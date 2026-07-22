@@ -1,5 +1,5 @@
 // lib/features/notifications/data/datasources/notification_remote_datasource.dart
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
@@ -10,7 +10,7 @@ import '../../domain/entities/notification.dart';
 
 abstract class NotificationRemoteDataSource {
   Future<List<NotificationModel>> getNotifications({String? receiverId, String? roomId});
-  Future<NotificationModel> sendNotification(NotificationModel notification, {File? imageFile});
+  Future<NotificationModel> sendNotification(NotificationModel notification, {Uint8List? imageBytes, String? imageExt});
   Future<void> markAsRead(String notificationId);
   Future<void> resolveIssue(String notificationId);
 }
@@ -53,17 +53,16 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
   }
 
   @override
-  Future<NotificationModel> sendNotification(NotificationModel notification, {File? imageFile}) async {
+  Future<NotificationModel> sendNotification(NotificationModel notification, {Uint8List? imageBytes, String? imageExt}) async {
     try {
       String? imageUrl;
       
-      if (imageFile != null) {
-        final ext = imageFile.path.split('.').last;
-        final fileName = '${const Uuid().v4()}.$ext';
+      if (imageBytes != null && imageExt != null) {
+        final fileName = '${const Uuid().v4()}.$imageExt';
         
-        await _client.storage.from(AppConstants.bucketAttachments).upload(
+        await _client.storage.from(AppConstants.bucketAttachments).uploadBinary(
           fileName,
-          imageFile,
+          imageBytes,
           fileOptions: const FileOptions(cacheControl: '3600', upsert: false),
         );
         
