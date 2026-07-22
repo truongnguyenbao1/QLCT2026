@@ -80,7 +80,7 @@ class ThermalPrinterService {
       bytes += generator.text('Ma QR Tra Cuu / Thanh Toan:',
           styles: const PosStyles(align: PosAlign.center, bold: true));
       bytes += generator.emptyLines(1);
-      bytes += generator.qrcode(paymentQrData, size: QRSize.Size6);
+      bytes += generator.qrcode(paymentQrData, size: QRSize.size6);
       bytes += generator.emptyLines(1);
     }
 
