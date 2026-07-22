@@ -7,6 +7,8 @@ import '../../../../core/di/injection.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../domain/entities/notification.dart';
 import '../bloc/notification_bloc.dart';
+import '../widgets/create_notification_dialog.dart';
+import '../../../room_management/presentation/bloc/room_bloc.dart';
 
 class NotificationsPage extends StatelessWidget {
   const NotificationsPage({super.key});
@@ -74,8 +76,16 @@ class _NotificationsViewState extends State<_NotificationsView> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // TODO: Mở popup tạo thông báo chung
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tính năng tạo thông báo chung đang được cập nhật')));
+          showDialog(
+            context: context,
+            builder: (_) => MultiBlocProvider(
+              providers: [
+                BlocProvider.value(value: context.read<NotificationBloc>()),
+                BlocProvider(create: (context) => getIt<RoomBloc>()),
+              ],
+              child: const CreateNotificationDialog(),
+            ),
+          );
         },
         child: const Icon(Icons.add_alert),
       ),
