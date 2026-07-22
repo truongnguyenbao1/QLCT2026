@@ -22,15 +22,19 @@ class NotificationModel extends AppNotification {
       id: json['id'] as String,
       roomId: json['room_id'] as String?,
       roomNumber: json['room_number'] as String?, // Mapped from query
-      senderId: json['sender_id'] as String,
+      senderId: json['sender_id'] as String? ?? '',
       senderName: json['sender_name'] as String?, // Mapped from query
       receiverId: json['receiver_id'] as String?,
-      title: json['title'] as String,
-      content: json['content'] as String,
+      title: json['title'] as String? ?? 'Không có tiêu đề',
+      content: json['content'] as String? ?? '',
       type: AppNotificationType.fromCode(json['type'] as String? ?? 'ANNOUNCEMENT'),
       status: AppNotificationStatus.fromCode(json['status'] as String? ?? 'UNREAD'),
       imageUrl: json['image_url'] as String?,
-      sentAt: DateTime.parse((json['sent_at'] ?? json['created_at']) as String),
+      sentAt: json['sent_at'] != null 
+          ? DateTime.parse(json['sent_at'] as String) 
+          : (json['created_at'] != null 
+              ? DateTime.parse(json['created_at'] as String) 
+              : DateTime.now()),
     );
   }
 
