@@ -633,6 +633,31 @@ class _ActionButtons extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
+              if (invoice.paymentImageUrl != null && invoice.paymentImageUrl!.isNotEmpty) ...[
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.image_search_rounded),
+                  label: const Text('Xem biên lai đính kèm'),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => Dialog(
+                        child: Stack(
+                          alignment: Alignment.topRight,
+                          children: [
+                            Image.network(invoice.paymentImageUrl!),
+                            IconButton(
+                              icon: const Icon(Icons.close, color: Colors.white),
+                              style: IconButton.styleFrom(backgroundColor: Colors.black54),
+                              onPressed: () => Navigator.pop(ctx),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 12),
+              ],
               FilledButton.icon(
                 icon: isLoading ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.verified_rounded),
                 label: const Text('✅ Xác nhận đã nhận tiền'),
@@ -738,6 +763,35 @@ class _PaidConfirmation extends StatelessWidget {
             Text(
               'Phương thức: ${invoice.paymentMethod}',
               style: const TextStyle(color: AppColors.success, fontSize: 13),
+            ),
+          ],
+          if (invoice.paymentImageUrl != null && invoice.paymentImageUrl!.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              icon: const Icon(Icons.image_search_rounded),
+              label: const Text('Xem biên lai đính kèm'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.success,
+                side: const BorderSide(color: AppColors.success),
+              ),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (ctx) => Dialog(
+                    child: Stack(
+                      alignment: Alignment.topRight,
+                      children: [
+                        Image.network(invoice.paymentImageUrl!),
+                        IconButton(
+                          icon: const Icon(Icons.close, color: Colors.white),
+                          style: IconButton.styleFrom(backgroundColor: Colors.black54),
+                          onPressed: () => Navigator.pop(ctx),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
           ],
           if (isOwner) ...[

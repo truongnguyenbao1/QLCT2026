@@ -1,5 +1,7 @@
 // lib/features/invoice/data/datasources/invoice_remote_datasource.dart
+import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/errors/failures.dart';
@@ -24,7 +26,7 @@ abstract class InvoiceRemoteDataSource {
   });
   Future<InvoiceModel> updateInvoice(InvoiceModel invoice);
   Future<void> deleteInvoice(String invoiceId);
-  Future<InvoiceModel> tenantConfirmPayment(String invoiceId);
+  Future<InvoiceModel> tenantConfirmPayment(String invoiceId, {File? imageFile});
   Future<InvoiceModel> ownerConfirmPayment(String invoiceId);
   Future<List<InvoiceModel>> getInvoicesByQuarter({
     required String propertyId,
@@ -315,8 +317,28 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
   }
 
   @override
-  Future<InvoiceModel> tenantConfirmPayment(String invoiceId) async {
+  Future<InvoiceModel> tenantConfirmPayment(String invoiceId, {File? imageFile}) async {
     try {
+      String? imageUrl;
+      
+      if (imageFile != null) {
+        final ext = imageFile.path.split('.').last;
+        final fileName = '${const Uuid().v4()}.$ext';
+        
+        await _client.storage.from(AppConstants.bucketAttachments).upload(
+          fileName,
+          imageFile,
+          fileOptions: const FileOptions(cacheControl: '3600', upsert: false),
+        );
+        
+        imageUrl = _client.storage.from(AppConstants.bucketAttachments).getPublicUrl(fileName);
+        
+        // Cập nhật payment_image_url vào hóa đơn
+        await _client.from(AppConstants.tableInvoices).update({
+          'payment_image_url': imageUrl,
+        }).eq('id', invoiceId);
+      }
+
       final response = await _client.rpc('tenant_confirm_payment', params: {
         'p_invoice_id': invoiceId,
       });

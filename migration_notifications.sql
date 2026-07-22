@@ -39,6 +39,7 @@
                 title, 
                 content, 
                 status, 
+                image_url,
                 sent_at
             ) VALUES (
                 NEW.room_id,
@@ -47,6 +48,7 @@
                 'Xác nhận thanh toán',
                 v_tenant_name || ' phòng ' || COALESCE(v_room_name, '') || ' vừa xác nhận đã chuyển tiền hóa đơn tháng ' || NEW.month || '/' || NEW.year || '. Vui lòng kiểm tra tài khoản. [invoice_id:' || NEW.id || ']',
                 'UNREAD',
+                NEW.payment_image_url,
                 NOW()
             );
             

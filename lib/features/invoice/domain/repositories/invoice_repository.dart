@@ -1,4 +1,5 @@
 // lib/features/invoice/domain/repositories/invoice_repository.dart
+import 'dart:io';
 import 'package:dartz/dartz.dart';
 import '../../../../core/errors/failures.dart';
 import '../entities/invoice.dart';
@@ -21,7 +22,7 @@ abstract class InvoiceRepository {
   });
   Future<Either<Failure, Invoice>> updateInvoice(Invoice invoice);
   Future<Either<Failure, void>> deleteInvoice(String invoiceId);
-  Future<Either<Failure, Invoice>> tenantConfirmPayment(String invoiceId);
+  Future<Either<Failure, Invoice>> tenantConfirmPayment(String invoiceId, {File? imageFile});
   Future<Either<Failure, Invoice>> ownerConfirmPayment(String invoiceId);
   Future<Either<Failure, List<Invoice>>> getInvoicesByQuarter({
     required String propertyId,

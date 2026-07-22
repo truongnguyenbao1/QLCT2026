@@ -1,4 +1,6 @@
 // lib/features/invoice/data/repositories/invoice_repository_impl.dart
+import 'dart:io';
+
 import 'package:dartz/dartz.dart';
 import '../../../../core/errors/failures.dart';
 import '../../domain/entities/invoice.dart';
@@ -100,9 +102,9 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
   }
 
   @override
-  Future<Either<Failure, Invoice>> tenantConfirmPayment(String invoiceId) async {
+  Future<Either<Failure, Invoice>> tenantConfirmPayment(String invoiceId, {File? imageFile}) async {
     try {
-      final result = await _remoteDataSource.tenantConfirmPayment(invoiceId);
+      final result = await _remoteDataSource.tenantConfirmPayment(invoiceId, imageFile: imageFile);
       return Right(result);
     } catch (e) {
       return Left(ServerFailure(message: e.toString()));

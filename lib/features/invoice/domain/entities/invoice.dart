@@ -83,6 +83,7 @@ class Invoice extends Equatable {
   final DateTime? paidAt;       // Ngày thanh toán thực tế
   final String? paymentMethod;  // Phương thức thanh toán
   final String? transactionId;  // Mã giao dịch
+  final String? paymentImageUrl; // Ảnh minh chứng thanh toán
 
   // Audit
   final DateTime createdAt;
@@ -112,6 +113,7 @@ class Invoice extends Equatable {
     this.paidAt,
     this.paymentMethod,
     this.transactionId,
+    this.paymentImageUrl,
     required this.createdAt,
     required this.createdBy,
     this.isLocked = false,
@@ -175,6 +177,7 @@ class Invoice extends Equatable {
     DateTime? paidAt,
     String? paymentMethod,
     String? transactionId,
+    String? paymentImageUrl,
     DateTime? createdAt,
     String? createdBy,
     bool? isLocked,
@@ -202,6 +205,7 @@ class Invoice extends Equatable {
       paidAt: paidAt ?? this.paidAt,
       paymentMethod: paymentMethod ?? this.paymentMethod,
       transactionId: transactionId ?? this.transactionId,
+      paymentImageUrl: paymentImageUrl ?? this.paymentImageUrl,
       createdAt: createdAt ?? this.createdAt,
       createdBy: createdBy ?? this.createdBy,
       isLocked: isLocked ?? this.isLocked,

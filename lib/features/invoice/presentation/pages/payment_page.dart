@@ -5,7 +5,10 @@
 //  - Form ghi nhận thanh toán (Owner only)
 //  - Lịch sử giao dịch từ bảng chitiethoadon
 // ─────────────────────────────────────────────────────────────────────────────
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -1135,10 +1138,21 @@ class _TenantActionSection extends StatefulWidget {
 
 class _TenantActionSectionState extends State<_TenantActionSection> {
   bool _isConfirming = false;
+  File? _imageFile;
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> _pickImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = File(pickedFile.path);
+      });
+    }
+  }
 
   void _confirmPayment() {
     setState(() => _isConfirming = true);
-    context.read<InvoiceBloc>().add(TenantConfirmPaymentEvent(widget.invoice.id));
+    context.read<InvoiceBloc>().add(TenantConfirmPaymentEvent(widget.invoice.id, imageFile: _imageFile));
   }
 
   @override
@@ -1188,6 +1202,33 @@ class _TenantActionSectionState extends State<_TenantActionSection> {
               ),
             ],
           ),
+          const SizedBox(height: 16),
+          if (_imageFile != null)
+            Stack(
+              alignment: Alignment.topRight,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.file(
+                    _imageFile!,
+                    height: 150,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white),
+                  style: IconButton.styleFrom(backgroundColor: Colors.black54),
+                  onPressed: () => setState(() => _imageFile = null),
+                ),
+              ],
+            )
+          else
+            OutlinedButton.icon(
+              onPressed: _isConfirming ? null : _pickImage,
+              icon: const Icon(Icons.image_rounded),
+              label: const Text('Đính kèm biên lai chuyển khoản (tùy chọn)'),
+            ),
           const SizedBox(height: 16),
           SizedBox(
             height: 48,
