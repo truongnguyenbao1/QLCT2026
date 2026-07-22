@@ -10,6 +10,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState;
 
+import 'package:seo/seo.dart';
+
 import 'core/constants/app_constants.dart';
 import 'core/di/injection.dart';
 import 'core/observers/app_bloc_observer.dart';
@@ -69,7 +71,14 @@ Future<void> main() async {
   // BLoC Observer để debug
   Bloc.observer = AppBlocObserver();
 
-  runApp(const QuanLyNhaTroApp());
+  // Wrap root with SeoController for web SEO
+  runApp(
+    SeoController(
+      enabled: true,
+      tree: WidgetTree(context: SeoController.fallbackContext),
+      child: const QuanLyNhaTroApp(),
+    ),
+  );
 }
 
 class QuanLyNhaTroApp extends StatefulWidget {

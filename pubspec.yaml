@@ -82,6 +82,7 @@ dependencies:
   path_provider: ^2.1.4
   open_file: ^3.5.8
   share_plus: ^10.1.4
+  seo: ^0.0.10
 
 dev_dependencies:
   flutter_test:

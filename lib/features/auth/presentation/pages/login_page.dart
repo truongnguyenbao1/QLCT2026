@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as sb;
+import 'package:seo/seo.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../shared/navigation/app_router.dart';
@@ -133,8 +134,13 @@ class _LoginPageState extends State<LoginPage> {
           );
         }
       },
-      child: Scaffold(
-        body: Container(
+      child: Seo.head(
+        tags: const [
+          MetaTag(name: 'title', content: 'Đăng nhập | Quản lý Nhà trọ'),
+          MetaTag(name: 'description', content: 'Đăng nhập vào phần mềm quản lý nhà trọ.'),
+        ],
+        child: Scaffold(
+          body: Container(
           // Nền gradient sáng xanh nhạt → trắng
           decoration: const BoxDecoration(
             gradient: LinearGradient(
@@ -188,19 +194,27 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ),
                           const SizedBox(height: 18),
-                          Text(
-                            'Quản lý Nhà trọ',
-                            style: theme.textTheme.headlineMedium?.copyWith(
-                              color: const Color(0xFF1A1A2E),
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: -0.5,
+                          Seo.text(
+                            text: 'Quản lý Nhà trọ',
+                            style: TextTagStyle.h1,
+                            child: Text(
+                              'Quản lý Nhà trọ',
+                              style: theme.textTheme.headlineMedium?.copyWith(
+                                color: const Color(0xFF1A1A2E),
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.5,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 6),
-                          Text(
-                            'Minh bạch • Tiện lợi • Đúng luật',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: const Color(0xFF6B7280),
+                          Seo.text(
+                            text: 'Đăng nhập hệ thống',
+                            style: TextTagStyle.p,
+                            child: Text(
+                              'Minh bạch • Tiện lợi • Đúng luật',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: const Color(0xFF6B7280),
+                              ),
                             ),
                           ),
                         ],
@@ -450,9 +464,10 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
             ),
-            ),
           ),
         ),
+      ),
+      ),
       ),
     );
   }

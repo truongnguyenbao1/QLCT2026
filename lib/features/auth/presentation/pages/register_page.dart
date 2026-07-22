@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:seo/seo.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../shared/navigation/app_router.dart';
@@ -89,9 +90,14 @@ class _RegisterPageState extends State<RegisterPage> {
           );
         }
       },
-      child: Scaffold(
-        // Nền gradient sáng từ xanh nhạt → trắng
-        body: Container(
+      child: Seo.head(
+        tags: const [
+          MetaTag(name: 'title', content: 'Tạo tài khoản | Quản lý Nhà trọ'),
+          MetaTag(name: 'description', content: 'Đăng ký tài khoản Quản lý nhà trọ.'),
+        ],
+        child: Scaffold(
+          // Nền gradient sáng từ xanh nhạt → trắng
+          body: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
@@ -144,19 +150,27 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                           ),
                           const SizedBox(height: 18),
-                          Text(
-                            'Tạo tài khoản',
-                            style: theme.textTheme.headlineMedium?.copyWith(
-                              fontWeight: FontWeight.w800,
-                              color: const Color(0xFF1A1A2E),
-                              letterSpacing: -0.5,
+                          Seo.text(
+                            text: 'Tạo tài khoản',
+                            style: TextTagStyle.h1,
+                            child: Text(
+                              'Tạo tài khoản',
+                              style: theme.textTheme.headlineMedium?.copyWith(
+                                fontWeight: FontWeight.w800,
+                                color: const Color(0xFF1A1A2E),
+                                letterSpacing: -0.5,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 6),
-                          Text(
-                            'Tham gia hệ thống quản lý nhà trọ',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: const Color(0xFF6B7280),
+                          Seo.text(
+                            text: 'Tham gia hệ thống quản lý nhà trọ',
+                            style: TextTagStyle.p,
+                            child: Text(
+                              'Tham gia hệ thống quản lý nhà trọ',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: const Color(0xFF6B7280),
+                              ),
                             ),
                           ),
                         ],
@@ -444,13 +458,14 @@ class _RegisterPageState extends State<RegisterPage> {
                         ],
                       ).animate().fadeIn(delay: 300.ms, duration: 400.ms),
                     ],
-                    ],
                   ),
                 ),
               ),
             ),
           ),
         ),
+      ),
+      ),
       ),
     );
   }
