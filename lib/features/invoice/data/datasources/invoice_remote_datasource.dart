@@ -52,6 +52,7 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
           .from(AppConstants.tableInvoices)
           .select('''
             *,
+            chitiethoadon(*),
             phong!inner(room_number, property_id),
             khachthue(full_name)
           ''');
@@ -94,6 +95,7 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
           .from(AppConstants.tableInvoices)
           .select('''
             *,
+            chitiethoadon(*),
             phong!inner(room_number),
             khachthue(full_name)
           ''')
@@ -135,6 +137,11 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
             khachthue(full_name)
           ''')
           .single();
+
+      final detailsJson = invoice.toDetailsJson();
+      detailsJson['invoice_id'] = data['id'];
+      await _client.from(AppConstants.tablePayments).insert(detailsJson);
+      data['chitiethoadon'] = [detailsJson];
 
       // Cập nhật bảng chiso (ELECTRIC)
       try {
@@ -209,6 +216,7 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
           .eq('id', invoiceId)
           .select('''
             *,
+            chitiethoadon(*),
             phong!inner(room_number),
             khachthue(full_name)
           ''')
@@ -244,6 +252,17 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
             khachthue(full_name)
           ''')
           .single();
+
+      await _client
+          .from(AppConstants.tablePayments)
+          .update(invoice.toDetailsJson())
+          .eq('invoice_id', invoice.id);
+          
+      final detailsData = await _client
+          .from(AppConstants.tablePayments)
+          .select('*')
+          .eq('invoice_id', invoice.id);
+      data['chitiethoadon'] = detailsData;
 
       // Cập nhật bảng chiso (ELECTRIC)
       try {
@@ -309,6 +328,7 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
           .from(AppConstants.tableInvoices)
           .select('''
             *,
+            chitiethoadon(*),
             phong!inner(room_number),
             khachthue(full_name)
           ''')
@@ -349,6 +369,7 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
           .from(AppConstants.tableInvoices)
           .select('''
             *,
+            chitiethoadon(*),
             phong!inner(room_number, property_id),
             khachthue(full_name)
           ''')
