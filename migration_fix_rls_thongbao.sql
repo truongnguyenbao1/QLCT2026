@@ -30,6 +30,11 @@ USING (
                 SELECT 1 FROM public.users 
                 WHERE users.iduser = auth.uid() AND users.room_id = thongbao.room_id
             )
+            -- Hoặc có trong bảng khachthue
+            OR EXISTS (
+                SELECT 1 FROM public.khachthue
+                WHERE khachthue.user_id = auth.uid() AND khachthue.room_id = thongbao.room_id
+            )
             -- Hoặc là chủ trọ của phòng đó
             OR EXISTS (
                 SELECT 1 FROM public.phong 
@@ -48,6 +53,12 @@ USING (
                 JOIN public.phong p ON u.room_id = p.id
                 JOIN public.nhatro n ON p.property_id = n.id
                 WHERE u.iduser = auth.uid() AND n.iduser = thongbao.sender_id
+            )
+            OR EXISTS (
+                SELECT 1 FROM public.khachthue k
+                JOIN public.phong p ON k.room_id = p.id
+                JOIN public.nhatro n ON p.property_id = n.id
+                WHERE k.user_id = auth.uid() AND n.iduser = thongbao.sender_id
             )
         )
     )
