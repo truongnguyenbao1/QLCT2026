@@ -71,14 +71,7 @@ Future<void> main() async {
   // BLoC Observer để debug
   Bloc.observer = AppBlocObserver();
 
-  // Wrap root with SeoController for web SEO
-  runApp(
-    SeoController(
-      enabled: true,
-      tree: WidgetTree(context: SeoController.fallbackContext),
-      child: const QuanLyNhaTroApp(),
-    ),
-  );
+  runApp(const QuanLyNhaTroApp());
 }
 
 class QuanLyNhaTroApp extends StatefulWidget {
@@ -147,13 +140,16 @@ class _QuanLyNhaTroAppState extends State<QuanLyNhaTroApp> with WidgetsBindingOb
         onPointerDown: _handleInteraction,
         onPointerMove: _handleInteraction,
         onPointerUp: _handleInteraction,
-        child: MaterialApp.router(
-        title: 'Quản lý Nhà trọ',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.system,
-        routerConfig: _router,
+        child: SeoController(
+          enabled: true,
+          tree: WidgetTree(context: context),
+          child: MaterialApp.router(
+            title: 'Quản lý Nhà trọ',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: ThemeMode.system,
+            routerConfig: _router,
         builder: (context, child) {
           return MediaQuery(
             // Tắt text scaling để UI không bị vỡ layout
@@ -163,7 +159,8 @@ class _QuanLyNhaTroAppState extends State<QuanLyNhaTroApp> with WidgetsBindingOb
             child: child!,
           );
         },
-      ),
+          ),
+        ),
       ),
     );
   }
