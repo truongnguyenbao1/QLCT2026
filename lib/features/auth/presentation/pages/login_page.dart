@@ -149,13 +149,16 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ),
           child: SafeArea(
-            child: Center(
+            child: SizedBox(
+              width: double.infinity,
+              height: double.infinity,
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 440),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 440),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       // ── Logo & Title ────────────────────────────────────
                       Column(
