@@ -310,10 +310,11 @@ class AppRouter {
                 ),
               ],
             ),
+            GoRoute(
+              path: AppRoutes.notifications,
+              builder: (context, state) => const NotificationsPage(),
+            ),
           ],
-        GoRoute(
-          path: AppRoutes.notifications,
-          builder: (context, state) => const NotificationsPage(),
         ),
       ],
       errorBuilder: (context, state) => Scaffold(
