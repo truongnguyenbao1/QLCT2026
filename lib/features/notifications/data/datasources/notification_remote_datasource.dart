@@ -26,7 +26,7 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
       var query = _client.from(AppConstants.tableNotifications).select('''
         *,
         phong(room_number),
-        khachthue!thongbao_sender_id_fkey(full_name)
+        users!thongbao_sender_id_fkey(tenuser)
       ''');
 
       if (receiverId != null) {
@@ -43,8 +43,8 @@ class NotificationRemoteDataSourceImpl implements NotificationRemoteDataSource {
       return (data as List).map((e) {
         final map = Map<String, dynamic>.from(e);
         map['room_number'] = e['phong']?['room_number'];
-        // Sender có thể là tenant hoặc owner, ở đây giả sử khachthue table nếu là tenant
-        map['sender_name'] = e['khachthue']?['full_name'];
+        // Sender có thể là tenant hoặc owner
+        map['sender_name'] = e['users']?['tenuser'];
         return NotificationModel.fromJson(map);
       }).toList();
     } catch (e) {

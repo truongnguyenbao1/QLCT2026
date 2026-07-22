@@ -17,14 +17,15 @@
             SELECT room_number INTO v_room_name FROM public.phong WHERE id = NEW.room_id;
             
             -- Lấy tên khách thuê & user_id làm sender_id
-            IF NEW.tenant_id IS NOT NULL THEN
-                SELECT full_name, user_id INTO v_tenant_name, v_sender_id FROM public.khachthue WHERE id = NEW.tenant_id;
-            ELSE
-                -- Nếu hóa đơn chưa được gán tenant_id, lấy khách thuê đang active của phòng
-                SELECT full_name, user_id INTO v_tenant_name, v_sender_id FROM public.khachthue 
-                WHERE room_id = NEW.room_id AND is_active = TRUE 
-                ORDER BY created_at DESC LIMIT 1;
-            END IF;
+        IF NEW.tenant_id IS NOT NULL THEN
+            SELECT full_name, user_id INTO v_tenant_name, v_sender_id FROM public.khachthue WHERE id = NEW.tenant_id;
+        ELSE
+            -- Nếu hóa đơn chưa được gán tenant_id, lấy iduser với role là khách thuê từ bảng users
+            SELECT tenuser, iduser INTO v_tenant_name, v_sender_id 
+            FROM public.users 
+            WHERE room_id = NEW.room_id AND quyenhan = 'khách thuê' 
+            LIMIT 1;
+        END IF;
 
             IF v_tenant_name IS NULL THEN
                 v_tenant_name := 'Khách thuê';
