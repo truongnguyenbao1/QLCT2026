@@ -5,6 +5,8 @@ import '../../../../core/utils/formatters.dart';
 import '../../../../core/di/injection.dart';
 import '../../domain/entities/invoice.dart';
 import '../bloc/invoice_bloc.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
 
 class InvoiceListPage extends StatelessWidget {
   const InvoiceListPage({super.key});
@@ -33,13 +35,20 @@ class _InvoiceListViewState extends State<_InvoiceListView> {
       appBar: AppBar(
         title: const Text('Quản lý hóa đơn'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () async {
-               await context.push('/invoices/create');
-               if (context.mounted) {
-                 context.read<InvoiceBloc>().add(const LoadInvoicesEvent());
-               }
+          BlocBuilder<AuthBloc, AuthState>(
+            builder: (context, authState) {
+              if (authState is AuthAuthenticated && authState.user.isOwner) {
+                return IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: () async {
+                     await context.push('/invoices/create');
+                     if (context.mounted) {
+                       context.read<InvoiceBloc>().add(const LoadInvoicesEvent());
+                     }
+                  },
+                );
+              }
+              return const SizedBox.shrink();
             },
           ),
           PopupMenuButton<InvoiceStatus?>(

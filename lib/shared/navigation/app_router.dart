@@ -121,6 +121,21 @@ class AppRouter {
           return AppRoutes.dashboard;
         }
 
+        // Role-based route guard: Khách thuê không được truy cập các trang của chủ trọ
+        if (isLoggedIn) {
+          final user = (authState as AuthAuthenticated).user;
+          if (!user.isOwner) {
+            final loc = state.matchedLocation;
+            if (loc.startsWith(AppRoutes.rooms) ||
+                loc.startsWith(AppRoutes.tenants) ||
+                loc.startsWith(AppRoutes.utilities) ||
+                loc.contains('/create') ||
+                loc.contains('/edit')) {
+              return AppRoutes.dashboard;
+            }
+          }
+        }
+
         return null;
       },
       routes: [
