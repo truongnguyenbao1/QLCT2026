@@ -106,9 +106,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(const AuthLoading());
 
-    // Nếu đã có session (ví dụ vừa login bằng Google) thì chỉ cần cập nhật profile
-    final session = sb.Supabase.instance.client.auth.currentSession;
-    if (session != null && session.user.email == event.email) {
+    // Nếu đăng nhập qua OAuth (Google) thì chỉ cần cập nhật profile
+    if (event.isOAuth) {
+      final session = sb.Supabase.instance.client.auth.currentSession;
+      if (session == null) {
+        emit(const AuthError('Phiên đăng nhập đã hết hạn. Vui lòng thử lại.'));
+        return;
+      }
       try {
         final userId = session.user.id;
         

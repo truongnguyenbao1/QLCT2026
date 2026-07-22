@@ -66,6 +66,7 @@ class _RegisterPageState extends State<RegisterPage> {
             phone: _phoneController.text.trim(),
             role: _selectedRole,
             cccd: _selectedRole == UserRole.tenant ? _cccdController.text.trim() : null,
+            isOAuth: widget.initialEmail != null,
           ),
         );
   }
