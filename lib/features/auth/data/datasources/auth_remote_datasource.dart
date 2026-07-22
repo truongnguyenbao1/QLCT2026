@@ -107,7 +107,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         data: {
           'full_name': fullName,
           'phone': phone,
-          'role': role.code,
+          'quyenhan': role.code,
         },
       );
 

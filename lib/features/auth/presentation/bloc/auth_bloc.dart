@@ -129,7 +129,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           await sb.Supabase.instance.client.from(AppConstants.tableUsers).update({
             'room_id': roomId,
             'property_id': propertyId,
-            'role': event.role.code,
+            'quyenhan': event.role.code,
             'tenuser': event.fullName,
             'sdt': event.phone,
           }).eq('iduser', userId);
@@ -143,7 +143,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         } else {
           // Là chủ trọ
           await sb.Supabase.instance.client.from(AppConstants.tableUsers).update({
-            'role': event.role.code,
+            'quyenhan': event.role.code,
             'tenuser': event.fullName,
             'sdt': event.phone,
           }).eq('iduser', userId);

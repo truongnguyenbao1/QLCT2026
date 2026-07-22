@@ -27,6 +27,8 @@ import '../../../../features/payment_settings/presentation/bloc/payment_settings
 import '../../../../features/payment_settings/presentation/bloc/payment_settings_event.dart';
 import '../../../../features/payment_settings/presentation/bloc/payment_settings_state.dart';
 import '../../../../features/payment_settings/domain/entities/payment_settings.dart';
+import 'printer_settings_page.dart';
+import '../../../../core/services/thermal_printer_service.dart';
 
 class PaymentPage extends StatefulWidget {
   final String invoiceId;
@@ -94,6 +96,18 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
         backgroundColor: AppColors.surface,
         foregroundColor: (Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextPrimary : AppColors.textPrimary),
         elevation: 0,
+        actions: [
+          if (isOwner)
+            IconButton(
+              icon: Icon(Icons.print_rounded),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const PrinterSettingsPage()),
+                );
+              },
+            ),
+        ],
       ),
       body: BlocConsumer<InvoiceBloc, InvoiceState>(
         listener: (context, state) {
@@ -115,6 +129,9 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
             );
             setState(() => _showForm = false);
             _transactionIdController.clear();
+            if (_invoice != null) {
+              _autoPrintReceipt(_invoice!);
+            }
           } else if (state is InvoiceError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -191,6 +208,26 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
         },
       ),
     );
+  }
+
+  Future<void> _autoPrintReceipt(Invoice invoice) async {
+    final printerService = getIt<ThermalPrinterService>();
+    bool connected = await printerService.isConnected;
+    if (!connected) return; // Nếu máy in chưa kết nối, bỏ qua
+    
+    try {
+      final bytes = await printerService.generateInvoiceTicket(
+        propertyName: 'HÓA ĐƠN NHÀ TRỌ', 
+        roomName: invoice.roomNumber,
+        month: invoice.month,
+        year: invoice.year,
+        totalAmount: invoice.totalAmount,
+        invoiceId: invoice.id.substring(0, 8).toUpperCase(),
+      );
+      await printerService.printTicket(bytes);
+    } catch (e) {
+      debugPrint('Lỗi khi tự động in: $e');
+    }
   }
 
   void _submitPayment(Invoice invoice) {
