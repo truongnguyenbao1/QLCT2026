@@ -37,44 +37,43 @@ class PaymentRemoteDataSourceImpl implements PaymentRemoteDataSource {
     String? transactionId,
   }) async {
     try {
-      // 1. Insert vào chitiethoadon
-      final paymentData = await _client
-          .from(AppConstants.tablePayments)
-          .insert({
-            'invoice_id': invoiceId,
-            'amount': amount,
-            'payment_method': paymentMethod.code,
-            'transaction_id': transactionId,
-            'paid_at': DateTime.now().toIso8601String(),
-          })
+      // Cập nhật hoadon → PAID
+      final updateData = {
+        'status': InvoiceStatus.paid.code,
+        'paid_at': DateTime.now().toIso8601String(),
+        'payment_method': paymentMethod.code,
+        if (transactionId != null) 'transaction_id': transactionId,
+        'is_locked': true,
+        'updated_at': DateTime.now().toIso8601String(),
+      };
+
+      final data = await _client
+          .from(AppConstants.tableInvoices)
+          .update(updateData)
+          .eq('id', invoiceId)
           .select()
           .single();
 
-      // 2. Cập nhật hoadon → PAID
-      await _client
-          .from(AppConstants.tableInvoices)
-          .update({
-            'status': InvoiceStatus.paid.code,
-            'paid_at': DateTime.now().toIso8601String(),
-            'payment_method': paymentMethod.code,
-            if (transactionId != null) 'transaction_id': transactionId,
-            'is_locked': true,
-            'updated_at': DateTime.now().toIso8601String(),
-          })
-          .eq('id', invoiceId);
-
-      // 3. Ghi audit log
+      // Ghi audit log
       await _writeAuditLog(
         action: 'CREATE_PAYMENT',
         recordId: invoiceId,
         newValue: {
-          'payment_id': paymentData['id'],
+          'invoice_id': invoiceId,
           'amount': amount,
           'payment_method': paymentMethod.code,
         },
       );
 
-      return PaymentModel.fromJson(paymentData);
+      return PaymentModel(
+        id: data['id'] as String,
+        invoiceId: data['id'] as String,
+        amount: amount,
+        paymentMethod: paymentMethod,
+        transactionId: transactionId,
+        paidAt: DateTime.parse(data['paid_at'] as String),
+        createdAt: DateTime.parse(data['updated_at'] as String),
+      );
     } on Failure {
       rethrow;
     } catch (e) {
@@ -86,14 +85,27 @@ class PaymentRemoteDataSourceImpl implements PaymentRemoteDataSource {
   Future<List<PaymentModel>> getPaymentsByInvoice(String invoiceId) async {
     try {
       final data = await _client
-          .from(AppConstants.tablePayments)
-          .select()
-          .eq('invoice_id', invoiceId)
-          .order('paid_at', ascending: false);
+          .from(AppConstants.tableInvoices)
+          .select('id, paid_at, payment_method, transaction_id, total_amount, updated_at')
+          .eq('id', invoiceId)
+          .single();
 
-      return (data as List)
-          .map((e) => PaymentModel.fromJson(e))
-          .toList();
+      if (data['paid_at'] != null) {
+        return [
+          PaymentModel(
+            id: data['id'] as String,
+            invoiceId: data['id'] as String,
+            amount: (data['total_amount'] as num).toDouble(),
+            paymentMethod: PaymentMethodExt.fromCode(
+              data['payment_method'] as String? ?? 'CASH',
+            ),
+            transactionId: data['transaction_id'] as String?,
+            paidAt: DateTime.parse(data['paid_at'] as String),
+            createdAt: DateTime.parse(data['updated_at'] as String),
+          )
+        ];
+      }
+      return [];
     } catch (e) {
       throw ServerFailure(message: 'Lỗi tải lịch sử thanh toán: $e');
     }
