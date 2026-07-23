@@ -155,8 +155,8 @@ class _RoomsListViewState extends State<_RoomsListView> {
                             padding: const EdgeInsets.all(16),
                             gridDelegate:
                                 const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 3,
-                              childAspectRatio: 1.618,
+                              crossAxisCount: 2,
+                              childAspectRatio: 0.95,
                               crossAxisSpacing: 12,
                               mainAxisSpacing: 12,
                             ),
@@ -377,7 +377,7 @@ class _RoomCard extends StatelessWidget {
           children: [
             // Header with status indicator
             Container(
-              height: 80,
+              height: 64,
               decoration: BoxDecoration(
                 color: statusColor.withOpacity(0.12),
                 borderRadius: const BorderRadius.vertical(
@@ -389,7 +389,7 @@ class _RoomCard extends StatelessWidget {
                   Center(
                     child: Icon(
                       Icons.meeting_room_rounded,
-                      size: 40,
+                      size: 32,
                       color: statusColor,
                     ),
                   ),
@@ -508,43 +508,48 @@ class _RoomCard extends StatelessWidget {
             ),
 
             Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Phòng ${room.roomNumber}',
-                    style: theme.textTheme.titleMedium?.copyWith(
+                    style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
                   Text(
                     AppFormatters.formatCurrency(room.rentPrice),
-                    style: theme.textTheme.bodyMedium?.copyWith(
+                    style: theme.textTheme.bodySmall?.copyWith(
                       color: AppColors.primary,
                       fontWeight: FontWeight.w600,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
                   Row(
                     children: [
-                      const Icon(Icons.straighten, size: 12,
+                      const Icon(Icons.straighten, size: 11,
                           color: AppColors.textTertiary),
-                      const SizedBox(width: 4),
-                      Text(
-                        AppFormatters.formatArea(room.area),
-                        style: theme.textTheme.bodySmall,
+                      const SizedBox(width: 3),
+                      Flexible(
+                        child: Text(
+                          AppFormatters.formatArea(room.area),
+                          style: theme.textTheme.bodySmall?.copyWith(fontSize: 11),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                      const SizedBox(width: 8),
-                      const Icon(Icons.layers_rounded, size: 12,
+                      const SizedBox(width: 6),
+                      const Icon(Icons.layers_rounded, size: 11,
                           color: AppColors.textTertiary),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: 3),
                       Text(
                         room.floor != null ? 'T${room.floor}' : 'Trệt',
-                        style: theme.textTheme.bodySmall,
+                        style: theme.textTheme.bodySmall?.copyWith(fontSize: 11),
                       ),
                     ],
                   ),
