@@ -12,6 +12,7 @@ class UserModel extends AppUser {
     super.roomId,
     required super.hasAcceptedPrivacyPolicy,
     required super.createdAt,
+    super.registrationStatus,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -27,6 +28,7 @@ class UserModel extends AppUser {
           json['has_accepted_privacy_policy'] as bool? ?? false,
       createdAt: DateTime.parse(
           json['ngaytao'] as String? ?? DateTime.now().toIso8601String()),
+      registrationStatus: json['registration_status'] as String?,
     );
   }
 
@@ -55,6 +57,7 @@ class UserModel extends AppUser {
       roomId: user.roomId,
       hasAcceptedPrivacyPolicy: user.hasAcceptedPrivacyPolicy,
       createdAt: user.createdAt,
+      registrationStatus: user.registrationStatus,
     );
   }
 }

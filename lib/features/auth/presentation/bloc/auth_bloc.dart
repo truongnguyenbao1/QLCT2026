@@ -46,6 +46,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthUpdateProfileEvent>(_onUpdateProfile);
   }
 
+  /// Phân luồng trạng thái sau khi đăng nhập/check session
+  AuthState _resolveUserState(AppUser user) {
+    if (!user.hasAcceptedPrivacyPolicy) {
+      return AuthNeedPrivacyAcceptance(user);
+    }
+    if (user.isOwner && user.isPendingApproval) {
+      return AuthPendingApproval(user);
+    }
+    if (user.isOwner && (user.propertyId == null || user.propertyId!.isEmpty)) {
+      return AuthNeedPropertySetup(user);
+    }
+    return AuthAuthenticated(user);
+  }
+
   Future<void> _onCheckSession(
     AuthCheckSessionEvent event,
     Emitter<AuthState> emit,
@@ -59,12 +73,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           emit(const AuthUnauthenticated());
         } else if (user.phone == null || user.phone!.isEmpty) {
           emit(AuthNeedProfileCompletion(email: user.email, fullName: user.fullName));
-        } else if (!user.hasAcceptedPrivacyPolicy) {
-          emit(AuthNeedPrivacyAcceptance(user));
-        } else if (user.isOwner && (user.propertyId == null || user.propertyId!.isEmpty)) {
-          emit(AuthNeedPropertySetup(user));
         } else {
-          emit(AuthAuthenticated(user));
+          emit(_resolveUserState(user));
         }
       },
     );
@@ -80,15 +90,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     );
     result.fold(
       (failure) => emit(AuthError(failure.message)),
-      (user) {
-        if (!user.hasAcceptedPrivacyPolicy) {
-          emit(AuthNeedPrivacyAcceptance(user));
-        } else if (user.isOwner && (user.propertyId == null || user.propertyId!.isEmpty)) {
-          emit(AuthNeedPropertySetup(user));
-        } else {
-          emit(AuthAuthenticated(user));
-        }
-      },
+      (user) => emit(_resolveUserState(user)),
     );
   }
 
@@ -174,15 +176,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     );
     result.fold(
       (failure) => emit(AuthError(failure.message)),
-      (user) {
-        if (!user.hasAcceptedPrivacyPolicy) {
-          emit(AuthNeedPrivacyAcceptance(user));
-        } else if (user.isOwner && (user.propertyId == null || user.propertyId!.isEmpty)) {
-          emit(AuthNeedPropertySetup(user));
-        } else {
-          emit(AuthAuthenticated(user));
-        }
-      },
+      (user) => emit(_resolveUserState(user)),
     );
   }
 

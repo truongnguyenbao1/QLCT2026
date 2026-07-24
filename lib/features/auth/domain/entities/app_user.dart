@@ -47,6 +47,9 @@ class AppUser extends Equatable {
   final String? roomId;     // phòng khách đang thuê
   final bool hasAcceptedPrivacyPolicy;
   final DateTime createdAt;
+  /// Trạng thái duyệt đăng ký của chủ trọ (từ nhatro.registration_status)
+  /// Giá trị: 'PENDING' | 'APPROVED' | 'REJECTED' | 'SUSPENDED' | null
+  final String? registrationStatus;
 
   const AppUser({
     required this.id,
@@ -58,6 +61,7 @@ class AppUser extends Equatable {
     this.roomId,
     required this.hasAcceptedPrivacyPolicy,
     required this.createdAt,
+    this.registrationStatus,
   });
 
   bool get isOwner => role == UserRole.owner;
@@ -65,11 +69,19 @@ class AppUser extends Equatable {
   bool get canViewCccd => isOwner;
   bool get canDeleteData => isOwner;
 
+  /// Chủ trọ đang chờ duyệt tài khoản
+  bool get isPendingApproval =>
+      isOwner && (registrationStatus == 'PENDING' || (registrationStatus == null && propertyId != null));
+
+  /// Chủ trọ đã được duyệt
+  bool get isApproved => !isOwner || registrationStatus == 'APPROVED';
+
   AppUser copyWith({
     String? fullName,
     String? phone,
     String? propertyId,
     bool? hasAcceptedPrivacyPolicy,
+    String? registrationStatus,
   }) {
     return AppUser(
       id: id,
@@ -82,6 +94,7 @@ class AppUser extends Equatable {
       hasAcceptedPrivacyPolicy:
           hasAcceptedPrivacyPolicy ?? this.hasAcceptedPrivacyPolicy,
       createdAt: createdAt,
+      registrationStatus: registrationStatus ?? this.registrationStatus,
     );
   }
 
@@ -94,5 +107,6 @@ class AppUser extends Equatable {
         propertyId,
         roomId,
         hasAcceptedPrivacyPolicy,
+        registrationStatus,
       ];
 }

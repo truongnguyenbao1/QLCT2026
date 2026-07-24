@@ -33,6 +33,8 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
   UserRole _selectedRole = UserRole.tenant;
+  int _selectedPlanIndex = 1; // Mặc định gói Tiêu chuẩn
+  bool _showOwnerForm = false; // Hiện form sau khi chọn gói
 
   @override
   void initState() {
@@ -207,7 +209,13 @@ class _RegisterPageState extends State<RegisterPage> {
 
                       const SizedBox(height: 20),
 
-                      // ── Registration card ─────────────────────────────────
+                      // ── Nếu là Chủ trọ: hiện Pricing Cards ──────────────
+                      if (_selectedRole == UserRole.owner && !_showOwnerForm)
+                        _buildPricingSection()
+                            .animate()
+                            .fadeIn(delay: 150.ms, duration: 400.ms)
+                            .slideY(begin: 0.1)
+                      else
                       Container(
                         padding: const EdgeInsets.all(28),
                         decoration: BoxDecoration(
@@ -521,7 +529,10 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget _buildRoleButton({required String title, required UserRole role}) {
     final isSelected = _selectedRole == role;
     return GestureDetector(
-      onTap: () => setState(() => _selectedRole = role),
+      onTap: () => setState(() {
+        _selectedRole = role;
+        _showOwnerForm = false; // Reset về pricing khi đổi tab
+      }),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 12),
@@ -551,4 +562,320 @@ class _RegisterPageState extends State<RegisterPage> {
       ),
     );
   }
+
+  // ── Pricing Section ────────────────────────────────────────────────────
+  Widget _buildPricingSection() {
+    final plans = [
+      _PlanData(
+        name: 'Cơ bản',
+        price: '49.000',
+        maxRooms: 10,
+        color: const Color(0xFF6366F1),
+        features: [
+          'Tối đa 10 phòng',
+          'Quản lý hóa đơn hàng tháng',
+          'Báo cáo thu chi cơ bản',
+          'Hỗ trợ qua email',
+        ],
+        badge: null,
+      ),
+      _PlanData(
+        name: 'Tiêu chuẩn',
+        price: '99.000',
+        maxRooms: 30,
+        color: const Color(0xFF0EA5E9),
+        features: [
+          'Tối đa 30 phòng',
+          'Tất cả tính năng Cơ bản',
+          'Thông báo đến khách thuê',
+          'QR thanh toán MoMo/VietQR',
+          'Hỗ trợ qua Zalo',
+        ],
+        badge: 'Phổ biến nhất ⭐',
+      ),
+      _PlanData(
+        name: 'Chuyên nghiệp',
+        price: '199.000',
+        maxRooms: -1, // unlimited
+        color: const Color(0xFF10B981),
+        features: [
+          'Không giới hạn phòng',
+          'Tất cả tính năng Tiêu chuẩn',
+          'Báo cáo nâng cao & xuất PDF',
+          'Hỗ trợ ưu tiên 24/7',
+          'Tùy chỉnh logo nhà trọ',
+        ],
+        badge: null,
+      ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                const Color(0xFF1E40AF).withValues(alpha: 0.08),
+                const Color(0xFF7C3AED).withValues(alpha: 0.06),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFF3B82F6).withValues(alpha: 0.2)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.workspace_premium_rounded,
+                    color: Color(0xFF3B82F6), size: 22),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      '🎉 Dùng thử MIỄN PHÍ 7 ngày',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF1E40AF),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Không cần thẻ tín dụng. Hủy bất cứ lúc nào.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: const Color(0xFF6B7280),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 16),
+
+        // Plan Cards
+        ...plans.asMap().entries.map((entry) {
+          final i = entry.key;
+          final plan = entry.value;
+          final isSelected = _selectedPlanIndex == i;
+          return _buildPlanCard(plan, i, isSelected);
+        }),
+
+        const SizedBox(height: 16),
+
+        // CTA Button
+        SizedBox(
+          width: double.infinity,
+          height: 52,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF4285F4), Color(0xFF1A73E8)],
+              ),
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF4285F4).withValues(alpha: 0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                shadowColor: Colors.transparent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              onPressed: () => setState(() => _showOwnerForm = true),
+              child: Text(
+                'Bắt đầu với gói ${plans[_selectedPlanIndex].name} →',
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPlanCard(_PlanData plan, int index, bool isSelected) {
+    return GestureDetector(
+      onTap: () => setState(() => _selectedPlanIndex = index),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? plan.color.withValues(alpha: 0.06)
+              : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? plan.color : const Color(0xFFE5E7EB),
+            width: isSelected ? 2 : 1,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: plan.color.withValues(alpha: 0.15),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  )
+                ]
+              : [],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (plan.badge != null)
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 6),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: plan.color.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            plan.badge!,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: plan.color,
+                            ),
+                          ),
+                        ),
+                      Text(
+                        plan.name,
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w800,
+                          color: isSelected ? plan.color : const Color(0xFF111827),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Price
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: plan.price,
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w900,
+                              color: isSelected ? plan.color : const Color(0xFF111827),
+                            ),
+                          ),
+                          const TextSpan(
+                            text: ' đ',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Color(0xFF6B7280),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Text(
+                      '/ tháng',
+                      style: TextStyle(fontSize: 11, color: Color(0xFF9CA3AF)),
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 8),
+                // Radio
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: 20,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isSelected ? plan.color : Colors.transparent,
+                    border: Border.all(
+                      color: isSelected ? plan.color : const Color(0xFFD1D5DB),
+                      width: 2,
+                    ),
+                  ),
+                  child: isSelected
+                      ? const Icon(Icons.check, size: 12, color: Colors.white)
+                      : null,
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            // Features
+            ...plan.features.map((f) => Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.check_circle_rounded,
+                        size: 14,
+                        color: plan.color.withValues(alpha: 0.8),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        f,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF374151),
+                        ),
+                      ),
+                    ],
+                  ),
+                )),
+          ],
+        ),
+      ),
+    );
+  }
 }
+
+class _PlanData {
+  final String name;
+  final String price;
+  final int maxRooms;
+  final Color color;
+  final List<String> features;
+  final String? badge;
+
+  const _PlanData({
+    required this.name,
+    required this.price,
+    required this.maxRooms,
+    required this.color,
+    required this.features,
+    this.badge,
+  });
+}
+

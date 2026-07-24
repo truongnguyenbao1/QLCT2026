@@ -43,6 +43,14 @@ class AuthNeedPropertySetup extends AuthState {
   List<Object?> get props => [user];
 }
 
+/// Chủ trọ đã đăng ký nhưng chưa được super-admin duyệt
+class AuthPendingApproval extends AuthState {
+  final AppUser user;
+  const AuthPendingApproval(this.user);
+  @override
+  List<Object?> get props => [user];
+}
+
 /// Đăng nhập bằng Google nhưng chưa cung cấp đủ thông tin bắt buộc (ví dụ: role, SĐT)
 class AuthNeedProfileCompletion extends AuthState {
   final String email;

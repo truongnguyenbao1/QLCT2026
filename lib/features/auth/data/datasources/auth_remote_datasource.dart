@@ -142,6 +142,43 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         });
       }
 
+      // 4. Tạo nhà trọ và subscription cho Chủ trọ mới
+      if (role == UserRole.owner) {
+        final userId = response.user!.id;
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        // Tạo nhà trọ với trạng thái PENDING (chờ duyệt)
+        final nhaTroRes = await _client
+            .from('nhatro')
+            .insert({
+              'name': fullName, // Tạm dùng tên chủ trọ, setup_property sẽ cập nhật sau
+              'iduser': userId,
+              'registration_status': 'PENDING',
+            })
+            .select()
+            .single();
+
+        final propertyId = nhaTroRes['id'] as String;
+
+        // Gắn property_id vào users
+        await _client.from(AppConstants.tableUsers).update({
+          'property_id': propertyId,
+        }).eq('iduser', userId);
+
+        // Tạo subscription dùng thử 7 ngày
+        final trialEndsAt = DateTime.now().add(const Duration(days: 7));
+        await _client.from('subscriptions').insert({
+          'owner_id': userId,
+          'property_id': propertyId,
+          'plan': 'TRIAL',
+          'status': 'PENDING',
+          'trial_ends_at': trialEndsAt.toIso8601String(),
+          'max_rooms': 10,
+          'price_per_month': 0,
+        });
+      }
+
+
       await _storage.write(key: 'last_login_time', value: DateTime.now().toIso8601String());
 
       return _fetchUserProfile(response.user!.id);
@@ -271,13 +308,22 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   // ── Private Helpers ──────────────────────────────────────────────────────
 
   Future<UserModel> _fetchUserProfile(String userId) async {
+    // Join với nhatro để lấy registration_status của chủ trọ
     final data = await _client
         .from(AppConstants.tableUsers)
-        .select()
+        .select('*, nhatro!fk_users_nhatro(registration_status)')
         .eq('iduser', userId)
         .single();
 
-    return UserModel.fromJson(data);
+    // Flatten registration_status từ nested join
+    final nhaTro = data['nhatro'] as Map<String, dynamic>?;
+    final Map<String, dynamic> flatData = {
+      ...data,
+      if (nhaTro != null)
+        'registration_status': nhaTro['registration_status'],
+    };
+
+    return UserModel.fromJson(flatData);
   }
 
   Never _throwAuthFailure(sb.AuthException e) {

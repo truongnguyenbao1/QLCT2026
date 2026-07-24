@@ -8,6 +8,7 @@ import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/privacy_policy_page.dart';
 import '../../features/auth/presentation/pages/setup_property_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
+import '../../features/auth/presentation/pages/pending_approval_page.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/auth/presentation/bloc/auth_state.dart';
 import 'dart:async';
@@ -38,6 +39,7 @@ class AppRoutes {
   static const String register = '/register';
   static const String privacyPolicy = '/privacy-policy';
   static const String setupProperty = '/setup-property';
+  static const String pendingApproval = '/pending-approval';
   static const String dashboard = '/dashboard';
   static const String rooms = '/rooms';
   static const String addRoom = '/rooms/add';
@@ -86,8 +88,8 @@ class AppRouter {
         final isLoggedIn = authState is AuthAuthenticated;
         final isLoginPage = state.matchedLocation == AppRoutes.login;
         final isRegisterPage = state.matchedLocation == AppRoutes.register;
-        final isPrivacyPage =
-            state.matchedLocation == AppRoutes.privacyPolicy;
+        final isPrivacyPage = state.matchedLocation == AppRoutes.privacyPolicy;
+        final isPendingPage = state.matchedLocation == AppRoutes.pendingApproval;
 
         // Nếu đang kiểm tra phiên đăng nhập thì không redirect vội
         if (authState is AuthInitial || authState is AuthLoading) {
@@ -95,6 +97,16 @@ class AppRouter {
         }
 
         final isSetupPage = state.matchedLocation == AppRoutes.setupProperty;
+
+        // Chủ trọ chờ duyệt → force vào trang pending
+        if (authState is AuthPendingApproval && !isPendingPage) {
+          return AppRoutes.pendingApproval;
+        }
+
+        // Nếu đang ở trang pending mà không phải pending state → cho qua
+        if (isPendingPage && authState is! AuthPendingApproval) {
+          return isLoggedIn ? AppRoutes.dashboard : AppRoutes.login;
+        }
 
         // Cần đồng ý điều khoản nhưng lại chưa ở trang privacy
         if (authState is AuthNeedPrivacyAcceptance && !isPrivacyPage) {
@@ -112,7 +124,7 @@ class AppRouter {
         }
 
         // Chưa đăng nhập → chuyển đến login (trừ trang register)
-        if (!isLoggedIn && !isLoginPage && !isRegisterPage && authState is! AuthNeedPrivacyAcceptance && authState is! AuthNeedPropertySetup && authState is! AuthNeedProfileCompletion) {
+        if (!isLoggedIn && !isLoginPage && !isRegisterPage && authState is! AuthNeedPrivacyAcceptance && authState is! AuthNeedPropertySetup && authState is! AuthNeedProfileCompletion && authState is! AuthPendingApproval) {
           return AppRoutes.login;
         }
 
@@ -166,6 +178,11 @@ class AppRouter {
           path: AppRoutes.setupProperty,
           name: 'setupProperty',
           builder: (context, state) => const SetupPropertyPage(),
+        ),
+        GoRoute(
+          path: AppRoutes.pendingApproval,
+          name: 'pendingApproval',
+          builder: (context, state) => const PendingApprovalPage(),
         ),
 
         // ── Main Shell (Bottom Nav) ──────────────────────────────────────
