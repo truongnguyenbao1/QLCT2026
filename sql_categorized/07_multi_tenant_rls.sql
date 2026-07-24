@@ -4,15 +4,30 @@
 -- =========================================================================
 
 -- ─────────────────────────────────────────────────────────────────────────
--- HELPER FUNCTION: Lấy property_id của user hiện tại (admin)
--- Dùng trong các policy để filter dữ liệu
+-- HELPER FUNCTIONS: Security Definer để bypass RLS, chống infinite recursion
 -- ─────────────────────────────────────────────────────────────────────────
-CREATE OR REPLACE FUNCTION public.my_property_id()
-RETURNS UUID
+CREATE OR REPLACE FUNCTION public.get_owner_property_ids()
+RETURNS SETOF UUID
 SECURITY DEFINER
 SET search_path = public
 LANGUAGE sql STABLE AS $$
-  SELECT id FROM public.nhatro WHERE iduser = auth.uid() LIMIT 1;
+  SELECT id FROM public.nhatro WHERE iduser = auth.uid();
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_tenant_property_ids()
+RETURNS SETOF UUID
+SECURITY DEFINER
+SET search_path = public
+LANGUAGE sql STABLE AS $$
+  SELECT property_id FROM public.users WHERE iduser = auth.uid() AND property_id IS NOT NULL;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_tenant_room_ids()
+RETURNS SETOF UUID
+SECURITY DEFINER
+SET search_path = public
+LANGUAGE sql STABLE AS $$
+  SELECT room_id FROM public.users WHERE iduser = auth.uid() AND room_id IS NOT NULL;
 $$;
 
 -- ─────────────────────────────────────────────────────────────────────────

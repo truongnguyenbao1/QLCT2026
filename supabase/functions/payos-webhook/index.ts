@@ -63,11 +63,11 @@ serve(async (req) => {
             .update({ status: 'ACTIVE' })
             .eq('id', subData.id)
 
-          // Cập nhật users (nhatro) registration_status
+          // Cập nhật nhatro registration_status
           await supabaseClient
-            .from('users')
+            .from('nhatro')
             .update({ registration_status: 'APPROVED' })
-            .eq('id', subData.owner_id)
+            .eq('iduser', subData.owner_id)
 
           return new Response(JSON.stringify({ success: true, message: 'Subscription activated' }), {
             headers: { 'Content-Type': 'application/json' },
