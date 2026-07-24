@@ -60,6 +60,12 @@ class _RegisterPageState extends State<RegisterPage> {
 
   void _onRegister() {
     if (!_formKey.currentState!.validate()) return;
+    
+    String? selectedPlan;
+    if (_selectedRole == UserRole.owner) {
+      selectedPlan = _plans[_selectedPlanIndex].name;
+    }
+
     context.read<AuthBloc>().add(
           AuthRegisterEvent(
             email: _emailController.text.trim(),
@@ -69,6 +75,7 @@ class _RegisterPageState extends State<RegisterPage> {
             role: _selectedRole,
             cccd: _selectedRole == UserRole.tenant ? _cccdController.text.trim() : null,
             isOAuth: widget.initialEmail != null,
+            plan: selectedPlan,
           ),
         );
   }

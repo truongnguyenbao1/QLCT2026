@@ -10,6 +10,7 @@ class RegisterParams {
   final String phone;
   final UserRole role;
   final String? cccd;
+  final String? plan;
 
   RegisterParams({
     required this.email,
@@ -18,6 +19,7 @@ class RegisterParams {
     required this.phone,
     required this.role,
     this.cccd,
+    this.plan,
   });
 }
 
@@ -34,6 +36,7 @@ class RegisterUseCase {
       phone: params.phone,
       role: params.role,
       cccd: params.cccd,
+      plan: params.plan,
     );
   }
 }

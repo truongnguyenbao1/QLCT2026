@@ -172,6 +172,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         phone: event.phone,
         role: event.role,
         cccd: event.cccd,
+        plan: event.plan,
       ),
     );
     result.fold(

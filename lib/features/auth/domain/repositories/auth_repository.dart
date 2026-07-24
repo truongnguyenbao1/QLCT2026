@@ -18,6 +18,7 @@ abstract class AuthRepository {
     required String phone,
     required UserRole role,
     String? cccd,
+    String? plan,
   });
 
   /// Đăng xuất

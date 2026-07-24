@@ -35,6 +35,7 @@ class AuthRepositoryImpl implements AuthRepository {
     required String phone,
     required UserRole role,
     String? cccd,
+    String? plan,
   }) async {
     try {
       final user = await _remoteDataSource.register(
@@ -44,6 +45,7 @@ class AuthRepositoryImpl implements AuthRepository {
         phone: phone,
         role: role,
         cccd: cccd,
+        plan: plan,
       );
       return Right(user);
     } on Failure catch (f) {

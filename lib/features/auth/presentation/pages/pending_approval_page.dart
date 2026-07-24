@@ -3,16 +3,60 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
+import '../../domain/entities/app_user.dart';
 
-class PendingApprovalPage extends StatelessWidget {
+class PendingApprovalPage extends StatefulWidget {
   const PendingApprovalPage({super.key});
 
-  static const String _adminPhone = '0901234567'; // ← Thay SĐT của bạn
-  static const String _adminZalo = '0901234567';  // ← Thay SĐT Zalo của bạn
+  @override
+  State<PendingApprovalPage> createState() => _PendingApprovalPageState();
+}
+
+class _PendingApprovalPageState extends State<PendingApprovalPage> {
+  static const String _adminPhone = '0813872387';
+  static const String _adminZalo  = '0813872387';
+  static const String _adminEmail = 'nguyenbaotruong160@gmail.com';
+
+  Map<String, dynamic>? _subscription;
+  bool _isLoadingSubscription = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchSubscription();
+  }
+
+  Future<void> _fetchSubscription() async {
+    try {
+      final authState = context.read<AuthBloc>().state;
+      if (authState is AuthPendingApproval) {
+        final userId = authState.user.id;
+        final res = await Supabase.instance.client
+            .from('subscriptions')
+            .select()
+            .eq('owner_id', userId)
+            .order('created_at', ascending: false)
+            .limit(1)
+            .maybeSingle();
+        if (mounted) {
+          setState(() {
+            _subscription = res;
+            _isLoadingSubscription = false;
+          });
+        }
+      } else {
+        if (mounted) setState(() => _isLoadingSubscription = false);
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoadingSubscription = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,6 +95,17 @@ class PendingApprovalPage extends StatelessWidget {
                     .slideY(begin: 0.1),
 
                 const SizedBox(height: 32),
+
+                // ── Thanh toán QR Code (nếu có gói > 0đ) ──────────────────
+                if (_isLoadingSubscription)
+                  const Center(child: CircularProgressIndicator())
+                else if (_subscription != null && _subscription!['price_per_month'] > 0)
+                  Column(
+                    children: [
+                      _buildPaymentQR(),
+                      const SizedBox(height: 32),
+                    ],
+                  ),
 
                 // ── Timeline trạng thái ──────────────────────────────────
                 _buildTimeline().animate()
@@ -146,6 +201,98 @@ class PendingApprovalPage extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  Widget _buildPaymentQR() {
+    final price = _subscription!['price_per_month'];
+    final plan = _subscription!['plan'];
+    final authState = context.read<AuthBloc>().state;
+    final userId = authState is AuthPendingApproval ? authState.user.id.substring(0, 8).toUpperCase() : 'UNKNOWN';
+    final content = 'CHUOTRO $userId $plan';
+    
+    // Replace these with your actual bank details
+    const bankId = 'mbbank'; // e.g. vcb, mbbank, techcombank
+    const accountNo = '0813872387'; 
+    const accountName = 'TRUONG NGUYEN BAO';
+
+    final qrUrl = 'https://img.vietqr.io/image/$bankId-$accountNo-compact2.png?amount=$price&addInfo=${Uri.encodeComponent(content)}&accountName=${Uri.encodeComponent(accountName)}';
+
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          const Text(
+            'Quét mã để thanh toán & kích hoạt',
+            style: TextStyle(
+              color: Color(0xFF1E293B),
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.network(
+              qrUrl,
+              width: 250,
+              height: 250,
+              fit: BoxFit.contain,
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return const SizedBox(
+                  width: 250,
+                  height: 250,
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              },
+              errorBuilder: (context, error, stackTrace) => const SizedBox(
+                width: 250,
+                height: 250,
+                child: Center(child: Icon(Icons.qr_code, size: 100, color: Colors.grey)),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Số tiền: ${price.toString().replaceAll(RegExp(r'\B(?=(\d{3})+(?!\d))'), '.')} VNĐ',
+            style: const TextStyle(
+              color: Color(0xFFEF4444),
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Nội dung: $content',
+            style: const TextStyle(
+              color: Color(0xFF64748B),
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Sau khi chuyển khoản, tài khoản của bạn sẽ được kích hoạt trong vòng 5-10 phút.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Color(0xFF94A3B8),
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    ).animate().scale(delay: 400.ms, duration: 500.ms, curve: Curves.easeOutBack);
   }
 
   Widget _buildTimeline() {
@@ -315,6 +462,15 @@ class PendingApprovalPage extends StatelessWidget {
             onTap: () => launchUrl(
               Uri.parse('https://zalo.me/$_adminZalo'),
               mode: LaunchMode.externalApplication,
+            ),
+          ),
+          const SizedBox(height: 10),
+          _buildContactButton(
+            icon: Icons.email_rounded,
+            label: 'Email: $_adminEmail',
+            color: const Color(0xFF8B5CF6),
+            onTap: () => launchUrl(
+              Uri.parse('mailto:$_adminEmail?subject=Dang%20ky%20chu%20tro&body=Xin%20chao%2C%20toi%20muon%20dang%20ky%20tai%20khoan%20chu%20tro.'),
             ),
           ),
         ],

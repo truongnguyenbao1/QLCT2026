@@ -17,6 +17,7 @@ abstract class AuthRemoteDataSource {
     required String phone,
     required UserRole role,
     String? cccd,
+    String? plan,
   });
   Future<void> logout();
   Future<UserModel?> checkSession();
@@ -76,6 +77,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String phone,
     required UserRole role,
     String? cccd,
+    String? plan,
   }) async {
     try {
       Map<String, dynamic>? tenantData;
@@ -165,16 +167,32 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           'property_id': propertyId,
         }).eq('iduser', userId);
 
-        // Tạo subscription dùng thử 7 ngày
+        // Tạo subscription tùy theo gói đã chọn
         final trialEndsAt = DateTime.now().add(const Duration(days: 7));
+        int maxRooms = 10;
+        int price = 49000;
+        String planCode = 'BASIC';
+
+        if (plan != null) {
+          if (plan.contains('Tiêu chuẩn')) {
+            planCode = 'STANDARD';
+            maxRooms = 30;
+            price = 99000;
+          } else if (plan.contains('Chuyên nghiệp')) {
+            planCode = 'PRO';
+            maxRooms = -1; // Unlimited
+            price = 199000;
+          }
+        }
+
         await _client.from('subscriptions').insert({
           'owner_id': userId,
           'property_id': propertyId,
-          'plan': 'TRIAL',
+          'plan': planCode,
           'status': 'PENDING',
           'trial_ends_at': trialEndsAt.toIso8601String(),
-          'max_rooms': 10,
-          'price_per_month': 0,
+          'max_rooms': maxRooms,
+          'price_per_month': price,
         });
       }
 

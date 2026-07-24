@@ -51,6 +51,7 @@ class AuthRegisterEvent extends AuthEvent {
   final UserRole role;
   final String? cccd;
   final bool isOAuth;
+  final String? plan; // Gói được chọn (Cơ bản, Tiêu chuẩn, Chuyên nghiệp)
 
   const AuthRegisterEvent({
     required this.email,
@@ -60,10 +61,11 @@ class AuthRegisterEvent extends AuthEvent {
     required this.role,
     this.cccd,
     this.isOAuth = false,
+    this.plan,
   });
 
   @override
-  List<Object?> get props => [email, password, fullName, phone, role, cccd, isOAuth];
+  List<Object?> get props => [email, password, fullName, phone, role, cccd, isOAuth, plan];
 }
 
 class AuthUpdateProfileEvent extends AuthEvent {
