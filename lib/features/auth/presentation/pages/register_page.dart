@@ -571,50 +571,52 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   // ── Pricing Section ────────────────────────────────────────────────────
+  List<_PlanData> get _plans => [
+    _PlanData(
+      name: 'Cơ bản',
+      price: '49.000',
+      maxRooms: 10,
+      color: const Color(0xFF6366F1),
+      features: [
+        'Tối đa 10 phòng',
+        'Quản lý hóa đơn hàng tháng',
+        'Báo cáo thu chi cơ bản',
+        'Hỗ trợ qua email',
+      ],
+      badge: null,
+    ),
+    _PlanData(
+      name: 'Tiêu chuẩn',
+      price: '99.000',
+      maxRooms: 30,
+      color: const Color(0xFF0EA5E9),
+      features: [
+        'Tối đa 30 phòng',
+        'Tất cả tính năng Cơ bản',
+        'Thông báo đến khách thuê',
+        'QR thanh toán MoMo/VietQR',
+        'Hỗ trợ qua Zalo',
+      ],
+      badge: 'PHỔ BIẾN',
+    ),
+    _PlanData(
+      name: 'Chuyên nghiệp',
+      price: '199.000',
+      maxRooms: -1,
+      color: const Color(0xFF8B5CF6),
+      features: [
+        'Không giới hạn phòng',
+        'Tất cả tính năng Tiêu chuẩn',
+        'Phân quyền nhân viên (Sắp ra mắt)',
+        'Tùy chỉnh biểu mẫu hợp đồng',
+        'Hỗ trợ ưu tiên 24/7',
+      ],
+      badge: null,
+    ),
+  ];
+
   Widget _buildPricingSection() {
-    final plans = [
-      _PlanData(
-        name: 'Cơ bản',
-        price: '49.000',
-        maxRooms: 10,
-        color: const Color(0xFF6366F1),
-        features: [
-          'Tối đa 10 phòng',
-          'Quản lý hóa đơn hàng tháng',
-          'Báo cáo thu chi cơ bản',
-          'Hỗ trợ qua email',
-        ],
-        badge: null,
-      ),
-      _PlanData(
-        name: 'Tiêu chuẩn',
-        price: '99.000',
-        maxRooms: 30,
-        color: const Color(0xFF0EA5E9),
-        features: [
-          'Tối đa 30 phòng',
-          'Tất cả tính năng Cơ bản',
-          'Thông báo đến khách thuê',
-          'QR thanh toán MoMo/VietQR',
-          'Hỗ trợ qua Zalo',
-        ],
-        badge: 'Phổ biến nhất ⭐',
-      ),
-      _PlanData(
-        name: 'Chuyên nghiệp',
-        price: '199.000',
-        maxRooms: -1, // unlimited
-        color: const Color(0xFF10B981),
-        features: [
-          'Không giới hạn phòng',
-          'Tất cả tính năng Tiêu chuẩn',
-          'Báo cáo nâng cao & xuất PDF',
-          'Hỗ trợ ưu tiên 24/7',
-          'Tùy chỉnh logo nhà trọ',
-        ],
-        badge: null,
-      ),
-    ];
+    final plans = _plans;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
