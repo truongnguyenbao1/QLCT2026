@@ -25,11 +25,46 @@ class _PendingApprovalPageState extends State<PendingApprovalPage> {
 
   Map<String, dynamic>? _subscription;
   bool _isLoadingSubscription = true;
+  RealtimeChannel? _subscriptionChannel;
 
   @override
   void initState() {
     super.initState();
     _fetchSubscription();
+    _setupRealtime();
+  }
+
+  void _setupRealtime() {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthPendingApproval) {
+      final userId = authState.user.id;
+      _subscriptionChannel = Supabase.instance.client
+          .channel('public:subscriptions')
+          .onPostgresChanges(
+            event: PostgresChangeEvent.update,
+            schema: 'public',
+            table: 'subscriptions',
+            filter: PostgresChangeFilter(
+              type: PostgresChangeFilterType.eq,
+              column: 'owner_id',
+              value: userId,
+            ),
+            callback: (payload) {
+              final newRecord = payload.newRecord;
+              if (newRecord['status'] == 'ACTIVE') {
+                // Tự động load lại AuthBloc để vào Dashboard
+                context.read<AuthBloc>().add(const AuthCheckSessionEvent());
+              }
+            },
+          )
+          .subscribe();
+    }
+  }
+
+  @override
+  void dispose() {
+    _subscriptionChannel?.unsubscribe();
+    super.dispose();
   }
 
   Future<void> _fetchSubscription() async {
@@ -37,13 +72,37 @@ class _PendingApprovalPageState extends State<PendingApprovalPage> {
       final authState = context.read<AuthBloc>().state;
       if (authState is AuthPendingApproval) {
         final userId = authState.user.id;
-        final res = await Supabase.instance.client
+        var res = await Supabase.instance.client
             .from('subscriptions')
             .select()
             .eq('owner_id', userId)
             .order('created_at', ascending: false)
             .limit(1)
             .maybeSingle();
+
+        if (res != null) {
+          // Gọi Edge Function để tạo payment link nếu chưa có order_code
+          if (res['order_code'] == null && res['price_per_month'] > 0) {
+            try {
+              final funcRes = await Supabase.instance.client.functions.invoke(
+                'create-payment-link',
+                body: {
+                  'amount': res['price_per_month'],
+                  'description': 'Thanh toan', // max 25 chars
+                  'type': 'SUBSCRIPTION',
+                  'reference_id': res['id'],
+                },
+              );
+              // Lấy orderCode mới tạo từ PayOS response
+              if (funcRes.data != null && funcRes.data['orderCode'] != null) {
+                res['order_code'] = funcRes.data['orderCode'];
+              }
+            } catch (e) {
+              debugPrint('Lỗi khi gọi create-payment-link: $e');
+            }
+          }
+        }
+
         if (mounted) {
           setState(() {
             _subscription = res;
@@ -205,10 +264,8 @@ class _PendingApprovalPageState extends State<PendingApprovalPage> {
 
   Widget _buildPaymentQR() {
     final price = _subscription!['price_per_month'];
-    final plan = _subscription!['plan'];
-    final authState = context.read<AuthBloc>().state;
-    final userId = authState is AuthPendingApproval ? authState.user.id.substring(0, 8).toUpperCase() : 'UNKNOWN';
-    final content = 'CHUOTRO $userId $plan';
+    final orderCode = _subscription!['order_code']?.toString() ?? '';
+    final content = orderCode.isNotEmpty ? orderCode : 'DANG TAO MA';
     
     // Replace these with your actual bank details
     const bankId = 'mbbank'; // e.g. vcb, mbbank, techcombank
