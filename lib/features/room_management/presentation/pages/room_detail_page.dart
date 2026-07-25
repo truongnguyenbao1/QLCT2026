@@ -394,7 +394,7 @@ class RoomDetailPage extends StatelessWidget {
                         child: Text(tenant.fullName.isNotEmpty ? tenant.fullName[0].toUpperCase() : '?', style: TextStyle(color: theme.colorScheme.onPrimaryContainer)),
                       ),
                       title: Text(tenant.fullName, style: const TextStyle(fontWeight: FontWeight.w500)),
-                      subtitle: Text(tenant.phoneNumber),
+                      subtitle: Text('CCCD: ${tenant.cccdNumber} - SĐT: ${tenant.phoneNumber}'),
                       trailing: PopupMenuButton<String>(
                         icon: const Icon(Icons.more_vert_rounded),
                         onSelected: (value) async {

@@ -13,6 +13,7 @@ import '../../../../features/auth/presentation/bloc/auth_state.dart';
 import '../../domain/entities/room.dart';
 import '../bloc/room_bloc.dart';
 import '../../../tenant_management/presentation/widgets/tenant_search_dialog.dart';
+import '../../../tenant_management/presentation/widgets/room_tenants_dialog.dart';
 
 class RoomsListPage extends StatelessWidget {
   const RoomsListPage({super.key});
@@ -359,6 +360,11 @@ class _RoomCard extends StatelessWidget {
           if (added == true && context.mounted) {
             context.read<RoomBloc>().add(LoadRoomsEvent(propertyId));
           }
+        } else if (room.status == RoomStatus.occupied) {
+          await RoomTenantsDialog.show(context, room.id, room.roomNumber);
+          if (context.mounted) {
+            context.read<RoomBloc>().add(LoadRoomsEvent(propertyId));
+          }
         } else {
           await context.push('/rooms/${room.id}');
           if (context.mounted) {
@@ -422,7 +428,12 @@ class _RoomCard extends StatelessWidget {
                         final authState = context.read<AuthBloc>().state;
                         final propertyId = authState is AuthAuthenticated ? authState.user.propertyId ?? '' : '';
 
-                        if (value == 'edit') {
+                        if (value == 'detail') {
+                          await context.push('/rooms/${room.id}');
+                          if (context.mounted) {
+                            context.read<RoomBloc>().add(LoadRoomsEvent(propertyId));
+                          }
+                        } else if (value == 'edit') {
                           await context.push('/rooms/${room.id}/edit');
                           if (context.mounted) {
                             context.read<RoomBloc>().add(LoadRoomsEvent(propertyId));
@@ -488,6 +499,10 @@ class _RoomCard extends StatelessWidget {
                         }
                       },
                       itemBuilder: (context) => [
+                        const PopupMenuItem(
+                          value: 'detail',
+                          child: Row(children: [Icon(Icons.info_outline_rounded, size: 20, color: Colors.blue), SizedBox(width: 8), Text('Chi tiết', style: TextStyle(color: Colors.blue))]),
+                        ),
                         const PopupMenuItem(
                           value: 'edit',
                           child: Row(children: [Icon(Icons.edit_rounded, size: 20), SizedBox(width: 8), Text('Sửa')]),
