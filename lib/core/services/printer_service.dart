@@ -61,10 +61,18 @@ class PrinterService {
   static Future<PrintResult> printInvoiceToThermal({
     required Invoice invoice,
     String printerName = defaultThermalPrinter,
+    String? ownerName,
+    String? ownerPhone,
+    String? webAddress,
   }) async {
     try {
       // 1. Tạo PDF dạng phiếu nhiệt 80mm
-      final pdfBytes = await generateReceiptPdf(invoice);
+      final pdfBytes = await generateReceiptPdf(
+        invoice,
+        ownerName: ownerName,
+        ownerPhone: ownerPhone,
+        webAddress: webAddress,
+      );
 
       // 2. Tìm máy in theo tên
       final printer = await findPrinterByName(printerName);
@@ -94,9 +102,19 @@ class PrinterService {
   }
 
   /// In hóa đơn với dialog chọn máy in
-  static Future<bool> printInvoiceWithDialog(Invoice invoice) async {
+  static Future<bool> printInvoiceWithDialog(
+    Invoice invoice, {
+    String? ownerName,
+    String? ownerPhone,
+    String? webAddress,
+  }) async {
     try {
-      final pdfBytes = await generateReceiptPdf(invoice);
+      final pdfBytes = await generateReceiptPdf(
+        invoice,
+        ownerName: ownerName,
+        ownerPhone: ownerPhone,
+        webAddress: webAddress,
+      );
       return await Printing.layoutPdf(
         onLayout: (_) async => pdfBytes,
         name: 'HoaDon_Phong${invoice.roomNumber}_T${invoice.month}_${invoice.year}',
@@ -113,8 +131,18 @@ class PrinterService {
   }
 
   /// Chia sẻ hóa đơn PDF qua các ứng dụng khác
-  static Future<void> shareInvoice(Invoice invoice) async {
-    final pdfBytes = await generateA4Pdf(invoice);
+  static Future<void> shareInvoice(
+    Invoice invoice, {
+    String? ownerName,
+    String? ownerPhone,
+    String? webAddress,
+  }) async {
+    final pdfBytes = await generateA4Pdf(
+      invoice,
+      ownerName: ownerName,
+      ownerPhone: ownerPhone,
+      webAddress: webAddress,
+    );
     await Printing.sharePdf(
       bytes: pdfBytes,
       filename:
@@ -123,7 +151,12 @@ class PrinterService {
   }
 
   // ── Tạo PDF biên lai nhiệt 80mm ─────────────────────────────────────────
-  static Future<Uint8List> generateReceiptPdf(Invoice invoice) async {
+  static Future<Uint8List> generateReceiptPdf(
+    Invoice invoice, {
+    String? ownerName,
+    String? ownerPhone,
+    String? webAddress,
+  }) async {
     final pdf = pw.Document();
 
     final font = await PdfGoogleFonts.robotoRegular();
@@ -284,12 +317,35 @@ class PrinterService {
                 ],
               ),
               pw.SizedBox(height: 8),
+              if (ownerName != null || ownerPhone != null) ...[
+                pw.Text('Lien he Chu tro:', style: pw.TextStyle(font: fontBold, fontSize: 9)),
+                if (ownerName != null) pw.Text(ownerName, style: pw.TextStyle(font: font, fontSize: 9)),
+                if (ownerPhone != null) pw.Text(ownerPhone, style: pw.TextStyle(font: font, fontSize: 9)),
+                pw.SizedBox(height: 4),
+              ],
               pw.Text(
                 'Cam on quy khach! Hen gap lai.',
                 style: pw.TextStyle(font: fontBold, fontSize: 9),
                 textAlign: pw.TextAlign.center,
               ),
               pw.SizedBox(height: 8),
+              if (webAddress != null) ...[
+                pw.Center(
+                  child: pw.BarcodeWidget(
+                    barcode: pw.Barcode.qrCode(),
+                    data: webAddress,
+                    width: 60,
+                    height: 60,
+                  ),
+                ),
+                pw.SizedBox(height: 4),
+                pw.Text(
+                  'Quet QR hoac truy cap de dang ky/tra cuu:\n$webAddress',
+                  style: pw.TextStyle(font: font, fontSize: 8),
+                  textAlign: pw.TextAlign.center,
+                ),
+                pw.SizedBox(height: 8),
+              ],
               pw.Text(
                 '- - - - - - - - - - - - - - - - - - -',
                 style: pw.TextStyle(font: font, fontSize: 8),
@@ -308,7 +364,12 @@ class PrinterService {
   }
 
   // ── Tạo PDF A4 đầy đủ ─────────────────────────────────────────────────────
-  static Future<Uint8List> generateA4Pdf(Invoice invoice) async {
+  static Future<Uint8List> generateA4Pdf(
+    Invoice invoice, {
+    String? ownerName,
+    String? ownerPhone,
+    String? webAddress,
+  }) async {
     final pdf = pw.Document();
     final font = await PdfGoogleFonts.robotoRegular();
     final fontBold = await PdfGoogleFonts.robotoBold();
@@ -332,6 +393,25 @@ class PrinterService {
                   style: pw.TextStyle(font: font, fontSize: 14),
                 ),
               ),
+              if (ownerName != null || ownerPhone != null) ...[
+                pw.SizedBox(height: 10),
+                pw.Container(
+                  padding: const pw.EdgeInsets.all(8),
+                  decoration: pw.BoxDecoration(
+                    color: PdfColors.grey100,
+                    borderRadius: pw.BorderRadius.circular(4),
+                  ),
+                  child: pw.Row(
+                    children: [
+                      pw.Text('Chủ trọ: ', style: pw.TextStyle(font: fontBold, fontSize: 12)),
+                      pw.Text(ownerName ?? '', style: pw.TextStyle(font: font, fontSize: 12)),
+                      pw.SizedBox(width: 20),
+                      pw.Text('Liên hệ: ', style: pw.TextStyle(font: fontBold, fontSize: 12)),
+                      pw.Text(ownerPhone ?? '', style: pw.TextStyle(font: font, fontSize: 12)),
+                    ],
+                  ),
+                ),
+              ],
               pw.SizedBox(height: 20),
               pw.Text(
                 'Phòng: ${invoice.roomNumber}',

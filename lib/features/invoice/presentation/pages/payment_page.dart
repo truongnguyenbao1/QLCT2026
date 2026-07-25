@@ -217,6 +217,14 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
     if (!connected) return; // Nếu máy in chưa kết nối, bỏ qua
     
     try {
+      final authState = context.read<AuthBloc>().state;
+      String? ownerName;
+      String? ownerPhone;
+      if (authState is AuthAuthenticated) {
+        ownerName = authState.user.fullName;
+        ownerPhone = authState.user.phone;
+      }
+      
       final bytes = await printerService.generateInvoiceTicket(
         propertyName: 'HÓA ĐƠN NHÀ TRỌ', 
         roomName: invoice.roomNumber,
@@ -224,6 +232,9 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
         year: invoice.year,
         totalAmount: invoice.totalAmount,
         invoiceId: invoice.id.substring(0, 8).toUpperCase(),
+        ownerName: ownerName,
+        ownerPhone: ownerPhone,
+        webAddress: 'https://quanly-nhatro-2026.web.app',
       );
       await printerService.printTicket(bytes);
     } catch (e) {

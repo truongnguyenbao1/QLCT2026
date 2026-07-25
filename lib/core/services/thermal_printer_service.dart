@@ -42,6 +42,9 @@ class ThermalPrinterService {
     required double totalAmount,
     required String invoiceId,
     String? paymentQrData,
+    String? ownerName,
+    String? ownerPhone,
+    String? webAddress,
   }) async {
     final generator = await getGenerator(size: PaperSize.mm58);
     List<int> bytes = [];
@@ -89,6 +92,25 @@ class ThermalPrinterService {
         styles: const PosStyles(align: PosAlign.center));
     
     bytes += generator.emptyLines(1);
+    
+    // Thông tin liên hệ
+    if (ownerName != null || ownerPhone != null) {
+      bytes += generator.text('Lien he Chu tro:', styles: const PosStyles(bold: true));
+      if (ownerName != null) bytes += generator.text(ownerName);
+      if (ownerPhone != null) bytes += generator.text(ownerPhone);
+      bytes += generator.emptyLines(1);
+    }
+    
+    // Website đăng ký / tra cứu
+    if (webAddress != null) {
+      bytes += generator.text('Quet de dang ky / tra cuu HD:',
+          styles: const PosStyles(align: PosAlign.center, bold: true));
+      bytes += generator.qrcode(webAddress, size: QRSize.size6);
+      bytes += generator.text(webAddress,
+          styles: const PosStyles(align: PosAlign.center));
+      bytes += generator.emptyLines(1);
+    }
+
     bytes += generator.text('Cam on quy khach!',
         styles: const PosStyles(align: PosAlign.center, bold: true));
     

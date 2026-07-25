@@ -10,9 +10,12 @@ import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 
+import '../../features/auth/presentation/bloc/auth_bloc.dart';
+import '../../features/auth/presentation/bloc/auth_state.dart';
 import '../../features/invoice/domain/entities/invoice.dart';
 import '../constants/app_colors.dart';
 import '../services/printer_service.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class PrintInvoiceDialog extends StatefulWidget {
   final Invoice invoice;
@@ -75,10 +78,30 @@ class _PrintInvoiceDialogState extends State<PrintInvoiceDialog> {
   Future<void> _print() async {
     setState(() => _isPrinting = true);
     try {
+      // Lấy thông tin chủ trọ
+      final authState = context.read<AuthBloc>().state;
+      String? ownerName;
+      String? ownerPhone;
+      if (authState is AuthAuthenticated) {
+        ownerName = authState.user.fullName;
+        ownerPhone = authState.user.phone;
+      }
+      const webAddress = 'https://quanly-nhatro-2026.web.app';
+
       // Tạo PDF theo kích thước đã chọn
       final pdfBytes = _printSize == _PrintSize.thermal
-          ? await PrinterService.generateReceiptPdf(widget.invoice)
-          : await PrinterService.generateA4Pdf(widget.invoice);
+          ? await PrinterService.generateReceiptPdf(
+              widget.invoice,
+              ownerName: ownerName,
+              ownerPhone: ownerPhone,
+              webAddress: webAddress,
+            )
+          : await PrinterService.generateA4Pdf(
+              widget.invoice,
+              ownerName: ownerName,
+              ownerPhone: ownerPhone,
+              webAddress: webAddress,
+            );
 
       bool ok;
 
@@ -130,8 +153,22 @@ class _PrintInvoiceDialogState extends State<PrintInvoiceDialog> {
   }
 
   Future<void> _shareAsPdf() async {
+    final authState = context.read<AuthBloc>().state;
+    String? ownerName;
+    String? ownerPhone;
+    if (authState is AuthAuthenticated) {
+      ownerName = authState.user.fullName;
+      ownerPhone = authState.user.phone;
+    }
+    const webAddress = 'https://quanly-nhatro-2026.web.app';
+
     Navigator.pop(context);
-    await PrinterService.shareInvoice(widget.invoice);
+    await PrinterService.shareInvoice(
+      widget.invoice,
+      ownerName: ownerName,
+      ownerPhone: ownerPhone,
+      webAddress: webAddress,
+    );
   }
 
   @override
