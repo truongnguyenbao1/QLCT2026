@@ -114,7 +114,15 @@ class TenantListPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 24),
                     FilledButton.icon(
-                      onPressed: () => context.push(AppRoutes.addTenant),
+                      onPressed: () async {
+                        await context.push(AppRoutes.addTenant);
+                        if (context.mounted) {
+                          final authState = context.read<AuthBloc>().state;
+                          if (authState is AuthAuthenticated) {
+                            context.read<TenantBloc>().add(LoadTenantsEvent(propertyId: authState.user.propertyId));
+                          }
+                        }
+                      },
                       icon: const Icon(Icons.person_add_rounded),
                       label: const Text('Thêm khách thuê'),
                     ),
@@ -178,9 +186,15 @@ class TenantListPage extends StatelessWidget {
                             icon: const Icon(Icons.more_vert_rounded),
                             onSelected: (value) async {
                               if (value == 'edit') {
-                                context.push(
+                                await context.push(
                                   AppRoutes.editTenant.replaceFirst(':tenantId', tenant.id),
                                 );
+                                if (context.mounted) {
+                                  final authState = context.read<AuthBloc>().state;
+                                  if (authState is AuthAuthenticated) {
+                                    context.read<TenantBloc>().add(LoadTenantsEvent(propertyId: authState.user.propertyId));
+                                  }
+                                }
                               } else if (value == 'delete') {
                                 final confirm = await showDialog<bool>(
                                   context: context,
@@ -215,9 +229,17 @@ class TenantListPage extends StatelessWidget {
                           ),
                         ],
                       ),
-                      onTap: () => context.push(
-                        AppRoutes.editTenant.replaceFirst(':tenantId', tenant.id),
-                      ),
+                      onTap: () async {
+                        await context.push(
+                          AppRoutes.editTenant.replaceFirst(':tenantId', tenant.id),
+                        );
+                        if (context.mounted) {
+                          final authState = context.read<AuthBloc>().state;
+                          if (authState is AuthAuthenticated) {
+                            context.read<TenantBloc>().add(LoadTenantsEvent(propertyId: authState.user.propertyId));
+                          }
+                        }
+                      },
                     ),
                   );
                 },
@@ -227,7 +249,15 @@ class TenantListPage extends StatelessWidget {
           },
         ),
         floatingActionButton: FloatingActionButton.extended(
-          onPressed: () => context.push(AppRoutes.addTenant),
+          onPressed: () async {
+            await context.push(AppRoutes.addTenant);
+            if (context.mounted) {
+              final authState = context.read<AuthBloc>().state;
+              if (authState is AuthAuthenticated) {
+                context.read<TenantBloc>().add(LoadTenantsEvent(propertyId: authState.user.propertyId));
+              }
+            }
+          },
           icon: const Icon(Icons.person_add_rounded),
           label: const Text('Thêm khách thuê'),
         ),

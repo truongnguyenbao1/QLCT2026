@@ -18,8 +18,8 @@ class RoomTenantsDialog extends StatefulWidget {
     required this.roomNumber,
   });
 
-  static Future<void> show(BuildContext context, String roomId, String roomNumber) {
-    return showDialog<void>(
+  static Future<String?> show(BuildContext context, String roomId, String roomNumber) {
+    return showDialog<String>(
       context: context,
       builder: (dialogContext) => RoomTenantsDialog(
         roomId: roomId,
@@ -165,8 +165,7 @@ class _RoomTenantsDialogState extends State<RoomTenantsDialog> {
                         icon: const Icon(Icons.more_vert_rounded),
                         onSelected: (value) async {
                           if (value == 'edit') {
-                            context.pop(); // close dialog first to go to edit page
-                            context.push('/tenants/${tenant.id}/edit');
+                            context.pop('edit_${tenant.id}');
                           } else if (value == 'delete') {
                             final confirm = await showDialog<bool>(
                               context: context,
@@ -214,8 +213,7 @@ class _RoomTenantsDialogState extends State<RoomTenantsDialog> {
         actions: [
           TextButton(
             onPressed: () {
-              context.pop();
-              context.push('/rooms/${widget.roomId}');
+              context.pop('detail');
             },
             child: const Text('Chi tiết phòng'),
           ),

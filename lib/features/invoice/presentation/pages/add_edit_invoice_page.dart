@@ -201,7 +201,7 @@ class _AddEditInvoiceViewState extends State<_AddEditInvoiceView> {
             SnackBar(content: Text(state.message)),
           );
           // Redirect to invoice list or detail (we can pop for now)
-          context.pop();
+          context.pop(true);
         } else if (state is InvoiceError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.message), backgroundColor: Colors.red),

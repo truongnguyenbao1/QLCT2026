@@ -123,9 +123,11 @@ class _TenantSearchDialogState extends State<TenantSearchDialog> {
                       TextButton.icon(
                         icon: const Icon(Icons.person_add),
                         label: const Text('Thêm khách thuê mới'),
-                        onPressed: () {
-                          context.pop(); // Close dialog
-                          context.push('/tenants/add?roomId=${widget.roomId}');
+                        onPressed: () async {
+                          final result = await context.push<bool>('/tenants/add?roomId=${widget.roomId}');
+                          if (result == true && context.mounted) {
+                            context.pop(true);
+                          }
                         },
                       ),
                     ],
@@ -154,9 +156,11 @@ class _TenantSearchDialogState extends State<TenantSearchDialog> {
               ),
               if (state is! TenantSearchSuccess)
                 TextButton(
-                  onPressed: () {
-                    context.pop();
-                    context.push('/tenants/add?roomId=${widget.roomId}');
+                  onPressed: () async {
+                    final result = await context.push<bool>('/tenants/add?roomId=${widget.roomId}');
+                    if (result == true && context.mounted) {
+                      context.pop(true);
+                    }
                   },
                   child: const Text('Thêm mới'),
                 ),

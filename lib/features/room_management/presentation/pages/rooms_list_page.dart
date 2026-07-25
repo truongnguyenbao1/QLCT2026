@@ -184,7 +184,15 @@ class _RoomsListViewState extends State<_RoomsListView> {
       ),
       floatingActionButton: isOwner
           ? FloatingActionButton.extended(
-              onPressed: () => context.go('/rooms/add'),
+              onPressed: () async {
+                await context.push('/rooms/add');
+                if (context.mounted) {
+                  final authState = context.read<AuthBloc>().state;
+                  if (authState is AuthAuthenticated) {
+                    context.read<RoomBloc>().add(LoadRoomsEvent(authState.user.propertyId ?? ''));
+                  }
+                }
+              },
               icon: const Icon(Icons.add_rounded),
               label: const Text('Thêm phòng'),
             )
@@ -361,7 +369,13 @@ class _RoomCard extends StatelessWidget {
             context.read<RoomBloc>().add(LoadRoomsEvent(propertyId));
           }
         } else if (room.status == RoomStatus.occupied) {
-          await RoomTenantsDialog.show(context, room.id, room.roomNumber);
+          final result = await RoomTenantsDialog.show(context, room.id, room.roomNumber);
+          if (result == 'detail') {
+            await context.push('/rooms/${room.id}');
+          } else if (result != null && result.startsWith('edit_')) {
+            final tenantId = result.substring(5);
+            await context.push('/tenants/$tenantId/edit');
+          }
           if (context.mounted) {
             context.read<RoomBloc>().add(LoadRoomsEvent(propertyId));
           }

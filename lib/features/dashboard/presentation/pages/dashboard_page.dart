@@ -212,19 +212,43 @@ class _DashboardContent extends StatelessWidget {
               _QuickAction(
                 icon: Icons.add_home_rounded,
                 label: 'Thêm phòng',
-                onTap: () => context.push(AppRoutes.addRoom),
+                onTap: () async {
+                  await context.push(AppRoutes.addRoom);
+                  if (context.mounted) {
+                    final authState = context.read<AuthBloc>().state;
+                    if (authState is AuthAuthenticated) {
+                      context.read<DashboardBloc>().add(LoadDashboardEvent(authState.user.propertyId ?? ''));
+                    }
+                  }
+                },
               ),
               const SizedBox(width: 12),
               _QuickAction(
                 icon: Icons.person_add_rounded,
                 label: 'Thêm khách',
-                onTap: () => context.push(AppRoutes.addTenant),
+                onTap: () async {
+                  await context.push(AppRoutes.addTenant);
+                  if (context.mounted) {
+                    final authState = context.read<AuthBloc>().state;
+                    if (authState is AuthAuthenticated) {
+                      context.read<DashboardBloc>().add(LoadDashboardEvent(authState.user.propertyId ?? ''));
+                    }
+                  }
+                },
               ),
               const SizedBox(width: 12),
               _QuickAction(
                 icon: Icons.receipt_long_rounded,
                 label: 'Tạo hóa đơn',
-                onTap: () => context.push(AppRoutes.createInvoice),
+                onTap: () async {
+                  await context.push(AppRoutes.createInvoice);
+                  if (context.mounted) {
+                    final authState = context.read<AuthBloc>().state;
+                    if (authState is AuthAuthenticated) {
+                      context.read<DashboardBloc>().add(LoadDashboardEvent(authState.user.propertyId ?? ''));
+                    }
+                  }
+                },
               ),
             ],
           ),

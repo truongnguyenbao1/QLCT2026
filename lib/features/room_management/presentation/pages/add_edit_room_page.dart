@@ -130,7 +130,7 @@ class _AddEditRoomPageState extends State<AddEditRoomPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.message)),
           );
-          context.pop();
+          context.pop(true);
         } else if (state is RoomError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.message), backgroundColor: Colors.red),

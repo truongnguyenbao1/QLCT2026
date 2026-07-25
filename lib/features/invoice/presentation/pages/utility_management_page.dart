@@ -179,8 +179,11 @@ class _UtilityManagementViewState extends State<_UtilityManagementView> {
                                   ? IconButton(
                                       icon: const Icon(Icons.edit_outlined, color: Colors.blueGrey),
                                       tooltip: 'Sửa chỉ số',
-                                      onPressed: () {
-                                        context.push('/invoices/${invoice.id}/edit', extra: invoice);
+                                      onPressed: () async {
+                                        await context.push('/invoices/${invoice.id}/edit', extra: invoice);
+                                        if (context.mounted) {
+                                          _fetchData();
+                                        }
                                       },
                                     )
                                   : FilledButton.tonal(
@@ -188,8 +191,11 @@ class _UtilityManagementViewState extends State<_UtilityManagementView> {
                                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
                                         minimumSize: const Size(80, 36),
                                       ),
-                                      onPressed: () {
-                                        context.push('${AppRoutes.createInvoice}?roomId=${room.id}');
+                                      onPressed: () async {
+                                        await context.push('${AppRoutes.createInvoice}?roomId=${room.id}');
+                                        if (context.mounted) {
+                                          _fetchData();
+                                        }
                                       },
                                       child: const Text('Chốt sổ'),
                                     ),

@@ -107,7 +107,11 @@ class _InvoiceDetailContent extends StatelessWidget {
               onSelected: (value) {
                 if (value == 'edit') {
                   _showPasswordConfirmationDialog(context, 'Sửa hóa đơn', () {
-                    context.push('/invoices/${invoice.id}/edit', extra: invoice);
+                    context.push('/invoices/${invoice.id}/edit', extra: invoice).then((_) {
+                      if (context.mounted) {
+                        context.read<InvoiceBloc>().add(LoadInvoiceDetailEvent(invoice.id));
+                      }
+                    });
                   });
                 } else if (value == 'delete') {
                   _showPasswordConfirmationDialog(context, 'Xóa hóa đơn', () {
@@ -680,9 +684,15 @@ class _ActionButtons extends StatelessWidget {
 
             // Nút thanh toán QR - luôn hiển thị khi chưa paid
             OutlinedButton.icon(
-              onPressed: () => context.push(
-                '/invoices/${invoice.id}/payment',
-              ),
+              onPressed: () {
+                context.push(
+                  '/invoices/${invoice.id}/payment',
+                ).then((_) {
+                  if (context.mounted) {
+                    context.read<InvoiceBloc>().add(LoadInvoiceDetailEvent(invoice.id));
+                  }
+                });
+              },
               icon: const Icon(Icons.qr_code_rounded),
               label: const Text('Thanh toán qua QR / Chuyển khoản'),
               style: OutlinedButton.styleFrom(

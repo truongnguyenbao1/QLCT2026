@@ -344,7 +344,7 @@ class _AddEditTenantFormState extends State<_AddEditTenantForm> {
                   backgroundColor: AppColors.success,
                 ),
               );
-              context.pop();
+              context.pop(true);
             } else if (state is TenantError) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(

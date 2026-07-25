@@ -399,7 +399,13 @@ class RoomDetailPage extends StatelessWidget {
                         icon: const Icon(Icons.more_vert_rounded),
                         onSelected: (value) async {
                           if (value == 'edit') {
-                            context.push('/tenants/${tenant.id}/edit');
+                            await context.push('/tenants/${tenant.id}/edit');
+                            if (context.mounted) {
+                              final authState = context.read<AuthBloc>().state;
+                              if (authState is AuthAuthenticated) {
+                                context.read<TenantBloc>().add(LoadTenantsEvent(roomId: room.id, propertyId: authState.user.propertyId, isActive: true));
+                              }
+                            }
                           } else if (value == 'delete') {
                             final confirm = await showDialog<bool>(
                               context: context,
