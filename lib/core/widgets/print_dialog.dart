@@ -10,8 +10,14 @@ import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 
+import 'dart:typed_data';
+
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/auth/presentation/bloc/auth_state.dart';
+import 'package:http/http.dart' as http;
+import '../../features/payment_settings/domain/repositories/payment_settings_repository.dart';
+import '../../core/di/injection.dart';
+
 import '../../features/invoice/domain/entities/invoice.dart';
 import '../constants/app_colors.dart';
 import '../services/printer_service.dart';
@@ -88,6 +94,29 @@ class _PrintInvoiceDialogState extends State<PrintInvoiceDialog> {
       }
       const webAddress = 'https://app.tnb.io.vn';
 
+      // ── Tải ảnh VietQR (nếu có) ──────────────────────────────────────────
+      Uint8List? vietQrImage;
+      try {
+        final repo = getIt<PaymentSettingsRepository>();
+        final settings = await repo.getByUserId(widget.invoice.createdBy);
+        if (settings != null && settings.hasBankInfo) {
+          final noteRaw = settings.transferNoteTemplate ?? 'Phong {room} thang {month}/{year}';
+          final noteProcessed = noteRaw
+              .replaceAll('{room}', widget.invoice.roomNumber)
+              .replaceAll('{month}', widget.invoice.month.toString())
+              .replaceAll('{year}', widget.invoice.year.toString());
+          final amount = widget.invoice.totalAmount.toInt();
+          final url = 'https://img.vietqr.io/image/${settings.bankCode!}-${settings.accountNumber!}-qr_only.png?accountName=${Uri.encodeComponent(settings.accountName ?? "")}&addInfo=${Uri.encodeComponent(noteProcessed)}&amount=$amount';
+          
+          final res = await http.get(Uri.parse(url));
+          if (res.statusCode == 200) {
+            vietQrImage = res.bodyBytes;
+          }
+        }
+      } catch (e) {
+        debugPrint('Lỗi tải VietQR: $e');
+      }
+
       // Tạo PDF theo kích thước đã chọn
       final pdfBytes = _printSize == _PrintSize.thermal
           ? await PrinterService.generateReceiptPdf(
@@ -95,12 +124,14 @@ class _PrintInvoiceDialogState extends State<PrintInvoiceDialog> {
               ownerName: ownerName,
               ownerPhone: ownerPhone,
               webAddress: webAddress,
+              vietQrImage: vietQrImage,
             )
           : await PrinterService.generateA4Pdf(
               widget.invoice,
               ownerName: ownerName,
               ownerPhone: ownerPhone,
               webAddress: webAddress,
+              vietQrImage: vietQrImage,
             );
 
       bool ok;
@@ -162,12 +193,35 @@ class _PrintInvoiceDialogState extends State<PrintInvoiceDialog> {
     }
     const webAddress = 'https://app.tnb.io.vn';
 
+    Uint8List? vietQrImage;
+    try {
+      final repo = getIt<PaymentSettingsRepository>();
+      final settings = await repo.getByUserId(widget.invoice.createdBy);
+      if (settings != null && settings.hasBankInfo) {
+        final noteRaw = settings.transferNoteTemplate ?? 'Phong {room} thang {month}/{year}';
+        final noteProcessed = noteRaw
+            .replaceAll('{room}', widget.invoice.roomNumber)
+            .replaceAll('{month}', widget.invoice.month.toString())
+            .replaceAll('{year}', widget.invoice.year.toString());
+        final amount = widget.invoice.totalAmount.toInt();
+        final url = 'https://img.vietqr.io/image/${settings.bankCode!}-${settings.accountNumber!}-qr_only.png?accountName=${Uri.encodeComponent(settings.accountName ?? "")}&addInfo=${Uri.encodeComponent(noteProcessed)}&amount=$amount';
+        
+        final res = await http.get(Uri.parse(url));
+        if (res.statusCode == 200) {
+          vietQrImage = res.bodyBytes;
+        }
+      }
+    } catch (e) {
+      debugPrint('Lỗi tải VietQR share: $e');
+    }
+
     Navigator.pop(context);
     await PrinterService.shareInvoice(
       widget.invoice,
       ownerName: ownerName,
       ownerPhone: ownerPhone,
       webAddress: webAddress,
+      vietQrImage: vietQrImage,
     );
   }
 

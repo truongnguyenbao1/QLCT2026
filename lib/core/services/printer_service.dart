@@ -136,12 +136,14 @@ class PrinterService {
     String? ownerName,
     String? ownerPhone,
     String? webAddress,
+    Uint8List? vietQrImage,
   }) async {
     final pdfBytes = await generateA4Pdf(
       invoice,
       ownerName: ownerName,
       ownerPhone: ownerPhone,
       webAddress: webAddress,
+      vietQrImage: vietQrImage,
     );
     await Printing.sharePdf(
       bytes: pdfBytes,
@@ -156,6 +158,7 @@ class PrinterService {
     String? ownerName,
     String? ownerPhone,
     String? webAddress,
+    Uint8List? vietQrImage,
   }) async {
     final pdf = pw.Document();
 
@@ -184,12 +187,12 @@ class PrinterService {
               // ── Tiêu đề ──────────────────────────────────────────────
               pw.Text(
                 'HOA DON TIEN NHA',
-                style: pw.TextStyle(font: fontBold, fontSize: 14),
+                style: pw.TextStyle(font: fontBold, fontSize: 16),
                 textAlign: pw.TextAlign.center,
               ),
               pw.Text(
                 'Ky: Thang ${invoice.month}/${invoice.year}',
-                style: pw.TextStyle(font: font, fontSize: 10),
+                style: pw.TextStyle(font: font, fontSize: 12),
                 textAlign: pw.TextAlign.center,
               ),
               divider,
@@ -228,7 +231,7 @@ class PrinterService {
               pw.SizedBox(height: 6),
               pw.Center(
                 child: pw.Text('--- DIEN ---',
-                    style: pw.TextStyle(font: fontBold, fontSize: 9)),
+                    style: pw.TextStyle(font: fontBold, fontSize: 11)),
               ),
               pw.SizedBox(height: 2),
               _receiptRow('  Chi so cu:', '${invoice.electricPrevReading.toStringAsFixed(0)} kWh', font, font),
@@ -246,7 +249,7 @@ class PrinterService {
               pw.SizedBox(height: 6),
               pw.Center(
                 child: pw.Text('--- NUOC ---',
-                    style: pw.TextStyle(font: fontBold, fontSize: 9)),
+                    style: pw.TextStyle(font: fontBold, fontSize: 11)),
               ),
               pw.SizedBox(height: 2),
               _receiptRow('  Chi so cu:', '${invoice.waterPrevReading.toStringAsFixed(0)} m3', font, font),
@@ -278,11 +281,11 @@ class PrinterService {
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
                   pw.Text('TONG CONG:',
-                      style: pw.TextStyle(font: fontBold, fontSize: 12)),
+                      style: pw.TextStyle(font: fontBold, fontSize: 14)),
                   pw.Text(
                     AppFormatters.formatCurrency(invoice.totalAmount),
                     style: pw.TextStyle(
-                        font: fontBold, fontSize: 13, color: PdfColors.red),
+                        font: fontBold, fontSize: 15, color: PdfColors.red),
                   ),
                 ],
               ),
@@ -300,32 +303,48 @@ class PrinterService {
                 children: [
                   pw.Column(children: [
                     pw.Text('Nguoi lap phieu',
-                        style: pw.TextStyle(font: font, fontSize: 8)),
+                        style: pw.TextStyle(font: font, fontSize: 10)),
                     pw.SizedBox(height: 28),
                     pw.Text('(Ky, ghi ro ho ten)',
                         style: pw.TextStyle(
-                            font: font, fontSize: 7, color: PdfColors.grey600)),
+                            font: font, fontSize: 9, color: PdfColors.grey600)),
                   ]),
                   pw.Column(children: [
                     pw.Text('Nguoi nhan',
-                        style: pw.TextStyle(font: font, fontSize: 8)),
+                        style: pw.TextStyle(font: font, fontSize: 10)),
                     pw.SizedBox(height: 28),
                     pw.Text('(Ky, ghi ro ho ten)',
                         style: pw.TextStyle(
-                            font: font, fontSize: 7, color: PdfColors.grey600)),
+                            font: font, fontSize: 9, color: PdfColors.grey600)),
                   ]),
                 ],
               ),
               pw.SizedBox(height: 8),
               if (ownerName != null || ownerPhone != null) ...[
-                pw.Text('Lien he Chu tro:', style: pw.TextStyle(font: fontBold, fontSize: 9)),
-                if (ownerName != null) pw.Text(ownerName, style: pw.TextStyle(font: font, fontSize: 9)),
-                if (ownerPhone != null) pw.Text(ownerPhone, style: pw.TextStyle(font: font, fontSize: 9)),
+                pw.Text('Lien he Chu tro:', style: pw.TextStyle(font: fontBold, fontSize: 11)),
+                if (ownerName != null) pw.Text(ownerName, style: pw.TextStyle(font: font, fontSize: 11)),
+                if (ownerPhone != null) pw.Text(ownerPhone, style: pw.TextStyle(font: font, fontSize: 11)),
+                pw.SizedBox(height: 8),
+              ],
+              if (vietQrImage != null) ...[
+                pw.Center(
+                  child: pw.Image(
+                    pw.MemoryImage(vietQrImage),
+                    width: 150,
+                    height: 150,
+                  ),
+                ),
                 pw.SizedBox(height: 4),
+                pw.Text(
+                  'Quet VietQR de thanh toan',
+                  style: pw.TextStyle(font: fontBold, fontSize: 12),
+                  textAlign: pw.TextAlign.center,
+                ),
+                pw.SizedBox(height: 8),
               ],
               pw.Text(
                 'Cam on quy khach! Hen gap lai.',
-                style: pw.TextStyle(font: fontBold, fontSize: 9),
+                style: pw.TextStyle(font: fontBold, fontSize: 11),
                 textAlign: pw.TextAlign.center,
               ),
               pw.SizedBox(height: 8),
@@ -341,7 +360,7 @@ class PrinterService {
                 pw.SizedBox(height: 4),
                 pw.Text(
                   'Quet QR hoac truy cap de dang ky/tra cuu:\n$webAddress',
-                  style: pw.TextStyle(font: font, fontSize: 8),
+                  style: pw.TextStyle(font: font, fontSize: 10),
                   textAlign: pw.TextAlign.center,
                 ),
                 pw.SizedBox(height: 8),
@@ -369,6 +388,7 @@ class PrinterService {
     String? ownerName,
     String? ownerPhone,
     String? webAddress,
+    Uint8List? vietQrImage,
   }) async {
     final pdf = pw.Document();
     final font = await PdfGoogleFonts.robotoRegular();
@@ -384,13 +404,13 @@ class PrinterService {
               pw.Center(
                 child: pw.Text(
                   'HÓA ĐƠN TIỀN NHÀ',
-                  style: pw.TextStyle(font: fontBold, fontSize: 20),
+                  style: pw.TextStyle(font: fontBold, fontSize: 24),
                 ),
               ),
               pw.Center(
                 child: pw.Text(
                   'Kỳ hóa đơn: Tháng ${invoice.month}/${invoice.year}',
-                  style: pw.TextStyle(font: font, fontSize: 14),
+                  style: pw.TextStyle(font: font, fontSize: 16),
                 ),
               ),
               if (ownerName != null || ownerPhone != null) ...[
@@ -403,11 +423,11 @@ class PrinterService {
                   ),
                   child: pw.Row(
                     children: [
-                      pw.Text('Chủ trọ: ', style: pw.TextStyle(font: fontBold, fontSize: 12)),
-                      pw.Text(ownerName ?? '', style: pw.TextStyle(font: font, fontSize: 12)),
+                      pw.Text('Chủ trọ: ', style: pw.TextStyle(font: fontBold, fontSize: 14)),
+                      pw.Text(ownerName ?? '', style: pw.TextStyle(font: font, fontSize: 14)),
                       pw.SizedBox(width: 20),
-                      pw.Text('Liên hệ: ', style: pw.TextStyle(font: fontBold, fontSize: 12)),
-                      pw.Text(ownerPhone ?? '', style: pw.TextStyle(font: font, fontSize: 12)),
+                      pw.Text('Liên hệ: ', style: pw.TextStyle(font: fontBold, fontSize: 14)),
+                      pw.Text(ownerPhone ?? '', style: pw.TextStyle(font: font, fontSize: 14)),
                     ],
                   ),
                 ),
@@ -415,26 +435,26 @@ class PrinterService {
               pw.SizedBox(height: 20),
               pw.Text(
                 'Phòng: ${invoice.roomNumber}',
-                style: pw.TextStyle(font: fontBold, fontSize: 14),
+                style: pw.TextStyle(font: fontBold, fontSize: 16),
               ),
               pw.Text(
                 'Khách thuê: ${invoice.tenantName ?? "Không rõ"}',
-                style: pw.TextStyle(font: font, fontSize: 14),
+                style: pw.TextStyle(font: font, fontSize: 16),
               ),
               pw.Text(
                 'Mã hóa đơn: #${invoice.id.substring(0, 8).toUpperCase()}',
-                style: pw.TextStyle(font: font, fontSize: 12),
+                style: pw.TextStyle(font: font, fontSize: 14),
               ),
               pw.Text(
                 'Hạn thanh toán: ${AppFormatters.formatDate(invoice.dueDate)}',
-                style: pw.TextStyle(font: font, fontSize: 12),
+                style: pw.TextStyle(font: font, fontSize: 14),
               ),
               pw.SizedBox(height: 20),
               pw.TableHelper.fromTextArray(
                 context: context,
                 border: pw.TableBorder.all(color: PdfColors.grey300),
-                headerStyle: pw.TextStyle(font: fontBold),
-                cellStyle: pw.TextStyle(font: font),
+                headerStyle: pw.TextStyle(font: fontBold, fontSize: 14),
+                cellStyle: pw.TextStyle(font: font, fontSize: 14),
                 headerDecoration:
                     const pw.BoxDecoration(color: PdfColors.grey100),
                 data: <List<String>>[
@@ -469,13 +489,13 @@ class PrinterService {
                 children: [
                   pw.Text(
                     'Tổng cộng: ',
-                    style: pw.TextStyle(font: font, fontSize: 16),
+                    style: pw.TextStyle(font: fontBold, fontSize: 18),
                   ),
                   pw.Text(
                     AppFormatters.formatCurrency(invoice.totalAmount),
                     style: pw.TextStyle(
                       font: fontBold,
-                      fontSize: 18,
+                      fontSize: 22,
                       color: PdfColors.red800,
                     ),
                   ),
@@ -490,14 +510,14 @@ class PrinterService {
                     children: [
                       pw.Text(
                         'Người lập phiếu',
-                        style: pw.TextStyle(font: font),
+                        style: pw.TextStyle(font: font, fontSize: 14),
                       ),
                       pw.SizedBox(height: 40),
                       pw.Text(
                         '(Ký, ghi rõ họ tên)',
                         style: pw.TextStyle(
                           font: font,
-                          fontSize: 10,
+                          fontSize: 12,
                           color: PdfColors.grey600,
                         ),
                       ),
@@ -508,14 +528,14 @@ class PrinterService {
                     children: [
                       pw.Text(
                         'Người thanh toán',
-                        style: pw.TextStyle(font: font),
+                        style: pw.TextStyle(font: font, fontSize: 14),
                       ),
                       pw.SizedBox(height: 40),
                       pw.Text(
                         '(Ký, ghi rõ họ tên)',
                         style: pw.TextStyle(
                           font: font,
-                          fontSize: 10,
+                          fontSize: 12,
                           color: PdfColors.grey600,
                         ),
                       ),
@@ -523,6 +543,47 @@ class PrinterService {
                   ),
                 ],
               ),
+              pw.SizedBox(height: 30),
+              if (vietQrImage != null) ...[
+                pw.Center(
+                  child: pw.Image(
+                    pw.MemoryImage(vietQrImage),
+                    width: 250,
+                    height: 250,
+                  ),
+                ),
+                pw.SizedBox(height: 8),
+                pw.Center(
+                  child: pw.Text(
+                    'Quét mã VietQR trên ứng dụng ngân hàng để thanh toán',
+                    style: pw.TextStyle(font: fontBold, fontSize: 14, color: PdfColors.black),
+                  ),
+                ),
+                pw.SizedBox(height: 16),
+              ],
+              if (webAddress != null) ...[
+                pw.Center(
+                  child: pw.BarcodeWidget(
+                    barcode: pw.Barcode.qrCode(),
+                    data: webAddress,
+                    width: 150,
+                    height: 150,
+                  ),
+                ),
+                pw.SizedBox(height: 8),
+                pw.Center(
+                  child: pw.Text(
+                    'Quét QR này hoặc truy cập để tra cứu và đăng ký tài khoản:',
+                    style: pw.TextStyle(font: font, fontSize: 12, color: PdfColors.grey700),
+                  ),
+                ),
+                pw.Center(
+                  child: pw.Text(
+                    webAddress,
+                    style: pw.TextStyle(font: font, fontSize: 12, color: PdfColors.blue700),
+                  ),
+                ),
+              ],
             ],
           );
         },
@@ -547,8 +608,8 @@ class PrinterService {
     return pw.Row(
       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
       children: [
-        pw.Text(label, style: pw.TextStyle(font: font, fontSize: 9)),
-        pw.Text(value, style: pw.TextStyle(font: valueFont, fontSize: 9)),
+        pw.Text(label, style: pw.TextStyle(font: font, fontSize: 11)),
+        pw.Text(value, style: pw.TextStyle(font: valueFont, fontSize: 11)),
       ],
     );
   }
@@ -566,9 +627,9 @@ class PrinterService {
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
           pw.Expanded(
-            child: pw.Text(label, style: pw.TextStyle(font: font, fontSize: 9)),
+            child: pw.Text(label, style: pw.TextStyle(font: font, fontSize: 11)),
           ),
-          pw.Text(amount, style: pw.TextStyle(font: boldFont, fontSize: 9)),
+          pw.Text(amount, style: pw.TextStyle(font: boldFont, fontSize: 11)),
         ],
       ),
     );
@@ -587,12 +648,12 @@ class PrinterService {
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
           pw.Text(label,
-              style: pw.TextStyle(font: labelFont, fontSize: 9)),
+              style: pw.TextStyle(font: labelFont, fontSize: 11)),
           pw.SizedBox(width: 4),
           pw.Expanded(
             child: pw.Text(
               value,
-              style: pw.TextStyle(font: valueFont, fontSize: 9),
+              style: pw.TextStyle(font: valueFont, fontSize: 11),
               softWrap: true,
             ),
           ),
