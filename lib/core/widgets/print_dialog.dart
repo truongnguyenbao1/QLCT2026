@@ -86,7 +86,7 @@ class _PrintInvoiceDialogState extends State<PrintInvoiceDialog> {
         ownerName = authState.user.fullName;
         ownerPhone = authState.user.phone;
       }
-      const webAddress = 'https://quanly-nhatro-2026.web.app';
+      const webAddress = 'https://app.tnb.io.vn';
 
       // Tạo PDF theo kích thước đã chọn
       final pdfBytes = _printSize == _PrintSize.thermal
@@ -160,7 +160,7 @@ class _PrintInvoiceDialogState extends State<PrintInvoiceDialog> {
       ownerName = authState.user.fullName;
       ownerPhone = authState.user.phone;
     }
-    const webAddress = 'https://quanly-nhatro-2026.web.app';
+    const webAddress = 'https://app.tnb.io.vn';
 
     Navigator.pop(context);
     await PrinterService.shareInvoice(

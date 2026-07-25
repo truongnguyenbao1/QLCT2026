@@ -234,7 +234,7 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
         invoiceId: invoice.id.substring(0, 8).toUpperCase(),
         ownerName: ownerName,
         ownerPhone: ownerPhone,
-        webAddress: 'https://quanly-nhatro-2026.web.app',
+        webAddress: 'https://app.tnb.io.vn',
       );
       await printerService.printTicket(bytes);
     } catch (e) {
