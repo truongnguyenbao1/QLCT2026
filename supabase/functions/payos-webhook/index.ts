@@ -84,7 +84,12 @@ serve(async (req) => {
         if (hoadonData) {
           await supabaseClient
             .from('hoadon')
-            .update({ trang_thai: 'da_thu' })
+            .update({ 
+              status: 'PAID',
+              paid_at: new Date().toISOString(),
+              is_locked: true,
+              payment_method: 'PAYOS'
+            })
             .eq('id', hoadonData.id)
 
           return new Response(JSON.stringify({ success: true, message: 'Invoice paid' }), {

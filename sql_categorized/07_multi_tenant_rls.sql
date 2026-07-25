@@ -177,7 +177,7 @@ CREATE POLICY "tenant_can_view_own_hoadon"
   ON public.hoadon FOR SELECT
   USING (
     room_id IN (
-      SELECT room_id FROM public.users WHERE iduser = auth.uid() AND room_id IS NOT NULL
+      SELECT public.get_tenant_room_ids()
     )
   );
 
@@ -186,7 +186,7 @@ CREATE POLICY "tenant_can_update_own_hoadon"
   ON public.hoadon FOR UPDATE
   USING (
     room_id IN (
-      SELECT room_id FROM public.users WHERE iduser = auth.uid() AND room_id IS NOT NULL
+      SELECT public.get_tenant_room_ids()
     )
   );
 
@@ -227,8 +227,7 @@ CREATE POLICY "tenant_can_view_own_chitiethoadon"
   USING (
     invoice_id IN (
       SELECT h.id FROM public.hoadon h
-      JOIN public.users u ON h.room_id = u.room_id
-      WHERE u.iduser = auth.uid()
+      WHERE h.room_id IN (SELECT public.get_tenant_room_ids())
     )
   );
 
@@ -261,7 +260,7 @@ CREATE POLICY "tenant_can_view_own_chiso"
   ON public.chiso FOR SELECT
   USING (
     room_id IN (
-      SELECT room_id FROM public.users WHERE iduser = auth.uid() AND room_id IS NOT NULL
+      SELECT public.get_tenant_room_ids()
     )
   );
 

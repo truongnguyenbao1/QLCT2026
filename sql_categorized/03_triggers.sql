@@ -32,3 +32,10 @@ EXECUTE FUNCTION set_tenant_id_for_hoadon();
 -- From migration_split_invoice.sql
 CREATE TRIGGER update_hoadon_updated_at BEFORE UPDATE ON public.hoadon
     FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+-- Trigger thông báo cho khách thuê khi chủ trọ tạo hóa đơn mới
+DROP TRIGGER IF EXISTS trigger_notify_tenant_on_invoice_created ON public.hoadon;
+CREATE TRIGGER trigger_notify_tenant_on_invoice_created
+    AFTER INSERT ON public.hoadon
+    FOR EACH ROW
+    EXECUTE FUNCTION notify_tenant_on_invoice_created();

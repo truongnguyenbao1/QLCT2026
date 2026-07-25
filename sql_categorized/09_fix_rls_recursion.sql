@@ -26,7 +26,9 @@ RETURNS SETOF UUID
 SECURITY DEFINER
 SET search_path = public
 LANGUAGE sql STABLE AS $$
-  SELECT room_id FROM public.users WHERE iduser = auth.uid() AND room_id IS NOT NULL;
+  SELECT room_id FROM public.users WHERE iduser = auth.uid() AND room_id IS NOT NULL
+  UNION
+  SELECT room_id FROM public.khachthue WHERE user_id = auth.uid() AND room_id IS NOT NULL;
 $$;
 
 
