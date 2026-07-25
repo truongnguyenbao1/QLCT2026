@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -96,6 +97,8 @@ class _PendingApprovalPageState extends State<PendingApprovalPage> {
               // Lấy orderCode mới tạo từ PayOS response
               if (funcRes.data != null && funcRes.data['orderCode'] != null) {
                 res['order_code'] = funcRes.data['orderCode'];
+                res['qrCode'] = funcRes.data['qrCode'];
+                res['checkoutUrl'] = funcRes.data['checkoutUrl'];
               }
             } catch (e) {
               debugPrint('Lỗi khi gọi create-payment-link: $e');
@@ -120,9 +123,17 @@ class _PendingApprovalPageState extends State<PendingApprovalPage> {
   @override
   Widget build(BuildContext context) {
     final authState = context.watch<AuthBloc>().state;
-    final userName = authState is AuthPendingApproval
-        ? authState.user.fullName
-        : '';
+    final user = authState is AuthPendingApproval ? authState.user : null;
+    final userName = user?.fullName ?? '';
+    
+    bool isExpired = false;
+    final now = DateTime.now();
+    if (user != null && user.trialEndsAt != null && now.isAfter(user.trialEndsAt!)) {
+      isExpired = true;
+    }
+    if (user != null && user.currentPeriodEnd != null && now.isBefore(user.currentPeriodEnd!)) {
+      isExpired = false;
+    }
 
     return Scaffold(
       body: Container(
@@ -149,7 +160,7 @@ class _PendingApprovalPageState extends State<PendingApprovalPage> {
                 const SizedBox(height: 32),
 
                 // ── Tiêu đề ─────────────────────────────────────────────
-                _buildTitle(userName).animate()
+                _buildTitle(userName, isExpired).animate()
                     .fadeIn(delay: 300.ms, duration: 600.ms)
                     .slideY(begin: 0.1),
 
@@ -167,10 +178,11 @@ class _PendingApprovalPageState extends State<PendingApprovalPage> {
                   ),
 
                 // ── Timeline trạng thái ──────────────────────────────────
-                _buildTimeline().animate()
-                    .fadeIn(delay: 500.ms, duration: 600.ms),
-
-                const SizedBox(height: 32),
+                if (!isExpired) ...[
+                  _buildTimeline().animate()
+                      .fadeIn(delay: 500.ms, duration: 600.ms),
+                  const SizedBox(height: 32),
+                ],
 
                 // ── Card liên hệ ─────────────────────────────────────────
                 _buildContactCard().animate()
@@ -226,11 +238,13 @@ class _PendingApprovalPageState extends State<PendingApprovalPage> {
         .fadeIn(duration: 500.ms);
   }
 
-  Widget _buildTitle(String userName) {
+  Widget _buildTitle(String userName, bool isExpired) {
     return Column(
       children: [
         Text(
-          userName.isNotEmpty ? 'Xin chào, $userName!' : 'Tài khoản đang chờ duyệt',
+          isExpired 
+              ? 'Tài khoản đã hết hạn' 
+              : (userName.isNotEmpty ? 'Xin chào, $userName!' : 'Tài khoản đang chờ duyệt'),
           textAlign: TextAlign.center,
           style: const TextStyle(
             color: Colors.white,
@@ -247,11 +261,12 @@ class _PendingApprovalPageState extends State<PendingApprovalPage> {
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
           ),
-          child: const Text(
-            'Yêu cầu đăng ký của bạn đã được ghi nhận.\n'
-            'Chúng tôi sẽ xét duyệt và liên hệ lại trong vòng 24 giờ.',
+          child: Text(
+            isExpired
+                ? 'Tài khoản của bạn đã hết hạn dùng thử 7 ngày.\nVui lòng thanh toán gia hạn để tiếp tục sử dụng.'
+                : 'Yêu cầu đăng ký của bạn đã được ghi nhận.\nChúng tôi sẽ xét duyệt và liên hệ lại trong vòng 24 giờ.',
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               color: Color(0xFFD1D5DB),
               fontSize: 14,
               height: 1.6,
@@ -265,15 +280,10 @@ class _PendingApprovalPageState extends State<PendingApprovalPage> {
   Widget _buildPaymentQR() {
     final price = _subscription!['price_per_month'];
     final orderCode = _subscription!['order_code']?.toString() ?? '';
+    final qrCodeStr = _subscription!['qrCode']?.toString() ?? '';
+    final checkoutUrl = _subscription!['checkoutUrl']?.toString() ?? '';
     final content = orderCode.isNotEmpty ? orderCode : 'DANG TAO MA';
     
-    // Replace these with your actual bank details
-    const bankId = 'mbbank'; // e.g. vcb, mbbank, techcombank
-    const accountNo = '0813872387'; 
-    const accountName = 'TRUONG NGUYEN BAO';
-
-    final qrUrl = 'https://img.vietqr.io/image/$bankId-$accountNo-compact2.png?amount=$price&addInfo=${Uri.encodeComponent(content)}&accountName=${Uri.encodeComponent(accountName)}';
-
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -298,28 +308,27 @@ class _PendingApprovalPageState extends State<PendingApprovalPage> {
             ),
           ),
           const SizedBox(height: 16),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Image.network(
-              qrUrl,
+          if (qrCodeStr.isNotEmpty)
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.shade200),
+              ),
+              child: QrImageView(
+                data: qrCodeStr,
+                version: QrVersions.auto,
+                size: 220,
+                backgroundColor: Colors.white,
+              ),
+            )
+          else
+            const SizedBox(
               width: 250,
               height: 250,
-              fit: BoxFit.contain,
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) return child;
-                return const SizedBox(
-                  width: 250,
-                  height: 250,
-                  child: Center(child: CircularProgressIndicator()),
-                );
-              },
-              errorBuilder: (context, error, stackTrace) => const SizedBox(
-                width: 250,
-                height: 250,
-                child: Center(child: Icon(Icons.qr_code, size: 100, color: Colors.grey)),
-              ),
+              child: Center(child: CircularProgressIndicator()),
             ),
-          ),
           const SizedBox(height: 16),
           Text(
             'Số tiền: ${price.toString().replaceAll(RegExp(r'\B(?=(\d{3})+(?!\d))'), '.')} VNĐ',
@@ -331,7 +340,7 @@ class _PendingApprovalPageState extends State<PendingApprovalPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Nội dung: $content',
+            'Mã GD: $content',
             style: const TextStyle(
               color: Color(0xFF64748B),
               fontSize: 14,
@@ -339,8 +348,22 @@ class _PendingApprovalPageState extends State<PendingApprovalPage> {
             ),
           ),
           const SizedBox(height: 12),
+          if (checkoutUrl.isNotEmpty) ...[
+            FilledButton.icon(
+              onPressed: () => launchUrl(
+                Uri.parse(checkoutUrl),
+                mode: LaunchMode.externalApplication,
+              ),
+              icon: const Icon(Icons.open_in_browser_rounded),
+              label: const Text('Mở trang thanh toán'),
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF2E7D32),
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
           const Text(
-            'Sau khi chuyển khoản, tài khoản của bạn sẽ được kích hoạt trong vòng 5-10 phút.',
+            'Sau khi thanh toán, tài khoản của bạn sẽ được kích hoạt tự động.',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: Color(0xFF94A3B8),

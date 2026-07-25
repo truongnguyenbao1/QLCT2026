@@ -50,6 +50,12 @@ class AppUser extends Equatable {
   /// Trạng thái duyệt đăng ký của chủ trọ (từ nhatro.registration_status)
   /// Giá trị: 'PENDING' | 'APPROVED' | 'REJECTED' | 'SUSPENDED' | null
   final String? registrationStatus;
+  
+  /// Ngày hết hạn dùng thử (từ subscriptions.trial_ends_at)
+  final DateTime? trialEndsAt;
+  
+  /// Ngày hết hạn gói cước đã thanh toán (từ subscriptions.current_period_end)
+  final DateTime? currentPeriodEnd;
 
   const AppUser({
     required this.id,
@@ -62,6 +68,8 @@ class AppUser extends Equatable {
     required this.hasAcceptedPrivacyPolicy,
     required this.createdAt,
     this.registrationStatus,
+    this.trialEndsAt,
+    this.currentPeriodEnd,
   });
 
   bool get isOwner => role == UserRole.owner;
@@ -82,6 +90,8 @@ class AppUser extends Equatable {
     String? propertyId,
     bool? hasAcceptedPrivacyPolicy,
     String? registrationStatus,
+    DateTime? trialEndsAt,
+    DateTime? currentPeriodEnd,
   }) {
     return AppUser(
       id: id,
@@ -95,6 +105,8 @@ class AppUser extends Equatable {
           hasAcceptedPrivacyPolicy ?? this.hasAcceptedPrivacyPolicy,
       createdAt: createdAt,
       registrationStatus: registrationStatus ?? this.registrationStatus,
+      trialEndsAt: trialEndsAt ?? this.trialEndsAt,
+      currentPeriodEnd: currentPeriodEnd ?? this.currentPeriodEnd,
     );
   }
 
@@ -108,5 +120,7 @@ class AppUser extends Equatable {
         roomId,
         hasAcceptedPrivacyPolicy,
         registrationStatus,
+        trialEndsAt,
+        currentPeriodEnd,
       ];
 }

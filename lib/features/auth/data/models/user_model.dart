@@ -13,6 +13,8 @@ class UserModel extends AppUser {
     required super.hasAcceptedPrivacyPolicy,
     required super.createdAt,
     super.registrationStatus,
+    super.trialEndsAt,
+    super.currentPeriodEnd,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -29,6 +31,12 @@ class UserModel extends AppUser {
       createdAt: DateTime.parse(
           json['ngaytao'] as String? ?? DateTime.now().toIso8601String()),
       registrationStatus: json['registration_status'] as String?,
+      trialEndsAt: json['trial_ends_at'] != null 
+          ? DateTime.tryParse(json['trial_ends_at']) 
+          : null,
+      currentPeriodEnd: json['current_period_end'] != null 
+          ? DateTime.tryParse(json['current_period_end']) 
+          : null,
     );
   }
 
@@ -58,6 +66,8 @@ class UserModel extends AppUser {
       hasAcceptedPrivacyPolicy: user.hasAcceptedPrivacyPolicy,
       createdAt: user.createdAt,
       registrationStatus: user.registrationStatus,
+      trialEndsAt: user.trialEndsAt,
+      currentPeriodEnd: user.currentPeriodEnd,
     );
   }
 }

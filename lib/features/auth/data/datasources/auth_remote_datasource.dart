@@ -149,13 +149,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         final userId = response.user!.id;
         await Future.delayed(const Duration(milliseconds: 500));
 
-        // Tạo nhà trọ với trạng thái PENDING (chờ duyệt)
+        // Tạo nhà trọ với trạng thái APPROVED (để có thể sử dụng liền 7 ngày)
         final nhaTroRes = await _client
             .from('nhatro')
             .insert({
               'name': fullName, // Tạm dùng tên chủ trọ, setup_property sẽ cập nhật sau
               'iduser': userId,
-              'registration_status': 'PENDING',
+              'registration_status': 'APPROVED',
             })
             .select()
             .single();
@@ -189,7 +189,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           'owner_id': userId,
           'property_id': propertyId,
           'plan': planCode,
-          'status': 'PENDING',
+          'status': 'ACTIVE',
           'trial_ends_at': trialEndsAt.toIso8601String(),
           'max_rooms': maxRooms,
           'price_per_month': price,
@@ -333,12 +333,23 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         .eq('iduser', userId)
         .single();
 
+    // Lấy thông tin gói cước để check hạn dùng thử
+    final subData = await _client
+        .from('subscriptions')
+        .select('trial_ends_at, current_period_end')
+        .eq('owner_id', userId)
+        .maybeSingle();
+
     // Flatten registration_status từ nested join
     final nhaTro = data['nhatro'] as Map<String, dynamic>?;
     final Map<String, dynamic> flatData = {
       ...data,
       if (nhaTro != null)
         'registration_status': nhaTro['registration_status'],
+      if (subData != null)
+        'trial_ends_at': subData['trial_ends_at'],
+      if (subData != null)
+        'current_period_end': subData['current_period_end'],
     };
 
     return UserModel.fromJson(flatData);

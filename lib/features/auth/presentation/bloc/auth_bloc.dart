@@ -51,12 +51,35 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     if (!user.hasAcceptedPrivacyPolicy) {
       return AuthNeedPrivacyAcceptance(user);
     }
-    if (user.isOwner && user.isPendingApproval) {
-      return AuthPendingApproval(user);
+    
+    if (user.isOwner) {
+      if (user.isPendingApproval) {
+        return AuthPendingApproval(user);
+      }
+      
+      // Kiểm tra hết hạn dùng thử / gói cước
+      bool isExpired = false;
+      final now = DateTime.now();
+      
+      // Nếu có ngày hết hạn dùng thử và đã quá hạn
+      if (user.trialEndsAt != null && now.isAfter(user.trialEndsAt!)) {
+        isExpired = true;
+      }
+      
+      // Nếu người dùng đã thanh toán gói cước (currentPeriodEnd còn hạn) thì không bị khóa
+      if (user.currentPeriodEnd != null && now.isBefore(user.currentPeriodEnd!)) {
+        isExpired = false;
+      }
+      
+      if (isExpired) {
+        return AuthPendingApproval(user); // Tái sử dụng màn hình chờ duyệt để bắt thanh toán
+      }
+
+      if (user.propertyId == null || user.propertyId!.isEmpty) {
+        return AuthNeedPropertySetup(user);
+      }
     }
-    if (user.isOwner && (user.propertyId == null || user.propertyId!.isEmpty)) {
-      return AuthNeedPropertySetup(user);
-    }
+    
     return AuthAuthenticated(user);
   }
 
