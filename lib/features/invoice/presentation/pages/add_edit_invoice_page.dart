@@ -227,12 +227,20 @@ class _AddEditInvoiceViewState extends State<_AddEditInvoiceView> {
                       const SizedBox(height: 16),
                       BlocBuilder<RoomBloc, RoomState>(
                         builder: (context, state) {
-                          List<Room> rooms = [];
-                          if (state is RoomsLoaded) {
-                            rooms = state.rooms.where((r) => r.isOccupied).toList();
+                          if (state is! RoomsLoaded) {
+                            return const Center(child: CircularProgressIndicator());
                           }
+                          List<Room> rooms = state.rooms.where((r) => r.isOccupied).toList();
+                          // Ensure selected room is in the list (e.g. when editing an invoice of a room no longer occupied)
+                          if (_selectedRoomId != null && !rooms.any((r) => r.id == _selectedRoomId)) {
+                            final originalRoom = state.rooms.cast<Room?>().firstWhere((r) => r?.id == _selectedRoomId, orElse: () => null);
+                            if (originalRoom != null) {
+                              rooms.add(originalRoom);
+                            }
+                          }
+                          final validSelectedRoomId = rooms.any((r) => r.id == _selectedRoomId) ? _selectedRoomId : null;
                           return DropdownButtonFormField<String>(
-                            value: _selectedRoomId,
+                            value: validSelectedRoomId,
                             decoration: const InputDecoration(
                               labelText: 'Chọn phòng đang thuê',
                               border: OutlineInputBorder(),
