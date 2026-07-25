@@ -14,6 +14,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -401,72 +402,69 @@ class _PaymentMethodsSectionState extends State<_PaymentMethodsSection> {
             .replaceAll('{year}', widget.invoice.year.toString());
         final amount = widget.invoice.totalAmount.toInt();
 
-        // 1. Chỉ có Momo
-        if (hasMomo && !hasBank) {
-          return _MomoCard(
+        // Xây dựng danh sách các Tab
+        final tabs = <Widget>[
+          const Tab(text: 'PayOS (Tự động)', icon: Icon(Icons.flash_on_rounded, size: 18)),
+        ];
+        
+        final tabViews = <Widget>[
+          _PayOsCard(invoice: widget.invoice, insideTab: true),
+        ];
+
+        if (hasBank) {
+          tabs.add(const Tab(text: 'Ngân hàng', icon: Icon(Icons.account_balance_rounded, size: 18)));
+          final accountName = settings!.accountName ?? '';
+          final vietQrUrl = 'https://img.vietqr.io/image/${settings.bankCode!}-${settings.accountNumber!}-qr_only.png?accountName=${Uri.encodeComponent(accountName)}&addInfo=${Uri.encodeComponent(noteProcessed)}&amount=$amount';
+          tabViews.add(_VietQrCard(invoice: widget.invoice, qrContent: vietQrUrl, isVietQrNetwork: true, noteProcessed: noteProcessed, insideTab: true));
+        }
+
+        if (hasMomo) {
+          tabs.add(const Tab(text: 'Ví MoMo', icon: Icon(Icons.phone_android_rounded, size: 18)));
+          tabViews.add(_MomoCard(
             invoice: widget.invoice, 
             phone: settings!.momoPhone ?? '', 
             momoQrUrl: settings.momoQrUrl, 
             amount: amount, 
-            note: noteProcessed
-          );
-        }
-        
-        // 2. Chỉ có Bank hoặc không có gì (Fallback)
-        if (!hasMomo && hasBank) {
-          final accountName = settings!.accountName ?? '';
-          final vietQrUrl = 'https://img.vietqr.io/image/${settings.bankCode!}-${settings.accountNumber!}-qr_only.png?accountName=${Uri.encodeComponent(accountName)}&addInfo=${Uri.encodeComponent(noteProcessed)}&amount=$amount';
-          return _VietQrCard(invoice: widget.invoice, qrContent: vietQrUrl, isVietQrNetwork: true, noteProcessed: noteProcessed);
+            note: noteProcessed, 
+            insideTab: true
+          ));
         }
 
-        // 3. Có cả hai
-        if (hasBank && hasMomo) {
-          final accountName = settings!.accountName ?? '';
-          final vietQrUrl = 'https://img.vietqr.io/image/${settings!.bankCode!}-${settings!.accountNumber!}-qr_only.png?accountName=${Uri.encodeComponent(accountName)}&addInfo=${Uri.encodeComponent(noteProcessed)}&amount=$amount';
-          return DefaultTabController(
-            length: 2,
-            child: Card(
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: const BorderSide(color: AppColors.border),
-              ),
-              child: Column(
-                children: [
-                  TabBar(
-                    labelColor: AppColors.primary,
-                    unselectedLabelColor: (Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextSecondary : AppColors.textSecondary),
-                    indicatorColor: AppColors.primary,
-                    tabs: [
-                      Tab(text: 'Ngân hàng', icon: Icon(Icons.account_balance_rounded, size: 18)),
-                      Tab(text: 'Ví MoMo', icon: Icon(Icons.phone_android_rounded, size: 18)),
-                    ],
-                  ),
-                  SizedBox(
-                    height: 380, // Fixed height for tab view to prevent layout jump
-                    child: TabBarView(
-                      children: [
-                        _VietQrCard(invoice: widget.invoice, qrContent: vietQrUrl, isVietQrNetwork: true, noteProcessed: noteProcessed, insideTab: true),
-                        _MomoCard(
-                          invoice: widget.invoice, 
-                          phone: settings!.momoPhone ?? '', 
-                          momoQrUrl: settings!.momoQrUrl, 
-                          amount: amount, 
-                          note: noteProcessed, 
-                          insideTab: true
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+        // Nếu không có bank và momo, thêm Fallback tab
+        if (!hasBank && !hasMomo) {
+          tabs.add(const Tab(text: 'Thủ công', icon: Icon(Icons.account_balance_rounded, size: 18)));
+          final qrContent = 'PAYMENT:${widget.invoice.id}:${widget.invoice.totalAmount}:${widget.invoice.roomNumber}';
+          tabViews.add(_VietQrCard(invoice: widget.invoice, qrContent: qrContent, isVietQrNetwork: false, noteProcessed: noteProcessed, insideTab: true));
+        }
+
+        return DefaultTabController(
+          length: tabs.length,
+          child: Card(
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: const BorderSide(color: AppColors.border),
             ),
-          );
-        }
-
-        // 4. Fallback khi chưa cài đặt gì
-        final qrContent = 'PAYMENT:${widget.invoice.id}:${widget.invoice.totalAmount}:${widget.invoice.roomNumber}';
-        return _VietQrCard(invoice: widget.invoice, qrContent: qrContent, isVietQrNetwork: false, noteProcessed: noteProcessed);
+            child: Column(
+              children: [
+                TabBar(
+                  labelColor: AppColors.primary,
+                  unselectedLabelColor: (Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextSecondary : AppColors.textSecondary),
+                  indicatorColor: AppColors.primary,
+                  isScrollable: tabs.length > 2,
+                  tabAlignment: tabs.length > 2 ? TabAlignment.start : TabAlignment.fill,
+                  tabs: tabs,
+                ),
+                SizedBox(
+                  height: 420, // Fixed height for tab view to prevent layout jump
+                  child: TabBarView(
+                    children: tabViews,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
       },
     );
   }
@@ -1293,6 +1291,219 @@ class _TenantActionSectionState extends State<_TenantActionSection> {
           ),
         ],
       ),
+    );
+  }
+}
+
+// ── PayOS Card (Thanh toán tự động) ──────────────────────────────────────
+class _PayOsCard extends StatefulWidget {
+  final Invoice invoice;
+  final bool insideTab;
+
+  const _PayOsCard({
+    required this.invoice,
+    this.insideTab = false,
+  });
+
+  @override
+  State<_PayOsCard> createState() => _PayOsCardState();
+}
+
+class _PayOsCardState extends State<_PayOsCard> {
+  bool _isLoading = true;
+  String? _qrCodeStr;
+  String? _checkoutUrl;
+  String? _errorMessage;
+  int? _orderCode;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchPayOsLink();
+  }
+
+  Future<void> _fetchPayOsLink() async {
+    try {
+      final res = await Supabase.instance.client
+          .from('hoadon')
+          .select('order_code')
+          .eq('id', widget.invoice.id)
+          .maybeSingle();
+
+      int? existingOrderCode = res?['order_code'] as int?;
+
+      final funcRes = await Supabase.instance.client.functions.invoke(
+        'create-payment-link',
+        body: {
+          'amount': widget.invoice.totalAmount.toInt(),
+          'description': 'Thanh toan HD',
+          'type': 'INVOICE',
+          'reference_id': widget.invoice.id,
+        },
+      );
+
+      if (funcRes.data != null && funcRes.data['checkoutUrl'] != null) {
+        if (mounted) {
+          setState(() {
+            _checkoutUrl = funcRes.data['checkoutUrl'];
+            _qrCodeStr = funcRes.data['qrCode'];
+            _orderCode = funcRes.data['orderCode'];
+            _isLoading = false;
+          });
+        }
+      } else {
+        throw Exception('Không nhận được link thanh toán từ PayOS');
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = e.toString();
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final content = Padding(
+      padding: const EdgeInsets.all(20),
+      child: _isLoading
+          ? const Center(
+              child: Padding(
+                padding: EdgeInsets.all(32.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 16),
+                    Text('Đang tạo mã thanh toán tự động...'),
+                  ],
+                ),
+              ),
+            )
+          : _errorMessage != null
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.error_outline, color: Colors.red, size: 48),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Lỗi khởi tạo PayOS:\n$_errorMessage',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              _isLoading = true;
+                              _errorMessage = null;
+                            });
+                            _fetchPayOsLink();
+                          },
+                          child: const Text('Thử lại'),
+                        )
+                      ],
+                    ),
+                  ),
+                )
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE8F5E9),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(Icons.verified_rounded,
+                              color: Color(0xFF2E7D32), size: 20),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'Quét mã để được xác nhận TỰ ĐỘNG',
+                            style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                                color: (Theme.of(context).brightness == Brightness.dark
+                                    ? AppColors.darkTextPrimary
+                                    : AppColors.textPrimary)),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    if (_qrCodeStr != null && _qrCodeStr!.isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: QrImageView(
+                          data: _qrCodeStr!,
+                          version: QrVersions.auto,
+                          size: 180,
+                          backgroundColor: Colors.white,
+                        ),
+                      ),
+                    const SizedBox(height: 12),
+                    if (_orderCode != null)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.tag_rounded,
+                              size: 14,
+                              color: (Theme.of(context).brightness == Brightness.dark
+                                  ? AppColors.darkTextSecondary
+                                  : AppColors.textSecondary)),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              'Mã GD: $_orderCode',
+                              style: TextStyle(
+                                  color: (Theme.of(context).brightness == Brightness.dark
+                                      ? AppColors.darkTextSecondary
+                                      : AppColors.textSecondary),
+                                  fontSize: 12),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    const SizedBox(height: 12),
+                    if (_checkoutUrl != null)
+                      FilledButton.icon(
+                        onPressed: () => launchUrl(
+                          Uri.parse(_checkoutUrl!),
+                          mode: LaunchMode.externalApplication,
+                        ),
+                        icon: const Icon(Icons.open_in_browser_rounded),
+                        label: const Text('Mở trang thanh toán'),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFF2E7D32),
+                        ),
+                      ),
+                  ],
+                ),
+    );
+
+    if (widget.insideTab) return content;
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: AppColors.border),
+      ),
+      child: content,
     );
   }
 }
