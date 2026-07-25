@@ -136,7 +136,7 @@ class _RoomTenantsDialogState extends State<RoomTenantsDialog> {
                         style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                       subtitle: Padding(
-                        padding: const EdgeInsets.top(4.0),
+                        padding: const EdgeInsets.only(top: 4.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
