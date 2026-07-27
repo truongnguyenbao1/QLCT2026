@@ -37,7 +37,7 @@ jobs:
       - name: Tạo GitHub Release & Tải file EXE lên
         uses: softprops/action-gh-release@v2
         with:
-          files: Output/TroKeeper_Setup.exe
+          files: windows/Output/TroKeeper_Setup.exe
           name: TroKeeper ${{ github.ref_name }}
           body: |
             Bản cập nhật Desktop (Windows .exe).
