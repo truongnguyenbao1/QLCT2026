@@ -1,0 +1,64 @@
+phục vụ cho mục đích kê khai thuế hằng tháng của hộ kinh doanh theo qui định của pháp luật hiện nay
+Khảo sát lập kế hoạch
+Xác định vấn đề và mục tiêu
+Mục tiêu dự án:
+Giải quyết vấn đề quản lý cư dân tạm trú của nhà trọ với qui mô vừa và nhỏ, đảm bảo tình minh bạch trong quá trình cư trú thanh toán giữa chủ trọ và khách thuê, dễ dàng trích xuất dữ liệu để khai báo cho cơ quan chức năng theo đúng qui định của pháp luật.
+Đối tượng người dùng
+Bao gồm 2 nhóm người dùng:
+	+Đối với chủ nhà trọ: dễ dàng quản lý về tình trang phòng, khách thuê, hợp đồng, hóa đơn hàng tháng, có thể đăng tải các tin cho thuê phòng tạo thành mạng lưới thuê trọ giữ chủ trọ và khách thuê không cần qua trung gian, không cần tốn các khoản phí môi giới và các giấy tờ thủ tục làm việc với cơ quan chức năng.
+	+Đối với khách thuê: dễ dàng nắm bắt tình hình đóng tiền hang tháng, các thông báo của chủ trọ, các chính sách ưu đãi của nhà trọ đối với khách thuê, có thể dễ dàng tiếp cận mạng lưới cho thuê phòng trong khu vực.
+Khu vực phạm vi tiếp cận của phần mềm: hướng tới phát triển trong các khu vực có mật độ dân cư đông như các khu công nghiệp, khu lao động……. giúp người lao động có thể tấp cận gần hơn với môi trường số góp phần phục vụ cho công tác chuyển đổi số của nhà nước hiện nay.Bán kính hoạt động hiệu quả của phần mềm trong vòng 10 km giúp người thuê có thể dễ dàng tìm được chỗ ở phù hợp phục vụ chon hu cầu đi lại sinh hoạt làm việc trên địa bàn.
+Tiêu chí đánh giá
+Tiêu chí nghiệm thu: phần mềm được đánh giá là hoàn thiện khi đáp ứng được các tiêu chí sau:
+Bảo mật:
+Tính bảo mật: là khả năng đảm bảo rằng dữ liệu chỉ được truy cập bởi những người có quyền hạn hợp pháp.(theo ISO/IEC 25010)
+Mã hóa dữ liệu khi lưu trữ:Số CCCD, ảnh chụp CCCD, số điện thoại của khách thuê không được lưu dưới dạng văn bản trong cơ sở dữ liệu. Nếu hacker có hack được vào database thì những dữ liệu này cũng phải hiển thị dưới dạng các chuỗi ký tự đã mã hóa.
+Mã hóa dữ liệu khi truyền tải: Toàn bộ giao tiếp giữa thiết bị của chủ nhà/khách thuê và máy chủ phải bắt buộc qua giao thức HTTPS (SSL/TLS). Khi chủ nhà chụp ảnh CCCD gửi lên server, bức ảnh đó phải được mã hóa trên đường truyền để tránh bị đánh chặn.
+Tính toàn vẹn:Khả năng ngăn chặn việc dữ liệu bị sửa đổi hoặc xóa một cách trái phép hoặc vô tình.(Theo ISO/IEC 25010)
+Dữ liệu hợp đồng, số tiền phòng, chỉ số điện nước phải được bảo vệ để không ai (kể cả nhân viên của chủ nhà nếu không có quyền) có thể tự ý sửa đổi mà không để lại dấu vết.
+Áp dụng cơ chế mã hóa băm (Hashing) để hệ thống tự phát hiện nếu file ảnh CCCD hoặc file hợp đồng bị can thiệp và thay đổi bất hợp pháp.
+Kiểm soát truy cập phân quyền: Hệ thống phải đảm bảo người dùng chỉ được làm những gì trong phạm vi quyền hạn của mình.(Theo OWASP )
+Phần mềm phải thiết kế phân quyền chặt chẽ:
+Khách thuê: Chỉ được xem CCCD và thông tin của chính mình, tuyệt đối không thể sửa URL hoặc dùng API để xem CCCD của phòng khác.
+Nhân viên quản lý trọ (nếu có): Chỉ được xem danh sách phòng, không có quyền xuất/tải file ảnh CCCD của khách về máy cá nhân nếu chủ nhà không cấp phép.
+Chủ nhà (Admin): Có toàn quyền.
+Tính Không thể chối bỏ:Khả năng chứng minh một hành động hoặc sự kiện đã diễn ra, khiến người thực hiện không thể phủ nhận.(Theo ISO/IEC 25010)
+Nhật ký hệ thống: Phần mềm phải ghi lại lịch sử: Ai đã xem CCCD này? Vào lúc mấy giờ? Ai đã sửa số tiền phòng của phòng …? * Khi có sự cố rò rỉ thông tin hoặc tranh chấp tiền bạc, Audit Logs này là bằng chứng pháp lý tối cao để quy trách nhiệm.
+Tuân thủ Quy định Bảo vệ Dữ liệu – Theo Tiêu chuẩn Châu Âu (GDPR) và Nghị định 13/2023/NĐ-CP (Việt Nam):Người dùng có quyền đối với dữ liệu cá nhân của họ, bao gồm quyền được biết dữ liệu dùng làm gì và quyền được yêu cầu xóa.
+Tính năng "Xóa tài khoản/Xóa dữ liệu": Khi khách rời đi và thanh lý hợp đồng, phần mềm phải có cơ chế cho phép chủ nhà xóa hoặc ẩn hoàn toàn (Anonymize) thông tin CCCD của khách khỏi hệ thống sau một khoảng thời gian quy định để tuân thủ pháp luật về bảo mật dữ liệu cá nhân tại Việt Nam (Nghị định 13).
+Cam kết mục đích: Khi khách đăng nhập app, phải có một điều khoản tích chọn (Privacy Policy) thông báo rằng: "Thông tin CCCD của bạn chỉ được dùng cho mục đích khai báo tạm trú và quản lý hợp đồng".
+Giao diện 
+Giúp người dung nhanh chóng hiểu được cách vận hành hệ thống ngay từ lần đầu tiếp cận
+Biểu tượng to rõ dễ thao tác hạn chế các văn bản dài dòng chủ yếu dung các icon dễ nhìn dễ hiểu
+Menu đơn giản tránh việc bấm quá 3 lần menu gây khó nhớ cho người dung.
+Hỗ trợ giọng nói và hình ảnh thay vì gõ bàn phím.
+khả năng bảo về người dung trước sai sót: vấn đề lớn nhất khiến cho đa phần mọi người khó tiếp cận với môi trường số đó là sợ làm sai bị hư hệ thống hoặc là không biết trả tiền chủ trọ có nhận được chưa nên thay vì sử dụng mã QR chuyển tiền thì họ chọn tiền mặt cho nhanh và an toàn. 
+Có cơ chế xác nhận từ cả 2 bên khách thuê xác nhận chuyển tiền và chủ trọ đã nhận được tiền.
+Mượn các thao tác quen thuộc từ các ứng dụng lớn hiện nay như Zalo, Youtube…… để tránh cho người dùng có cảm giác lạ lẫm, dễ tiếp nhận hơn.
+Hiệu năng
+thời gian tải trang hóa đơn hoặc hiện mã QR thanh toán không được quá 2 giây. Nếu quá 3 giây, người dùng sẽ nghĩ app bị lỗi và tắt đi.
+Hình ảnh (như ảnh chụp sự cố, ảnh CCCD) gửi lên hệ thống phải được tự động nén dung lượng xuống mức tối thiểu (ví dụ dưới 500KB) trước khi tải lên máy chủ để tiết kiệm băng thông cho người dùng.
+App phải nhẹ, không được ngốn quá nhiều pin hoặc làm nóng máy điện thoại của người dung 
+Độ tin cậy
+Vào các ngày cao điểm (ví dụ ngày 1 đến ngày 5 hàng tháng là ngày đóng tiền nhà), hệ thống phải chịu được lượng truy cập đồng thời tăng đột biến.
+thiết kế hệ thống theo kiến trúc có thể tự động mở rộng (Auto-scaling) trên đám mây (Cloud như AWS, Google Cloud). Khi lượng truy cập tăng cao, máy chủ sẽ tự tăng cường sức mạnh, hết cao điểm sẽ tự hạ xuống để tiết kiệm chi phí.
+Nếu cổng thanh toán trực tuyến của một ngân hàng A bị lỗi, phần mềm phải tự động chuyển sang hiển thị số tài khoản ngân hàng B hoặc mã QR tĩnh để khách thuê vẫn có thể chuyển khoản được, không làm gián đoạn việc thu tiền của chủ nhà.
+Dữ liệu về số tiền phòng, hóa đơn đã thanh toán phải được Backup tự động định kỳ. Nếu máy chủ chính gặp sự cố, hệ thống phải kích hoạt máy chủ dự phòng ngay lập tức để dữ liệu của chủ nhà không bị tổn thất.
+Đánh giá mức độ khả thi của dự án:
+Công nghệ sử dụng:Flutter
+Ngôn ngữ: Dart 
+Timeline Tìm hiểu nghiệp vụ & Thiết kế hệ thống
+
+
+Tính năng của hệ thống:
+Tính năng chính
+Tính năng bổ sung 
+
+	
+
+Đề tài thực hiện nhằm khảo sát, phân tích toàn diện quy trình nghiệp vụ thực tế tại các cơ sở lưu trú, từ đó xây dựng nền tảng thiết kế cho một hệ thống quản lý phù hợp với nhu cầu thực tiễn. Các công việc cần thực hiện của đề tài:
+khảo sát và phân tích nghiệp vụ, bao gồm quy trình quản lý khách thuê, lập và theo dõi hóa đơn thu chi, kê khai thuế theo quy định pháp luật hiện hành, cũng như nhu cầu thông báo nhắc nhở tự động. 
+thiết kế hệ thống, bao gồm sơ đồ use case, mô hình dữ liệu, kiến trúc tổng thể và thiết kế giao diện người dùng trên nền tảng Mobile và Web. 
+xác định yêu cầu chức năng và phi chức năng làm cơ sở cho giai đoạn phát triển tiếp theo.
+Mục tiêu của đề tài là tài liệu phân tích và thiết kế hoàn chỉnh, làm nền tảng trực tiếp cho việc xây dựng ứng dụng ở giai đoạn tiếp theo, đồng thời góp phần giúp người lao động tiếp cận gần hơn với môi trường công nghệ thông tin, hưởng ứng phong trào chuyển đổi số của Nhà nước.
+

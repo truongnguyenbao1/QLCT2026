@@ -1,0 +1,6 @@
+Copyright (c) 2026. All rights reserved.
+
+Dự án: Quản lý Nhà trọ (Quanlynhatro)
+Tác giả/Chủ sở hữu: nguye (hoặc tên nhóm phát triển)
+
+Mọi hành vi sao chép, phân phối hoặc sửa đổi mã nguồn này khi chưa có sự đồng ý đều không được phép, ngoại trừ các điều khoản đã được quy định trong file LICENSE (MIT License).

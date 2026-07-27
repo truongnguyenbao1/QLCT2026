@@ -253,6 +253,15 @@ class _DashboardContent extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
+          Center(
+            child: Text(
+              'Copyright © 2026. All rights reserved.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
         ],
       ),
     );
@@ -788,6 +797,16 @@ class _TenantDashboardContentState extends State<_TenantDashboardContent> {
               return const SizedBox();
             },
           ),
+          const SizedBox(height: 24),
+          Center(
+            child: Text(
+              'Copyright © 2026. All rights reserved.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
         ],
       ),
     );
