@@ -92,7 +92,7 @@ class _PrintInvoiceDialogState extends State<PrintInvoiceDialog> {
         ownerName = authState.user.fullName;
         ownerPhone = authState.user.phone;
       }
-      const webAddress = 'https://app.tnb.io.vn';
+      const webAddress = 'https://trokeeper.tnb.io.vn/app/';
 
       // ── Tải ảnh VietQR (nếu có) ──────────────────────────────────────────
       Uint8List? vietQrImage;
@@ -191,7 +191,7 @@ class _PrintInvoiceDialogState extends State<PrintInvoiceDialog> {
       ownerName = authState.user.fullName;
       ownerPhone = authState.user.phone;
     }
-    const webAddress = 'https://app.tnb.io.vn';
+    const webAddress = 'https://trokeeper.tnb.io.vn/app/';
 
     Uint8List? vietQrImage;
     try {

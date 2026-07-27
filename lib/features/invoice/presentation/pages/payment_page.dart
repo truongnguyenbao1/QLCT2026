@@ -234,7 +234,7 @@ class _PaymentPageContentState extends State<_PaymentPageContent> {
         invoiceId: invoice.id.substring(0, 8).toUpperCase(),
         ownerName: ownerName,
         ownerPhone: ownerPhone,
-        webAddress: 'https://app.tnb.io.vn',
+        webAddress: 'https://trokeeper.tnb.io.vn/app/',
       );
       await printerService.printTicket(bytes);
     } catch (e) {
