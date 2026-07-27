@@ -144,7 +144,7 @@ class _QuanLyNhaTroAppState extends State<QuanLyNhaTroApp> with WidgetsBindingOb
           enabled: true,
           tree: WidgetTree(context: context),
           child: MaterialApp.router(
-            title: 'Quản lý Nhà trọ',
+            title: 'TroKeeper',
             debugShowCheckedModeBanner: false,
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
