@@ -14,6 +14,8 @@ import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState;
 import '../widgets/notification_bell.dart';
 import '../../../notifications/presentation/bloc/notification_bloc.dart';
 import '../../../notifications/presentation/pages/create_issue_page.dart';
+import 'dart:io' show Platform;
+import '../../../../core/services/update_service.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -51,6 +53,21 @@ class _DashboardViewState extends State<_DashboardView> {
 
     if (isOwner) {
       context.read<DashboardBloc>().add(LoadDashboardEvent(propertyId));
+    }
+
+    if (Platform.isWindows) {
+      _checkUpdate();
+    }
+  }
+
+  Future<void> _checkUpdate() async {
+    final updateInfo = await UpdateService.checkForUpdate();
+    if (updateInfo != null && mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => _UpdateDialog(updateInfo: updateInfo),
+      );
     }
   }
 
@@ -886,6 +903,86 @@ class _NotificationCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _UpdateDialog extends StatefulWidget {
+  final Map<String, dynamic> updateInfo;
+  const _UpdateDialog({required this.updateInfo});
+
+  @override
+  State<_UpdateDialog> createState() => _UpdateDialogState();
+}
+
+class _UpdateDialogState extends State<_UpdateDialog> {
+  bool _isDownloading = false;
+  double _progress = 0.0;
+  String? _error;
+
+  void _startDownload() async {
+    setState(() {
+      _isDownloading = true;
+      _error = null;
+    });
+
+    try {
+      await UpdateService.downloadAndInstall(
+        widget.updateInfo['downloadUrl'],
+        (progress) {
+          if (mounted) {
+            setState(() {
+              _progress = progress;
+            });
+          }
+        },
+      );
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isDownloading = false;
+          _error = 'Lỗi tải xuống: $e';
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Có bản cập nhật mới!'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Phiên bản mới: ${widget.updateInfo['version']}'),
+          const SizedBox(height: 8),
+          Text(widget.updateInfo['body'] ?? '', style: const TextStyle(fontSize: 13, color: Colors.grey)),
+          const SizedBox(height: 16),
+          if (_isDownloading)
+            Column(
+              children: [
+                LinearProgressIndicator(value: _progress),
+                const SizedBox(height: 8),
+                Text('Đang tải: ${(_progress * 100).toStringAsFixed(1)}%'),
+              ],
+            ),
+          if (_error != null)
+            Text(_error!, style: const TextStyle(color: Colors.red)),
+        ],
+      ),
+      actions: [
+        if (!_isDownloading)
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Bỏ qua'),
+          ),
+        if (!_isDownloading)
+          ElevatedButton(
+            onPressed: _startDownload,
+            child: const Text('Cập nhật ngay'),
+          ),
+      ],
     );
   }
 }

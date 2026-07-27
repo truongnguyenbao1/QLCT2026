@@ -28,24 +28,23 @@ jobs:
       - name: Build Windows App (Release mode)
         run: flutter build windows --release
 
-      - name: Đóng gói thành file ZIP
-        run: |
-          # Lấy tên version từ tag (VD: v1.0.0)
-          $VERSION = "${{ github.ref_name }}"
-          $ZIP_NAME = "TroKeeper_Windows_$VERSION.zip"
-          
-          # Nén toàn bộ file trong thư mục Release
-          Compress-Archive -Path "build\windows\x64\runner\Release\*" -DestinationPath $ZIP_NAME -Force
-          
-          # Lưu tên file vào biến môi trường để dùng ở bước sau
-          echo "ZIP_FILE=$ZIP_NAME" >> $env:GITHUB_ENV
+      - name: Đóng gói Inno Setup (Tạo file .exe)
+        uses: minyodev/inno-setup-action@v1
+        with:
+          path: windows/inno_setup.iss
+          options: /DMyAppVersion=${{ github.ref_name }}
 
-      - name: Tạo GitHub Release & Tải file ZIP lên
+      - name: Tạo GitHub Release & Tải file EXE lên
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ env.ZIP_FILE }}
+          files: Output/TroKeeper_Setup.exe
           name: TroKeeper ${{ github.ref_name }}
-          body: "Bản cập nhật Desktop cho hệ điều hành Windows."
+          body: |
+            Bản cập nhật Desktop (Windows .exe).
+            
+            **Hướng dẫn cài đặt:**
+            Tải file `TroKeeper_Setup.exe` và chạy để cài đặt bình thường.
+            Các bản cập nhật sau sẽ tự động thông báo và tải về từ bên trong ứng dụng.
           draft: false
           prerelease: false
         env:
