@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TroKeeper – Quản lý Nhà trọ Thông Minh</title>
+  <meta name="description" content="TroKeeper – Phần mềm quản lý nhà trọ thông minh, minh bạch và đúng luật. Tải ngay trên CH Play, App Store và Desktop.">
+  <meta name="keywords" content="TroKeeper, quản lý nhà trọ, phần mềm quản lý phòng trọ, ứng dụng nhà trọ, hóa đơn tiền điện nước">
+  <meta name="author" content="TroKeeper">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://app.tnb.io.vn/landing.html">
+  <meta property="og:title" content="TroKeeper – Quản lý Nhà trọ Thông Minh">
+  <meta property="og:description" content="Giải pháp quản lý nhà trọ toàn diện – Minh bạch, Tiện lợi, Đúng luật.">
+  <meta property="og:image" content="https://app.tnb.io.vn/icons/Icon-512.png">
+
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    /* ─── Reset & Base ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green-dark:   #2d5a3d;
+      --green:        #4a8c5c;
+      --green-light:  #6dab7e;
+      --green-pale:   #e8f5ec;
+      --green-glass:  rgba(74,140,92,0.12);
+      --text-dark:    #0f1f17;
+      --text-mid:     #3a5c47;
+      --text-light:   #6b8f76;
+      --white:        #ffffff;
+      --bg:           #f4faf6;
+      --card-bg:      #ffffff;
+      --shadow:       0 4px 32px rgba(45,90,61,0.10);
+      --shadow-hover: 0 12px 48px rgba(45,90,61,0.18);
+      --radius:       20px;
+      --radius-sm:    12px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text-dark);
+      line-height: 1.65;
+      overflow-x: hidden;
+    }
+
+    /* ─── Animated gradient bg ─────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background: linear-gradient(135deg, #e8f5ec 0%, #f4faf6 40%, #d6eedf 100%);
+      z-index: -2;
+    }
+
+    /* Floating blobs */
+    .blob { position: fixed; border-radius: 50%; filter: blur(80px); z-index: -1; opacity: 0.4; animation: drift 18s ease-in-out infinite alternate; }
+    .blob-1 { width:600px; height:600px; background:radial-gradient(circle, #a8d5b5, transparent); top:-200px; left:-200px; animation-delay:0s; }
+    .blob-2 { width:400px; height:400px; background:radial-gradient(circle, #4a8c5c, transparent); bottom:-100px; right:-100px; animation-delay:-6s; }
+    .blob-3 { width:300px; height:300px; background:radial-gradient(circle, #6dab7e, transparent); top:40%; left:60%; animation-delay:-12s; }
+
+    @keyframes drift {
+      0%   { transform: translate(0,0) scale(1); }
+      50%  { transform: translate(30px,-40px) scale(1.05); }
+      100% { transform: translate(-20px,20px) scale(0.96); }
+    }
+
+    /* ─── NAV ───────────────────────────────────────────────────── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 48px;
+      background: rgba(255,255,255,0.75);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(74,140,92,0.12);
+      box-shadow: 0 2px 24px rgba(45,90,61,0.07);
+      transition: padding .3s;
+    }
+
+    .nav-logo {
+      display: flex; align-items: center; gap: 12px;
+      text-decoration: none;
+    }
+    .nav-logo img { height: 36px; }
+    .nav-logo-text { font-weight: 800; font-size: 22px; color: var(--green-dark); letter-spacing: -0.5px; }
+    .nav-logo-text span { color: var(--green); }
+
+    .nav-links { display: flex; gap: 32px; list-style: none; }
+    .nav-links a { text-decoration: none; color: var(--text-mid); font-weight: 500; font-size: 15px; transition: color .2s; }
+    .nav-links a:hover { color: var(--green); }
+
+    .nav-cta {
+      background: linear-gradient(135deg, var(--green-dark), var(--green));
+      color: #fff !important; padding: 10px 24px; border-radius: 50px;
+      font-weight: 600; font-size: 14px; text-decoration: none;
+      box-shadow: 0 4px 20px rgba(45,90,61,0.25);
+      transition: transform .2s, box-shadow .2s;
+    }
+    .nav-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(45,90,61,0.35); }
+
+    /* ─── HERO ───────────────────────────────────────────────────── */
+    .hero {
+      min-height: 92vh;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center; padding: 80px 24px 60px;
+      position: relative; overflow: hidden;
+    }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--green-glass);
+      border: 1px solid rgba(74,140,92,0.25);
+      color: var(--green); padding: 8px 20px; border-radius: 50px;
+      font-size: 13px; font-weight: 600; margin-bottom: 28px;
+      backdrop-filter: blur(8px);
+      animation: fadeUp .6s ease both;
+    }
+    .hero-badge .dot { width:8px; height:8px; background:var(--green-light); border-radius:50%; animation: pulse 2s ease-in-out infinite; }
+
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:.5;transform:scale(1.4);} }
+
+    .hero h1 {
+      font-size: clamp(42px, 7vw, 80px);
+      font-weight: 900;
+      line-height: 1.08;
+      letter-spacing: -2px;
+      color: var(--text-dark);
+      margin-bottom: 24px;
+      animation: fadeUp .7s .1s ease both;
+    }
+    .hero h1 .highlight {
+      background: linear-gradient(135deg, var(--green-dark), var(--green-light));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: clamp(16px, 2.2vw, 20px); color: var(--text-light);
+      max-width: 640px; margin: 0 auto 40px;
+      font-weight: 400; line-height: 1.7;
+      animation: fadeUp .7s .2s ease both;
+    }
+
+    .hero-btns {
+      display: flex; flex-wrap: wrap; gap: 16px; justify-content: center;
+      animation: fadeUp .7s .3s ease both;
+    }
+
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: linear-gradient(135deg, var(--green-dark), var(--green));
+      color: #fff; padding: 16px 36px; border-radius: 50px;
+      font-size: 16px; font-weight: 700; text-decoration: none;
+      box-shadow: 0 6px 28px rgba(45,90,61,0.30);
+      transition: transform .2s, box-shadow .2s;
+    }
+    .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(45,90,61,0.40); }
+
+    .btn-secondary {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: rgba(255,255,255,0.8); color: var(--green-dark);
+      padding: 16px 36px; border-radius: 50px;
+      font-size: 16px; font-weight: 700; text-decoration: none;
+      border: 2px solid rgba(74,140,92,0.25);
+      backdrop-filter: blur(8px);
+      transition: transform .2s, background .2s, border-color .2s;
+    }
+    .btn-secondary:hover { transform: translateY(-3px); background: #fff; border-color: var(--green); }
+
+    .hero-stats {
+      display: flex; flex-wrap: wrap; gap: 40px; justify-content: center;
+      margin-top: 64px;
+      animation: fadeUp .7s .5s ease both;
+    }
+    .stat { text-align: center; }
+    .stat-num { font-size: 36px; font-weight: 900; color: var(--green-dark); line-height: 1; letter-spacing:-1px; }
+    .stat-label { font-size: 13px; color: var(--text-light); margin-top: 6px; font-weight: 500; }
+
+    /* ─── SECTION COMMONS ────────────────────────────────────────── */
+    section { padding: 100px 24px; }
+    .container { max-width: 1180px; margin: 0 auto; }
+
+    .section-label {
+      display: inline-block;
+      background: var(--green-glass); color: var(--green);
+      padding: 6px 18px; border-radius: 50px;
+      font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+      margin-bottom: 16px;
+      border: 1px solid rgba(74,140,92,0.2);
+    }
+    .section-title {
+      font-size: clamp(30px, 4vw, 48px); font-weight: 800;
+      color: var(--text-dark); line-height: 1.15; letter-spacing: -1px;
+      margin-bottom: 16px;
+    }
+    .section-sub {
+      font-size: 17px; color: var(--text-light); max-width: 560px; line-height: 1.7;
+    }
+    .section-head { margin-bottom: 64px; }
+    .section-head.center { text-align: center; }
+    .section-head.center .section-sub { margin: 0 auto; }
+
+    /* ─── FEATURES GRID ──────────────────────────────────────────── */
+    #features { background: transparent; }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 28px;
+    }
+
+    .feature-card {
+      background: rgba(255,255,255,0.85);
+      border: 1px solid rgba(74,140,92,0.12);
+      border-radius: var(--radius);
+      padding: 36px 32px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      transition: transform .3s, box-shadow .3s;
+      position: relative; overflow: hidden;
+    }
+    .feature-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--green-dark), var(--green-light));
+      opacity: 0; transition: opacity .3s;
+    }
+    .feature-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-hover); }
+    .feature-card:hover::before { opacity: 1; }
+
+    .feature-icon {
+      width: 60px; height: 60px;
+      background: linear-gradient(135deg, var(--green-pale), rgba(74,140,92,0.15));
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; margin-bottom: 20px;
+      transition: transform .3s;
+    }
+    .feature-card:hover .feature-icon { transform: scale(1.1) rotate(-5deg); }
+
+    .feature-card h3 { font-size: 18px; font-weight: 700; color: var(--text-dark); margin-bottom: 10px; }
+    .feature-card p  { font-size: 14px; color: var(--text-light); line-height: 1.7; }
+
+    /* ─── ROLES SECTION ──────────────────────────────────────────── */
+    #roles { background: rgba(45,90,61,0.03); }
+
+    .roles-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 32px;
+      align-items: start;
+    }
+
+    .role-card {
+      background: rgba(255,255,255,0.9); border-radius: var(--radius);
+      padding: 40px 36px; border: 1px solid rgba(74,140,92,0.12);
+      box-shadow: var(--shadow);
+    }
+    .role-card-header { display: flex; align-items: center; gap: 16px; margin-bottom: 28px; }
+    .role-icon { font-size: 36px; }
+    .role-card h3 { font-size: 22px; font-weight: 800; color: var(--text-dark); }
+    .role-card > p { font-size: 14px; color: var(--text-light); margin-bottom: 24px; }
+
+    .role-list { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+    .role-list li {
+      display: flex; align-items: flex-start; gap: 12px;
+      font-size: 14px; color: var(--text-mid); font-weight: 500;
+    }
+    .role-list li::before {
+      content: '✓';
+      flex-shrink: 0; width: 22px; height: 22px;
+      background: linear-gradient(135deg, var(--green-dark), var(--green));
+      color: #fff; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; margin-top: 1px;
+    }
+
+    /* ─── TECH STACK ─────────────────────────────────────────────── */
+    #tech { background: transparent; }
+
+    .tech-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;
+    }
+    .tech-card {
+      background: rgba(255,255,255,0.85);
+      border: 1px solid rgba(74,140,92,0.12);
+      border-radius: var(--radius-sm);
+      padding: 24px 20px; text-align: center;
+      box-shadow: var(--shadow);
+      transition: transform .2s, box-shadow .2s;
+    }
+    .tech-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); }
+    .tech-card .tech-emoji { font-size: 32px; margin-bottom: 12px; }
+    .tech-card h4 { font-size: 14px; font-weight: 700; color: var(--text-dark); margin-bottom: 4px; }
+    .tech-card p  { font-size: 12px; color: var(--text-light); }
+
+    /* ─── DOWNLOAD SECTION ───────────────────────────────────────── */
+    #download {
+      background: linear-gradient(135deg, var(--green-dark) 0%, var(--green) 60%, var(--green-light) 100%);
+      position: relative; overflow: hidden;
+    }
+    #download::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
+    }
+
+    #download .container { position: relative; z-index: 1; }
+
+    #download .section-label { background: rgba(255,255,255,0.2); color: #fff; border-color: rgba(255,255,255,0.3); }
+    #download .section-title { color: #fff; }
+    #download .section-sub { color: rgba(255,255,255,0.8); }
+
+    .download-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 28px;
+      margin-top: 56px;
+    }
+
+    .download-card {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: var(--radius);
+      padding: 36px 28px;
+      text-align: center;
+      backdrop-filter: blur(16px);
+      transition: transform .3s, background .3s;
+    }
+    .download-card:hover { transform: translateY(-6px); background: rgba(255,255,255,0.18); }
+
+    .download-card .platform-icon { font-size: 48px; margin-bottom: 16px; }
+    .download-card h3 { font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 8px; }
+    .download-card .platform-desc { font-size: 13px; color: rgba(255,255,255,0.7); margin-bottom: 28px; }
+
+    /* QR Code placeholder */
+    .qr-placeholder {
+      width: 160px; height: 160px;
+      background: rgba(255,255,255,0.15);
+      border: 2px dashed rgba(255,255,255,0.5);
+      border-radius: 16px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      margin: 0 auto 20px;
+      transition: background .3s;
+      cursor: pointer;
+    }
+    .qr-placeholder:hover { background: rgba(255,255,255,0.25); }
+
+    /* Swap in your actual QR code image by replacing the placeholder div with:
+       <img src="path/to/your-qr.png" class="qr-img" alt="QR tải app">
+       and adding class qr-img: width:160px; height:160px; border-radius:16px; */
+    .qr-img {
+      width: 160px; height: 160px; border-radius: 16px;
+      margin: 0 auto 20px; display: block; object-fit: cover;
+    }
+
+    .qr-placeholder .qr-label {
+      font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 8px; font-weight: 500;
+    }
+    .qr-icon { font-size: 36px; }
+
+    .download-btn {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: #fff; color: var(--green-dark);
+      padding: 13px 28px; border-radius: 50px;
+      font-size: 14px; font-weight: 700; text-decoration: none;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      transition: transform .2s, box-shadow .2s;
+    }
+    .download-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,0.25); }
+    .download-btn.disabled {
+      opacity: 0.6; cursor: not-allowed; pointer-events: none;
+    }
+
+    .coming-badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.2);
+      color: #fff; padding: 4px 14px; border-radius: 50px;
+      font-size: 11px; font-weight: 600; letter-spacing: 1px;
+      margin-bottom: 16px; text-transform: uppercase;
+    }
+
+    /* ─── FOOTER ─────────────────────────────────────────────────── */
+    footer {
+      background: var(--green-dark);
+      color: rgba(255,255,255,0.7);
+      text-align: center; padding: 40px 24px;
+      font-size: 13px;
+    }
+    footer a { color: var(--green-light); text-decoration: none; }
+    footer strong { color: #fff; }
+
+    /* ─── ANIMATIONS ─────────────────────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .reveal {
+      opacity: 0; transform: translateY(40px);
+      transition: opacity .7s ease, transform .7s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ─── RESPONSIVE ─────────────────────────────────────────────── */
+    @media (max-width: 900px) {
+      nav { padding: 14px 24px; }
+      .nav-links { display: none; }
+      .roles-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      section { padding: 72px 16px; }
+      .hero { padding: 72px 16px 48px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Blobs -->
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+
+  <!-- ─── NAV ─────────────────────────────────────────────────────── -->
+  <nav id="navbar">
+    <a href="#" class="nav-logo">
+      <img src="icons/Icon-192.png" alt="TroKeeper Logo">
+      <span class="nav-logo-text">Tro<span>Keeper</span></span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#features">Tính năng</a></li>
+      <li><a href="#roles">Ai dùng được?</a></li>
+      <li><a href="#tech">Công nghệ</a></li>
+      <li><a href="#download">Tải xuống</a></li>
+    </ul>
+    <a href="#download" class="nav-cta">📲 Tải Ngay</a>
+  </nav>
+
+  <!-- ─── HERO ─────────────────────────────────────────────────────── -->
+  <section class="hero">
+    <div>
+      <div class="hero-badge">
+        <span class="dot"></span>
+        Phần mềm quản lý nhà trọ thế hệ mới
+      </div>
+      <h1>
+        Quản lý nhà trọ<br>
+        <span class="highlight">thông minh hơn</span><br>
+        với TroKeeper
+      </h1>
+      <p>
+        Tự động hóa hóa đơn, quản lý hợp đồng, theo dõi khách thuê và thu chi
+        — tất cả trên một nền tảng duy nhất, chạy mượt mà trên mọi thiết bị.
+      </p>
+      <div class="hero-btns">
+        <a href="#download" class="btn-primary">📲 Tải Ứng Dụng</a>
+        <a href="https://app.tnb.io.vn" class="btn-secondary" target="_blank">🌐 Dùng Trên Web</a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat">
+          <div class="stat-num">3+</div>
+          <div class="stat-label">Nền tảng hỗ trợ</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">10+</div>
+          <div class="stat-label">Tính năng cốt lõi</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">0đ</div>
+          <div class="stat-label">Chi phí khởi đầu</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">100%</div>
+          <div class="stat-label">Minh bạch, đúng luật</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── FEATURES ─────────────────────────────────────────────────── -->
+  <section id="features">
+    <div class="container">
+      <div class="section-head center">
+        <span class="section-label">Tính năng nổi bật</span>
+        <h2 class="section-title">Mọi thứ bạn cần để<br>quản lý nhà trọ chuyên nghiệp</h2>
+        <p class="section-sub">TroKeeper được thiết kế dành riêng cho chủ trọ và khách thuê Việt Nam, giải quyết triệt để bài toán quản lý thủ công.</p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card reveal">
+          <div class="feature-icon">🏠</div>
+          <h3>Quản lý Phòng toàn diện</h3>
+          <p>Theo dõi tình trạng từng phòng (đang thuê / còn trống), lịch sử thuê, đặt cọc và toàn bộ thông tin phòng trong một màn hình duy nhất.</p>
+        </div>
+        <div class="feature-card reveal">
+          <div class="feature-icon">👤</div>
+          <h3>Quản lý Khách thuê</h3>
+          <p>Lưu trữ CCCD, hợp đồng điện tử, ngày thuê, thông tin liên hệ và trạng thái từng khách thuê với đầy đủ lịch sử hoạt động.</p>
+        </div>
+        <div class="feature-card reveal">
+          <div class="feature-icon">⚡</div>
+          <h3>Hóa đơn Điện – Nước – Dịch vụ</h3>
+          <p>Nhập chỉ số điện nước tự động tính tiền, xuất hóa đơn PDF chuyên nghiệp và gửi thông báo đến khách thuê ngay lập tức.</p>
+        </div>
+        <div class="feature-card reveal">
+          <div class="feature-icon">💳</div>
+          <h3>Thanh toán QR & Ví điện tử</h3>
+          <p>Tích hợp VietQR tự động sinh mã QR ngân hàng và MoMo – khách thuê quét là thanh toán, không cần chuyển tay tiền mặt.</p>
+        </div>
+        <div class="feature-card reveal">
+          <div class="feature-icon">📊</div>
+          <h3>Báo cáo Tài chính</h3>
+          <p>Thống kê doanh thu theo tháng, tỷ lệ lấp đầy phòng, biểu đồ trực quan và xuất báo cáo PDF để minh bạch thu chi.</p>
+        </div>
+        <div class="feature-card reveal">
+          <div class="feature-icon">🔔</div>
+          <h3>Thông báo Thời gian thực</h3>
+          <p>Push notification tức thì qua Firebase FCM khi đến hạn đóng tiền, khi khách thuê báo sự cố hoặc khi có thông báo từ chủ trọ.</p>
+        </div>
+        <div class="feature-card reveal">
+          <div class="feature-icon">🔒</div>
+          <h3>Bảo mật Nhiều lớp</h3>
+          <p>Xác thực JWT + OAuth, tự động đăng xuất sau 5 phút không hoạt động, Row Level Security (RLS) đảm bảo dữ liệu riêng tư tuyệt đối.</p>
+        </div>
+        <div class="feature-card reveal">
+          <div class="feature-icon">📱</div>
+          <h3>Đa nền tảng – Đồng bộ tức thì</h3>
+          <p>Một tài khoản dùng được trên Web, Android, iOS và Desktop. Dữ liệu đồng bộ real-time qua Supabase – thay đổi ở đâu, cập nhật ngay ở đó.</p>
+        </div>
+        <div class="feature-card reveal">
+          <div class="feature-icon">🛠️</div>
+          <h3>Báo cáo Sự cố</h3>
+          <p>Khách thuê báo sự cố hỏng hóc ngay trong app, chủ trọ nhận thông báo và phản hồi – minh bạch, có dấu thời gian, không bị bỏ sót.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── ROLES ─────────────────────────────────────────────────────── -->
+  <section id="roles">
+    <div class="container">
+      <div class="section-head">
+        <span class="section-label">Đối tượng sử dụng</span>
+        <h2 class="section-title">Một ứng dụng,<br>hai trải nghiệm</h2>
+        <p class="section-sub">TroKeeper phục vụ cả hai phía của mối quan hệ thuê trọ, mỗi người dùng có giao diện và quyền truy cập phù hợp.</p>
+      </div>
+      <div class="roles-grid reveal">
+        <div class="role-card">
+          <div class="role-card-header">
+            <div class="role-icon">🏢</div>
+            <div>
+              <h3>Chủ Trọ (Owner)</h3>
+            </div>
+          </div>
+          <p>Toàn quyền kiểm soát hệ thống, quản lý nhiều tòa nhà, nhiều phòng và hàng chục khách thuê cùng một lúc.</p>
+          <ul class="role-list">
+            <li>Thêm, sửa, xoá phòng và khách thuê</li>
+            <li>Nhập & tính chỉ số điện, nước, dịch vụ</li>
+            <li>Tạo & phê duyệt hóa đơn hàng tháng</li>
+            <li>Xem báo cáo doanh thu, tỷ lệ lấp đầy</li>
+            <li>Gửi thông báo hàng loạt cho tất cả khách thuê</li>
+            <li>Cài đặt thông tin thanh toán QR, VietQR</li>
+            <li>Xem và phản hồi sự cố từ khách thuê</li>
+          </ul>
+        </div>
+        <div class="role-card">
+          <div class="role-card-header">
+            <div class="role-icon">🧑‍💼</div>
+            <div>
+              <h3>Khách Thuê (Tenant)</h3>
+            </div>
+          </div>
+          <p>Giao diện thân thiện, trực quan — khách thuê xem được tất cả thông tin của mình một cách minh bạch và chủ động.</p>
+          <ul class="role-list">
+            <li>Xem thông tin phòng và hóa đơn hàng tháng</li>
+            <li>Thanh toán ngay bằng QR / MoMo</li>
+            <li>Nhận thông báo hạn đóng tiền & thông báo mới</li>
+            <li>Báo sự cố hỏng hóc trực tiếp trong app</li>
+            <li>Xem lịch sử thanh toán & hợp đồng</li>
+            <li>Dashboard cá nhân với thông tin phòng, nhà trọ</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── TECH ──────────────────────────────────────────────────────── -->
+  <section id="tech">
+    <div class="container">
+      <div class="section-head center">
+        <span class="section-label">Công nghệ</span>
+        <h2 class="section-title">Xây dựng bằng những<br>công nghệ hiện đại nhất</h2>
+        <p class="section-sub">TroKeeper áp dụng Clean Architecture và bộ công cụ hàng đầu để đảm bảo hiệu suất, bảo mật và khả năng mở rộng lâu dài.</p>
+      </div>
+      <div class="tech-grid reveal">
+        <div class="tech-card">
+          <div class="tech-emoji">💙</div>
+          <h4>Flutter</h4>
+          <p>Cross-platform UI framework</p>
+        </div>
+        <div class="tech-card">
+          <div class="tech-emoji">🗄️</div>
+          <h4>Supabase</h4>
+          <p>PostgreSQL + Realtime Backend</p>
+        </div>
+        <div class="tech-card">
+          <div class="tech-emoji">🏗️</div>
+          <h4>Clean Architecture</h4>
+          <p>BLoC + Repository Pattern</p>
+        </div>
+        <div class="tech-card">
+          <div class="tech-emoji">🔔</div>
+          <h4>Firebase FCM</h4>
+          <p>Push Notifications</p>
+        </div>
+        <div class="tech-card">
+          <div class="tech-emoji">💳</div>
+          <h4>VietQR & MoMo</h4>
+          <p>Thanh toán nội địa</p>
+        </div>
+        <div class="tech-card">
+          <div class="tech-emoji">🔒</div>
+          <h4>Row Level Security</h4>
+          <p>Bảo mật dữ liệu cấp hàng</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── DOWNLOAD ──────────────────────────────────────────────────── -->
+  <section id="download">
+    <div class="container">
+      <div class="section-head center">
+        <span class="section-label">Tải xuống</span>
+        <h2 class="section-title">Bắt đầu ngay hôm nay</h2>
+        <p class="section-sub" style="color:rgba(255,255,255,0.8);">TroKeeper có mặt trên mọi nền tảng bạn cần. Tải về hoàn toàn miễn phí và trải nghiệm ngay!</p>
+      </div>
+
+      <div class="download-grid">
+
+        <!-- Android / CH Play -->
+        <div class="download-card">
+          <div class="platform-icon">🤖</div>
+          <h3>Android</h3>
+          <p class="platform-desc">Dành cho điện thoại & máy tính bảng Android</p>
+
+          <!-- ════ THAY QR CODE Ở ĐÂY (CH Play) ════
+               Xoá div.qr-placeholder bên dưới và thay bằng:
+               <img src="path/to/qr-android.png" class="qr-img" alt="QR tải app Android">
+               ════════════════════════════════════════ -->
+          <div class="qr-placeholder" title="Chờ QR Code CH Play">
+            <span class="qr-icon">📷</span>
+            <span class="qr-label">QR Code CH Play<br><small>Sẽ cập nhật sớm</small></span>
+          </div>
+
+          <!-- ════ THAY LINK CH PLAY Ở ĐÂY ════
+               Thay href="#" bằng link CH Play thật của bạn
+               ══════════════════════════════════ -->
+          <a href="#" class="download-btn disabled" id="btn-android">
+            ▶ Google Play Store
+          </a>
+        </div>
+
+        <!-- Web App -->
+        <div class="download-card">
+          <div class="platform-icon">🌐</div>
+          <h3>Web App</h3>
+          <p class="platform-desc">Chạy ngay trên trình duyệt, không cần cài đặt</p>
+
+          <div class="qr-placeholder" title="QR truy cập Web App">
+            <span class="qr-icon">📷</span>
+            <span class="qr-label">QR truy cập Web App<br><small>Sẽ cập nhật sớm</small></span>
+          </div>
+
+          <a href="https://app.tnb.io.vn" class="download-btn" id="btn-web" target="_blank">
+            🌐 Mở Web App
+          </a>
+        </div>
+
+        <!-- Desktop (Windows / macOS / Linux) -->
+        <div class="download-card">
+          <div class="platform-icon">💻</div>
+          <h3>Desktop</h3>
+          <p class="platform-desc">Windows · macOS · Linux</p>
+          <span class="coming-badge">Sắp ra mắt</span>
+
+          <!-- ════ THAY QR CODE Ở ĐÂY (Desktop) ════
+               Xoá div.qr-placeholder bên dưới và thay bằng:
+               <img src="path/to/qr-desktop.png" class="qr-img" alt="QR tải Desktop">
+               ═════════════════════════════════════════ -->
+          <div class="qr-placeholder" title="Chờ QR Code Desktop">
+            <span class="qr-icon">📷</span>
+            <span class="qr-label">QR Code Desktop<br><small>Sẽ cập nhật sớm</small></span>
+          </div>
+
+          <!-- ════ THAY LINK TẢI DESKTOP Ở ĐÂY ════
+               Thay href="#" bằng link download file .exe / .dmg
+               ══════════════════════════════════════ -->
+          <a href="#" class="download-btn disabled" id="btn-desktop">
+            ⬇ Tải cho Desktop
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── FOOTER ────────────────────────────────────────────────────── -->
+  <footer>
+    <p><strong>TroKeeper</strong> – Quản lý Nhà trọ Thông Minh</p>
+    <p style="margin-top:8px;">
+      Copyright © 2026 TroKeeper. All rights reserved.
+      &nbsp;·&nbsp; <a href="https://trokeeper.tnb.io.vn">trokeeper.tnb.io.vn</a>
+    </p>
+  </footer>
+
+  <!-- ─── SCRIPTS ───────────────────────────────────────────────────── -->
+  <script>
+    // Scroll reveal
+    const reveals = document.querySelectorAll('.reveal');
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e, i) => {
+        if (e.isIntersecting) {
+          setTimeout(() => e.target.classList.add('visible'), i * 80);
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    reveals.forEach(el => io.observe(el));
+
+    // Navbar shrink on scroll
+    window.addEventListener('scroll', () => {
+      document.getElementById('navbar').style.padding = 
+        window.scrollY > 40 ? '10px 48px' : '16px 48px';
+    });
+  </script>
+</body>
+</html>
