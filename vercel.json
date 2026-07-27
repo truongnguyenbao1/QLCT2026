@@ -1,26 +1,17 @@
 {
-  "rewrites": [
-    {
-      "source": "/app/(.*)",
-      "destination": "/app/index.html"
-    }
-  ],
   "routes": [
-    {
-      "src": "/",
-      "dest": "/landing.html"
-    },
-    {
-      "src": "/landing",
-      "dest": "/landing.html"
-    },
-    {
-      "src": "/app/(.*)",
-      "dest": "/app/index.html"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
-    }
+    { "src": "/app/flutter_bootstrap.js", "dest": "/app/flutter_bootstrap.js" },
+    { "src": "/app/flutter_service_worker.js", "dest": "/app/flutter_service_worker.js" },
+    { "src": "/app/main.dart.js", "dest": "/app/main.dart.js" },
+    { "src": "/app/assets/(.*)", "dest": "/app/assets/$1" },
+    { "src": "/app/canvaskit/(.*)", "dest": "/app/canvaskit/$1" },
+    { "src": "/app/icons/(.*)", "dest": "/app/icons/$1" },
+    { "src": "/app/favicon.png", "dest": "/app/favicon.png" },
+    { "src": "/app", "dest": "/app/index.html" },
+    { "src": "/app/(.*)", "dest": "/app/index.html" },
+    { "src": "/landing", "dest": "/landing.html" },
+    { "src": "/icons/(.*)", "dest": "/icons/$1" },
+    { "src": "/favicon.png", "dest": "/favicon.png" },
+    { "src": "/", "dest": "/landing.html" }
   ]
 }
