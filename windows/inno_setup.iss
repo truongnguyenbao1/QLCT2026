@@ -33,7 +33,7 @@ Name: "{autodesktop}\TroKeeper"; Filename: "{app}\trokeeper.exe"; Tasks: desktop
 Filename: "{app}\trokeeper.exe"; Description: "{cm:LaunchProgram,TroKeeper}"; Flags: nowait postinstall skipifsilent
 
 [Registry]
-Root: HKCR; Subkey: "io.supabase.flutter"; ValueType: string; ValueName: ""; ValueData: "URL:Supabase OAuth Protocol"; Flags: uninsdeletekey
-Root: HKCR; Subkey: "io.supabase.flutter"; ValueType: string; ValueName: "URL Protocol"; ValueData: ""; Flags: uninsdeletekey
-Root: HKCR; Subkey: "io.supabase.flutter\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\trokeeper.exe,0"; Flags: uninsdeletekey
-Root: HKCR; Subkey: "io.supabase.flutter\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\trokeeper.exe"" ""%1"""; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\io.supabase.flutter"; ValueType: string; ValueName: ""; ValueData: "URL:Supabase OAuth Protocol"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\io.supabase.flutter"; ValueType: string; ValueName: "URL Protocol"; ValueData: ""; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\io.supabase.flutter\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\trokeeper.exe,0"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\io.supabase.flutter\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\trokeeper.exe"" ""%1"""; Flags: uninsdeletekey
