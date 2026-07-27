@@ -1,6 +1,6 @@
 {
-    "name": "Quản lý Nhà trọ",
-    "short_name": "Nhà trọ",
+    "name": "TroKeeper - Quản lý Nhà trọ",
+    "short_name": "TroKeeper",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#FFFFFF",
