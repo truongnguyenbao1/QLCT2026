@@ -6,9 +6,12 @@ import '../../domain/repositories/room_repository.dart';
 import '../datasources/room_remote_datasource.dart';
 import '../models/room_model.dart';
 
+import '../../../system_logs/data/repositories/system_log_repository.dart';
+
 class RoomRepositoryImpl implements RoomRepository {
   final RoomRemoteDataSource _dataSource;
-  RoomRepositoryImpl(this._dataSource);
+  final SystemLogRepository _logRepository;
+  RoomRepositoryImpl(this._dataSource, this._logRepository);
 
   @override
   Future<Either<Failure, List<Room>>> getRooms(String propertyId) async {
@@ -54,7 +57,17 @@ class RoomRepositoryImpl implements RoomRepository {
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
-      return Right(await _dataSource.createRoom(model));
+      final createdRoom = await _dataSource.createRoom(model);
+      
+      // Ghi nhật ký
+      _logRepository.logAction(
+        action: 'INSERT',
+        tableName: 'phong',
+        recordId: createdRoom.id,
+        propertyId: room.propertyId,
+      );
+      
+      return Right(createdRoom);
     } on Failure catch (f) {
       return Left(f);
     } catch (e) {
@@ -83,7 +96,17 @@ class RoomRepositoryImpl implements RoomRepository {
         createdAt: room.createdAt,
         updatedAt: DateTime.now(),
       );
-      return Right(await _dataSource.updateRoom(model));
+      final updatedRoom = await _dataSource.updateRoom(model);
+      
+      // Ghi nhật ký
+      _logRepository.logAction(
+        action: 'UPDATE',
+        tableName: 'phong',
+        recordId: room.id,
+        propertyId: room.propertyId,
+      );
+      
+      return Right(updatedRoom);
     } on Failure catch (f) {
       return Left(f);
     } catch (e) {
@@ -94,7 +117,17 @@ class RoomRepositoryImpl implements RoomRepository {
   @override
   Future<Either<Failure, void>> deleteRoom(String roomId) async {
     try {
+      final room = await _dataSource.getRoomById(roomId);
       await _dataSource.deleteRoom(roomId);
+      
+      // Ghi nhật ký
+      _logRepository.logAction(
+        action: 'DELETE',
+        tableName: 'phong',
+        recordId: roomId,
+        propertyId: room.propertyId,
+      );
+      
       return const Right(null);
     } on Failure catch (f) {
       return Left(f);

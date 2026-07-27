@@ -30,7 +30,6 @@ import '../../features/auth/presentation/pages/edit_profile_page.dart';
 import '../../features/payment_settings/presentation/pages/payment_settings_page.dart';
 import '../../features/payment_settings/presentation/bloc/payment_settings_bloc.dart';
 import '../../features/notifications/presentation/pages/notifications_page.dart';
-
 // ── Route Name Constants ──────────────────────────────────────────────────
 class AppRoutes {
   AppRoutes._();

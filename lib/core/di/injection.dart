@@ -67,6 +67,8 @@ import '../../features/notifications/data/repositories/notification_repository_i
 import '../../features/notifications/domain/repositories/notification_repository.dart';
 import '../../features/notifications/presentation/bloc/notification_bloc.dart';
 
+import '../../features/system_logs/data/repositories/system_log_repository.dart';
+
 final GetIt getIt = GetIt.instance;
 
 Future<void> configureDependencies() async {
@@ -85,6 +87,11 @@ Future<void> configureDependencies() async {
   // ── Core Services ─────────────────────────────────────────────────────
   getIt.registerLazySingleton<EncryptionService>(
     () => EncryptionService(getIt<FlutterSecureStorage>()),
+  );
+
+  // ── SYSTEM LOGS ────────────────────────────────────────────────────────
+  getIt.registerLazySingleton<SystemLogRepository>(
+    () => SystemLogRepository(getIt<SupabaseClient>()),
   );
 
   // ── AUTH Feature ──────────────────────────────────────────────────────
@@ -121,7 +128,10 @@ Future<void> configureDependencies() async {
     () => RoomRemoteDataSourceImpl(getIt<SupabaseClient>()),
   );
   getIt.registerLazySingleton<RoomRepository>(
-    () => RoomRepositoryImpl(getIt<RoomRemoteDataSource>()),
+    () => RoomRepositoryImpl(
+      getIt<RoomRemoteDataSource>(),
+      getIt<SystemLogRepository>(),
+    ),
   );
   getIt.registerLazySingleton(() => GetRoomsUseCase(getIt<RoomRepository>()));
   getIt.registerLazySingleton(
@@ -147,7 +157,10 @@ Future<void> configureDependencies() async {
     ),
   );
   getIt.registerLazySingleton<TenantRepository>(
-    () => TenantRepositoryImpl(getIt<TenantRemoteDataSource>()),
+    () => TenantRepositoryImpl(
+      getIt<TenantRemoteDataSource>(),
+      getIt<SystemLogRepository>(),
+    ),
   );
   getIt.registerLazySingleton(
       () => GetTenantsUseCase(getIt<TenantRepository>()));
@@ -171,7 +184,10 @@ Future<void> configureDependencies() async {
     () => InvoiceRemoteDataSourceImpl(getIt<SupabaseClient>()),
   );
   getIt.registerLazySingleton<InvoiceRepository>(
-    () => InvoiceRepositoryImpl(getIt<InvoiceRemoteDataSource>()),
+    () => InvoiceRepositoryImpl(
+      getIt<InvoiceRemoteDataSource>(),
+      getIt<SystemLogRepository>(),
+    ),
   );
   getIt.registerLazySingleton(
       () => CreateInvoiceUseCase(getIt<InvoiceRepository>()));

@@ -8,10 +8,13 @@ import '../../domain/repositories/invoice_repository.dart';
 import '../datasources/invoice_remote_datasource.dart';
 import '../models/invoice_model.dart';
 
+import '../../../system_logs/data/repositories/system_log_repository.dart';
+
 class InvoiceRepositoryImpl implements InvoiceRepository {
   final InvoiceRemoteDataSource _remoteDataSource;
+  final SystemLogRepository _logRepository;
 
-  InvoiceRepositoryImpl(this._remoteDataSource);
+  InvoiceRepositoryImpl(this._remoteDataSource, this._logRepository);
 
   @override
   Future<Either<Failure, List<Invoice>>> getInvoices({
@@ -50,6 +53,13 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
     try {
       final model = InvoiceModel.fromEntity(invoice);
       final result = await _remoteDataSource.createInvoice(model);
+      
+      _logRepository.logAction(
+        action: 'INSERT',
+        tableName: 'hoa_don',
+        recordId: result.id,
+      );
+      
       return Right(result);
     } on Failure catch (f) {
       return Left(f);
@@ -63,6 +73,13 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
     try {
       final model = InvoiceModel.fromEntity(invoice);
       final result = await _remoteDataSource.updateInvoice(model);
+      
+      _logRepository.logAction(
+        action: 'UPDATE',
+        tableName: 'hoa_don',
+        recordId: result.id,
+      );
+      
       return Right(result);
     } on Failure catch (f) {
       return Left(f);
@@ -75,6 +92,13 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
   Future<Either<Failure, void>> deleteInvoice(String invoiceId) async {
     try {
       await _remoteDataSource.deleteInvoice(invoiceId);
+      
+      _logRepository.logAction(
+        action: 'DELETE',
+        tableName: 'hoa_don',
+        recordId: invoiceId,
+      );
+      
       return const Right(null);
     } catch (e) {
       return Left(ServerFailure(message: 'Lỗi xóa hóa đơn: $e'));
@@ -95,6 +119,14 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
         paymentMethod: paymentMethod,
         transactionId: transactionId,
       );
+      
+      _logRepository.logAction(
+        action: 'UPDATE_STATUS',
+        tableName: 'hoa_don',
+        recordId: invoiceId,
+        newValue: {'status': status.name},
+      );
+      
       return Right(result);
     } catch (e) {
       return Left(ServerFailure(message: e.toString()));
