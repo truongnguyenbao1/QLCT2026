@@ -255,7 +255,7 @@ class _DashboardContent extends StatelessWidget {
           const SizedBox(height: 24),
           Center(
             child: Text(
-              'Copyright © 2026. All rights reserved.',
+              'Copyright © 2026 TroKeeper. All rights reserved.',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
               ),
@@ -800,7 +800,7 @@ class _TenantDashboardContentState extends State<_TenantDashboardContent> {
           const SizedBox(height: 24),
           Center(
             child: Text(
-              'Copyright © 2026. All rights reserved.',
+              'Copyright © 2026 TroKeeper. All rights reserved.',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
               ),
