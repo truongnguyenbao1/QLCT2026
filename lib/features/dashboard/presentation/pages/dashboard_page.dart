@@ -15,6 +15,7 @@ import '../widgets/notification_bell.dart';
 import '../../../notifications/presentation/bloc/notification_bloc.dart';
 import '../../../notifications/presentation/pages/create_issue_page.dart';
 import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../../../core/services/update_service.dart';
 
 class DashboardPage extends StatelessWidget {
@@ -55,7 +56,7 @@ class _DashboardViewState extends State<_DashboardView> {
       context.read<DashboardBloc>().add(LoadDashboardEvent(propertyId));
     }
 
-    if (Platform.isWindows) {
+    if (!kIsWeb && Platform.isWindows) {
       _checkUpdate();
     }
   }
