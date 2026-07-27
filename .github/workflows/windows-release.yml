@@ -1,0 +1,52 @@
+name: Build and Release Windows App
+
+on:
+  push:
+    tags:
+      - 'v*' # Chỉ chạy khi push tag có chữ 'v' ở đầu (VD: v1.0.0, v1.0.1)
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+    permissions:
+      contents: write # Cần quyền để tạo Release và upload file
+
+    steps:
+      - name: Kiểm tra mã nguồn (Checkout)
+        uses: actions/checkout@v4
+
+      - name: Cài đặt Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          # Bật cache để các lần build sau nhanh hơn
+          cache: true
+
+      - name: Cài đặt dependencies (pub get)
+        run: flutter pub get
+
+      - name: Build Windows App (Release mode)
+        run: flutter build windows --release
+
+      - name: Đóng gói thành file ZIP
+        run: |
+          # Lấy tên version từ tag (VD: v1.0.0)
+          $VERSION = "${{ github.ref_name }}"
+          $ZIP_NAME = "TroKeeper_Windows_$VERSION.zip"
+          
+          # Nén toàn bộ file trong thư mục Release
+          Compress-Archive -Path "build\windows\x64\runner\Release\*" -DestinationPath $ZIP_NAME -Force
+          
+          # Lưu tên file vào biến môi trường để dùng ở bước sau
+          echo "ZIP_FILE=$ZIP_NAME" >> $env:GITHUB_ENV
+
+      - name: Tạo GitHub Release & Tải file ZIP lên
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.ZIP_FILE }}
+          name: TroKeeper ${{ github.ref_name }}
+          body: "Bản cập nhật Desktop cho hệ điều hành Windows."
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
