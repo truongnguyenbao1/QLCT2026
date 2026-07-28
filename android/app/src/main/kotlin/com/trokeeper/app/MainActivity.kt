@@ -1,4 +1,4 @@
-package com.example.quanlynhatro
+package com.trokeeper.app
 
 import io.flutter.embedding.android.FlutterActivity
 
