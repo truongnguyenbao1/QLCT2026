@@ -13,6 +13,7 @@
     { "src": "/icons/(.*)", "dest": "/icons/$1" },
     { "src": "/favicon.png", "dest": "/favicon.png" },
     { "src": "/privacy.html", "dest": "/privacy.html" },
+    { "src": "/delete-account.html", "dest": "/delete-account.html" },
     { "src": "/sitemap.xml", "dest": "/sitemap.xml" },
     { "src": "/robots.txt", "dest": "/robots.txt" },
     { "src": "/", "dest": "/landing.html" }
