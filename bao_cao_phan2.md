@@ -120,7 +120,67 @@ Hệ thống **TroKeeper** là phần mềm quản lý nhà trọ khép kín, t�
 
 ### 3.1. Sơ đồ Use Case & Đặc tả Use Case
 
-*(Hình ảnh Sơ đồ Use Case tổng quát sẽ được đính kèm tại đây)*
+Để mô hình trực quan và tránh rối mắt khi hiển thị quá nhiều thông tin, Sơ đồ Use Case được chia nhỏ theo từng nhóm chức năng:
+
+#### a) Nhóm chức năng Xác thực
+```mermaid
+flowchart LR
+    Admin([Chủ nhà trọ])
+    Customer([Khách thuê])
+
+    subgraph Auth [Phân hệ Xác thực]
+        UC01([UC01: Đăng nhập/Đăng ký])
+    end
+
+    Admin --> UC01
+    Customer --> UC01
+```
+
+#### b) Nhóm chức năng Quản lý Nhà trọ & Khách thuê
+```mermaid
+flowchart LR
+    Admin([Chủ nhà trọ])
+
+    subgraph Management [Quản lý Cơ sở vật chất]
+        UC02([UC02: Quản lý khu trọ])
+        UC03([UC03: Quản lý phòng])
+        UC04([UC04: Quản lý khách thuê])
+    end
+
+    Admin --> UC02
+    Admin --> UC03
+    Admin --> UC04
+```
+
+#### c) Nhóm chức năng Tài chính & Báo cáo
+```mermaid
+flowchart LR
+    Admin([Chủ nhà trọ])
+    System([Hệ thống])
+
+    subgraph Finance [Tài chính & Thống kê]
+        UC05([UC05: Chốt điện nước])
+        UC06([UC06: Quản lý hóa đơn])
+        UC07([UC07: Xem báo cáo])
+    end
+
+    Admin --> UC05
+    Admin --> UC06
+    Admin --> UC07
+    UC06 -. "Tự động tính tiền" .-> System
+```
+
+#### d) Nhóm chức năng dành cho Khách thuê
+```mermaid
+flowchart LR
+    Customer([Khách thuê])
+
+    subgraph Tenant [Tính năng Khách thuê]
+        UC08([UC08: Xem hóa đơn])
+    end
+
+    Customer --> UC08
+```
 
 **Đặc tả Use Case nổi bật: UC06 - Quản lý hóa đơn (Lập hóa đơn mới)**
 - **Tên Use Case:** Lập hóa đơn hàng tháng.
