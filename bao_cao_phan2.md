@@ -198,38 +198,227 @@ flowchart LR
 - **Luồng ngoại lệ (Exception Flow):**
   - Bước 4: Admin nhập chỉ số mới nhỏ hơn chỉ số cũ -> Hệ thống báo lỗi, yêu cầu nhập lại.
 
+**Đặc tả Use Case: UC01 - Đăng nhập/Đăng ký**
+- **Tên Use Case:** Đăng nhập và Đăng ký tài khoản.
+- **Actor:** Chủ nhà trọ (Admin), Khách thuê (Customer).
+- **Pre-conditions (Tiền điều kiện):** Người dùng có thiết bị kết nối Internet.
+- **Post-conditions (Hậu điều kiện):** Người dùng được xác thực và chuyển hướng vào màn hình chính tương ứng với vai trò (Role).
+- **Luồng sự kiện chính (Basic Flow):**
+  1. Người dùng mở ứng dụng và chọn "Đăng nhập".
+  2. Người dùng nhập Email và Mật khẩu, hoặc chọn "Đăng nhập bằng Google".
+  3. Hệ thống gửi yêu cầu xác thực tới Database (Supabase Auth).
+  4. Xác thực thành công, trả về Access Token.
+  5. Hệ thống kiểm tra vai trò (Admin/Customer) và điều hướng vào Dashboard (Admin) hoặc Trang chủ Khách thuê (Customer).
+- **Luồng ngoại lệ (Exception Flow):**
+  - Bước 3: Sai tài khoản/mật khẩu -> Hệ thống hiển thị thông báo lỗi "Tài khoản hoặc mật khẩu không chính xác".
+
+**Đặc tả Use Case: UC03 - Quản lý phòng (Thêm phòng mới)**
+- **Tên Use Case:** Thêm phòng trọ mới vào khu trọ.
+- **Actor:** Chủ nhà trọ (Admin).
+- **Pre-conditions (Tiền điều kiện):** Admin đã đăng nhập; Đã có ít nhất một Khu trọ được tạo.
+- **Post-conditions (Hậu điều kiện):** Một phòng mới được tạo trong CSDL, trạng thái mặc định là "Trống".
+- **Luồng sự kiện chính (Basic Flow):**
+  1. Admin vào màn hình "Quản lý phòng", chọn chức năng "Thêm phòng mới".
+  2. Hệ thống hiển thị form nhập liệu bao gồm: Tên phòng, Giá thuê, Chọn Khu trọ.
+  3. Admin điền đầy đủ thông tin hợp lệ và nhấn "Lưu".
+  4. Hệ thống kiểm tra dữ liệu đầu vào.
+  5. Dữ liệu được lưu xuống CSDL. Hệ thống hiển thị thông báo "Thêm phòng thành công" và cập nhật danh sách phòng.
+- **Luồng ngoại lệ (Exception Flow):**
+  - Bước 4: Admin bỏ trống Tên phòng hoặc Giá thuê <= 0 -> Hệ thống hiển thị thông báo "Vui lòng nhập đầy đủ và hợp lệ các thông tin bắt buộc".
+
+**Đặc tả Use Case: UC04 - Quản lý khách thuê (Thêm khách thuê mới)**
+- **Tên Use Case:** Thêm thông tin khách thuê vào phòng.
+- **Actor:** Chủ nhà trọ (Admin).
+- **Pre-conditions (Tiền điều kiện):** Admin đã đăng nhập; Có ít nhất một phòng đang ở trạng thái "Trống".
+- **Post-conditions (Hậu điều kiện):** Thông tin khách thuê được lưu vào hệ thống, phòng chuyển sang trạng thái "Đang thuê".
+- **Luồng sự kiện chính (Basic Flow):**
+  1. Admin chọn một phòng đang trống và nhấn "Thêm khách thuê".
+  2. Hệ thống hiển thị form nhập thông tin: Họ tên, Số điện thoại, CCCD, Ngày bắt đầu thuê, Tiền cọc.
+  3. Admin điền thông tin và nhấn "Xác nhận".
+  4. Hệ thống kiểm tra tính hợp lệ của dữ liệu đầu vào.
+  5. Hệ thống lưu khách thuê mới, cập nhật trạng thái phòng thành "Đang thuê" và hiển thị thông báo thành công.
+- **Luồng ngoại lệ (Exception Flow):**
+  - Bước 4: Admin bỏ trống Họ tên hoặc Số điện thoại -> Hệ thống báo lỗi "Vui lòng nhập các thông tin bắt buộc".
+  - Bước 4: Số điện thoại không đúng định dạng -> Hệ thống báo "Số điện thoại không hợp lệ".
+
 ### 3.2. Sơ đồ Hoạt động (Activity Diagram) & Sơ đồ Tuần tự (Sequence Diagram)
 
 **Sơ đồ Tuần tự (Lập hóa đơn):**
-1. `Admin` -> `Giao diện (UI)`: Nhập chỉ số điện/nước mới và bấm "Lưu".
-2. `Giao diện (UI)` -> `Controller/BLoC`: Gửi request tạo hóa đơn (Kèm dữ liệu).
-3. `Controller/BLoC` -> `Database`: Kiểm tra hợp lệ (số mới > số cũ).
-4. `Database` -> `Controller/BLoC`: Trả kết quả tính toán thành công / Insert thành công.
-5. `Controller/BLoC` -> `Giao diện (UI)`: Cập nhật State, hiển thị thông báo "Tạo hóa đơn thành công".
+
+```mermaid
+sequenceDiagram
+    actor Admin as Chủ nhà trọ
+    participant UI as Giao diện (UI)
+    participant BLoC as Controller/BLoC
+    participant DB as Database (Supabase)
+
+    Admin->>UI: Nhập chỉ số điện/nước mới và bấm "Lưu"
+    UI->>BLoC: Gửi request tạo hóa đơn (kèm dữ liệu)
+    BLoC->>DB: Truy vấn lưu hóa đơn (kiểm tra số mới > số cũ)
+    
+    alt Hợp lệ
+        DB-->>BLoC: Trả kết quả Insert thành công
+        BLoC-->>UI: Cập nhật State (Success)
+        UI-->>Admin: Hiển thị thông báo "Tạo hóa đơn thành công"
+    else Không hợp lệ (Số mới < Số cũ)
+        DB-->>BLoC: Trả về lỗi
+        BLoC-->>UI: Cập nhật State (Error)
+        UI-->>Admin: Hiển thị cảnh báo lỗi cho người dùng
+    end
+```
+
+**Sơ đồ Tuần tự (Đăng nhập hệ thống):**
+
+```mermaid
+sequenceDiagram
+    actor User as Người dùng
+    participant UI as Giao diện Đăng nhập
+    participant BLoC as Auth BLoC
+    participant Auth as Supabase Auth
+    participant DB as Database
+
+    User->>UI: Nhập Email & Mật khẩu, bấm "Đăng nhập"
+    UI->>BLoC: Gửi sự kiện Đăng nhập (Email, Password)
+    BLoC->>Auth: Gọi hàm xác thực signInWithPassword()
+    
+    alt Xác thực thành công
+        Auth-->>BLoC: Trả về Session (Access Token & User ID)
+        BLoC->>DB: Truy vấn lấy Role (Vai trò) của User
+        DB-->>BLoC: Trả về Role (Admin / Customer)
+        BLoC-->>UI: Cập nhật State (Authenticated)
+        UI-->>User: Điều hướng tới Dashboard tương ứng
+    else Xác thực thất bại
+        Auth-->>BLoC: Báo lỗi (Sai tài khoản hoặc mật khẩu)
+        BLoC-->>UI: Cập nhật State (Error)
+        UI-->>User: Hiển thị cảnh báo lỗi
+    end
+```
+
+**Sơ đồ Tuần tự (Thêm khách thuê):**
+
+```mermaid
+sequenceDiagram
+    actor Admin as Chủ nhà trọ
+    participant UI as Giao diện (UI)
+    participant BLoC as Tenant BLoC
+    participant DB as Database (Supabase)
+
+    Admin->>UI: Điền thông tin khách thuê, bấm "Xác nhận"
+    UI->>BLoC: Gửi request thêm khách thuê
+    BLoC->>DB: Insert dữ liệu khách thuê mới
+    
+    alt Thành công
+        DB-->>BLoC: Insert thành công
+        BLoC->>DB: Update trạng thái phòng -> "Đang thuê"
+        DB-->>BLoC: Update thành công
+        BLoC-->>UI: Cập nhật State (Success)
+        UI-->>Admin: Thông báo thành công và load lại màn hình
+    else Lỗi kết nối / Thiếu dữ liệu
+        DB-->>BLoC: Trả về lỗi
+        BLoC-->>UI: Cập nhật State (Error)
+        UI-->>Admin: Hiển thị thông báo lỗi
+    end
+```
 
 ### 3.3. Sơ đồ Lớp (Class Diagram)
-Các lớp thực thể (Entity Classes) chính trong hệ thống:
-- **User:** `id`, `email`, `role`, `created_at`
-- **Building (Khu trọ):** `id`, `owner_id`, `name`, `address`
-- **Room (Phòng):** `id`, `building_id`, `name`, `price`, `status`
-- **Tenant (Khách thuê):** `id`, `room_id`, `name`, `phone`, `identity_card`
-- **Invoice (Hóa đơn):** `id`, `room_id`, `total_amount`, `status`, `month`, `year`
-- **Service (Dịch vụ):** `id`, `building_id`, `name`, `unit_price`
+Dưới đây là sơ đồ mô tả các lớp thực thể (Entity Classes) chính trong hệ thống, bao gồm các thuộc tính và mối quan hệ (Associations) giữa chúng:
 
-**Mối quan hệ:**
-- 1 User (Admin) có nhiều (1-N) Building.
-- 1 Building có nhiều (1-N) Room.
-- 1 Room có thể có nhiều (1-N) Tenant.
-- 1 Room có nhiều (1-N) Invoice theo thời gian.
+```mermaid
+classDiagram
+    class User {
+        +String id
+        +String email
+        +String role
+        +DateTime created_at
+    }
+
+    class Building {
+        +String id
+        +String owner_id
+        +String name
+        +String address
+    }
+
+    class Room {
+        +String id
+        +String building_id
+        +String name
+        +Double price
+        +String status
+    }
+
+    class Tenant {
+        +String id
+        +String room_id
+        +String name
+        +String phone
+        +String identity_card
+    }
+
+    class Invoice {
+        +String id
+        +String room_id
+        +Double total_amount
+        +String status
+        +Int month
+        +Int year
+    }
+
+    class Service {
+        +String id
+        +String building_id
+        +String name
+        +Double unit_price
+    }
+
+    %% Các mối quan hệ (Relationships)
+    User "1" --> "*" Building : Quản lý (owner_id)
+    Building "1" *-- "*" Room : Bao gồm
+    Room "1" o-- "*" Tenant : Cho thuê
+    Room "1" *-- "*" Invoice : Xuất hóa đơn
+    Building "1" *-- "*" Service : Cung cấp dịch vụ
+```
 
 ### 3.4. Mô hình Dữ liệu Quan hệ (Relational Data Model) & Sơ đồ ERD
 
 **Cấu trúc các Bảng chính (Tables):**
-- **Bảng `users`**: PK(`id`).
-- **Bảng `buildings`**: PK(`id`), FK(`owner_id` tham chiếu `users.id`).
-- **Bảng `rooms`**: PK(`id`), FK(`building_id` tham chiếu `buildings.id`).
-- **Bảng `tenants`**: PK(`id`), FK(`room_id` tham chiếu `rooms.id`).
-- **Bảng `invoices`**: PK(`id`), FK(`room_id` tham chiếu `rooms.id`).
+
+**1. Bảng `users` (Tài khoản người dùng)**
+- `iduser` (UUID) - **PK**: Khóa chính (Liên kết với Supabase Auth).
+- `tenuser`, `email`, `sdt`: Thông tin cá nhân cơ bản.
+- `quyenhan`: Vai trò (admin / khách thuê).
+
+**2. Bảng `nhatro` (Khu trọ / Tòa nhà)**
+- `id` (UUID) - **PK**: Khóa chính.
+- `iduser` (UUID) - **FK**: Tham chiếu `users.iduser` (Chủ trọ quản lý khu này).
+- `name`, `address`: Tên và địa chỉ khu trọ.
+
+**3. Bảng `phong` (Phòng trọ)**
+- `id` (UUID) - **PK**: Khóa chính.
+- `property_id` (UUID) - **FK**: Tham chiếu `nhatro.id`.
+- `room_number`: Tên hoặc số phòng.
+- `rent_price`, `electric_price`, `water_price`, `service_price`: Đơn giá cấu hình cho phòng.
+- `status`: Trạng thái phòng (EMPTY, OCCUPIED, MAINTENANCE).
+
+**4. Bảng `khachthue` (Khách thuê)**
+- `id` (UUID) - **PK**: Khóa chính.
+- `room_id` (UUID) - **FK**: Tham chiếu `phong.id`.
+- `user_id` (UUID) - **FK**: Tham chiếu `users.iduser` (Tài khoản đăng nhập của khách nếu có).
+- `full_name`, `phone_number`, `cccd_number`: Thông tin định danh của khách.
+
+**5. Bảng `hoadon` (Hóa đơn tổng)**
+- `id` (UUID) - **PK**: Khóa chính.
+- `room_id` (UUID) - **FK**: Tham chiếu `phong.id`.
+- `tenant_id` (UUID) - **FK**: Tham chiếu `khachthue.id`.
+- `month`, `year`: Kỳ hóa đơn (Tháng / Năm).
+- `total_amount`: Tổng số tiền khách cần thanh toán.
+- `status`: Trạng thái (PENDING, PAID, OVERDUE, ...).
+
+**6. Bảng `chitiethoadon` (Chi tiết từng khoản của hóa đơn)**
+- `id` (UUID) - **PK**: Khóa chính.
+- `invoice_id` (UUID) - **FK**: Tham chiếu `hoadon.id` (Ràng buộc UNIQUE, quan hệ 1-1).
+- `electric_curr_reading`, `water_curr_reading`: Chỉ số điện, nước chốt cuối tháng.
+- `rent_amount`, `service_amount`: Các khoản chi phí chi tiết.
 
 ---
 
