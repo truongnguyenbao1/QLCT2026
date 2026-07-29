@@ -742,3 +742,47 @@ class Room extends Equatable {
 
 *Báo cáo Phần 1 — Nghiên cứu & Thiết kế*
 *Tiếp theo: Phần 2 — Phát triển & Hoàn thiện sản phẩm*
+
+---
+
+## REFERENCES
+
+Angelov, F. (2026). BLoC Library (Business Logic Component). https://bloclibrary.dev/
+
+Angelov, F. (2026). Equatable: A Dart package that helps to implement value based equality. pub.dev. https://pub.dev/packages/equatable
+
+Beck, K., Beedle, M., van Bennekum, A., Cockburn, A., Cunningham, W., Fowler, M., ... & Thomas, D. (2001). Manifesto for Agile Software Development. https://agilemanifesto.org/
+
+Chacon, S., & Straub, B. (2014). Pro Git (2nd ed.). Apress. https://git-scm.com/book/en/v2
+
+csells. (2026). GoRouter: Declarative Routing for Flutter. pub.dev. https://pub.dev/packages/go_router
+
+Figma. (2026). Figma Documentation: Collaborative interface design tool. https://help.figma.com/
+
+Fowler, M. (2002). Patterns of Enterprise Application Architecture. Addison-Wesley Professional.
+
+Google. (2026). Dart Programming Language. https://dart.dev/
+
+Google. (2026). Flutter Documentation: Tài liệu chính thức về Flutter Framework. https://flutter.dev/docs
+
+Google. (2026). Google Play Console Help. https://support.google.com/googleplay/android-developer
+
+Google. (2026). Material Design 3. https://m3.material.io/
+
+Google. (2026). State management in Flutter. https://docs.flutter.dev/data-and-backend/state-mgmt
+
+Jones, M., Bradley, J., & Sakimura, N. (2015). JSON Web Token (JWT) (RFC 7519). Internet Engineering Task Force (IETF). https://datatracker.ietf.org/doc/html/rfc7519
+
+Martin, R. C. (2012). The Clean Architecture. Clean Coder Blog. https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html
+
+Norman, D. A. (2013). The Design of Everyday Things: Revised and Expanded Edition. Basic Books.
+
+PostgreSQL Global Development Group. (2026). PostgreSQL Documentation. https://www.postgresql.org/docs/
+
+Quốc hội nước CHXHCN Việt Nam. (2023). Luật Nhà ở số 27/2023/QH15. Cơ sở dữ liệu quốc gia về văn bản pháp luật.
+
+Reso Coder. (2020). Flutter Clean Architecture Proposal. https://resocoder.com/
+
+Supabase. (2026). Supabase Docs. https://supabase.com/docs
+
+Vercel. (2026). Vercel Documentation. https://vercel.com/docs

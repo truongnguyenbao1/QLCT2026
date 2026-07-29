@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:io' show Platform;
 import 'package:seo/seo.dart';
 
 import '../../../../core/constants/app_colors.dart';
@@ -52,7 +53,9 @@ class _LoginPageState extends State<LoginPage> {
 
       await sb.Supabase.instance.client.auth.signInWithOAuth(
         sb.OAuthProvider.google,
-        redirectTo: kIsWeb ? null : 'io.supabase.flutter://callback',
+        redirectTo: kIsWeb || (!kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux))
+            ? null
+            : 'io.supabase.flutter://callback',
       );
     } catch (e) {
       if (mounted) {
