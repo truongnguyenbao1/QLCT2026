@@ -45,7 +45,7 @@ Hệ thống được chia thành 2 phân hệ chính:
   - Mật khẩu phải được mã hóa một chiều (Bcrypt).
   - Áp dụng Row Level Security (RLS), đảm bảo Chủ trọ A không thể xem hay chỉnh sửa dữ liệu nhà trọ của Chủ trọ B.
 - **Thuộc tính chất lượng:**
-  - **Tính mở rộng (Scalability):** Kiến trúc hệ thống cho phép dễ dàng thêm các tính năng mới trong tương lai (vd: tích hợp thanh toán VNPay, khóa cửa IoT).
+  - **Tính mở rộng (Scalability):** Kiến trúc hệ thống cho phép dễ dàng thêm các tính năng mới trong tương lai (vd: mở rộng thêm các cổng thanh toán khác, tích hợp khóa cửa thông minh IoT).
   - **Dễ bảo trì (Maintainability):** Code áp dụng Clean Architecture, tách biệt rõ UI, Business Logic và Data layer.
   - **Reusability:** Các thành phần giao diện (UI Components) được tái sử dụng tối đa trên cả Web và Mobile.
 
@@ -56,7 +56,7 @@ Hệ thống được chia thành 2 phân hệ chính:
 4. **Lập hợp đồng & Bàn giao:** Chủ trọ chọn phòng, tạo hợp đồng (nhập ngày bắt đầu, giá tiền cọc, giá dịch vụ) -> Ghi nhận chỉ số điện nước ban đầu -> Đổi trạng thái phòng sang "Đang thuê".
 5. **Chốt số điện nước:** Cuối tháng, Chủ trọ đi xem đồng hồ và nhập chỉ số điện, nước mới vào hệ thống.
 6. **Tạo hóa đơn:** Hệ thống tự động tính toán (Số mới - Số cũ) * Đơn giá + Tiền phòng + Phụ phí -> Sinh ra hóa đơn.
-7. **Thanh toán:** Khách thuê nhận thông báo hóa đơn -> Khách đóng tiền (chuyển khoản/tiền mặt) -> Chủ trọ xác nhận trên hệ thống -> Hóa đơn chuyển trạng thái "Đã thanh toán".
+7. **Thanh toán:** Khách thuê quét mã QR PayOS trên hóa đơn để thanh toán -> Hệ thống nhận Webhook từ PayOS -> Hóa đơn tự động chuyển trạng thái "Đã thanh toán" (Chủ trọ vẫn có thể xác nhận thủ công nếu khách trả tiền mặt).
 8. **Kết thúc:** Khách báo trả phòng -> Chủ trọ tất toán hóa đơn cuối, trừ tiền cọc (nếu có) -> Cập nhật trạng thái phòng thành "Trống".
 
 ### 1.5. Khảo sát thực tế (Fact Survey)
@@ -86,7 +86,8 @@ Hệ thống **TroKeeper** là phần mềm quản lý nhà trọ khép kín, t�
 - **Đối tượng mục tiêu:** Cá nhân, hộ gia đình hoặc tổ chức đang kinh doanh mô hình nhà trọ, chung cư mini, phòng trọ dịch vụ có quy mô từ 10 đến 200 phòng.
 - **Phạm vi dự án:** 
   - Không gian: Triển khai trên môi trường Internet (Cloud).
-  - Giới hạn: Trong giai đoạn 1, hệ thống chưa bao gồm tính năng tích hợp khóa thông minh (IoT IoT Smart Lock) và chưa tích hợp cổng thanh toán trực tiếp (Momo/VNPay), chủ trọ vẫn tự xác nhận thanh toán thủ công.
+  - Tính năng: Hệ thống cung cấp đầy đủ nghiệp vụ quản lý (phòng, khách thuê, hóa đơn) và đặc biệt đã tích hợp thanh toán tự động qua PayOS (sinh mã QR động, tự động gạch nợ).
+  - Giới hạn: Trong giai đoạn 1, hệ thống chưa bao gồm tính năng tích hợp khóa thông minh (IoT Smart Lock).
 
 ### 2.3. Tính khả thi
 - **Tính khả thi Kỹ thuật:** Các công nghệ lựa chọn (Flutter, Supabase) đều là các framework/platform hiện đại, tài liệu đầy đủ, cộng đồng hỗ trợ lớn. Đội ngũ phát triển đã nắm vững kiến trúc ứng dụng.
