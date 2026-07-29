@@ -50,12 +50,14 @@ Hệ thống được chia thành 2 phân hệ chính:
   - **Reusability:** Các thành phần giao diện (UI Components) được tái sử dụng tối đa trên cả Web và Mobile.
 
 ### 1.4. Quy trình nghiệp vụ (Business Process)
-1. **Tiếp nhận khách:** Khách hàng đến xem phòng -> Nếu đồng ý thuê, Chủ trọ nhập thông tin cá nhân của khách vào hệ thống.
-2. **Lập hợp đồng & Bàn giao:** Chủ trọ chọn phòng, tạo hợp đồng (nhập ngày bắt đầu, giá tiền cọc, giá dịch vụ) -> Ghi nhận chỉ số điện nước ban đầu -> Đổi trạng thái phòng sang "Đang thuê".
-3. **Chốt số điện nước:** Cuối tháng, Chủ trọ đi xem đồng hồ và nhập chỉ số điện, nước mới vào hệ thống.
-4. **Tạo hóa đơn:** Hệ thống tự động tính toán (Số mới - Số cũ) * Đơn giá + Tiền phòng + Phụ phí -> Sinh ra hóa đơn.
-5. **Thanh toán:** Khách thuê nhận thông báo hóa đơn -> Khách đóng tiền (chuyển khoản/tiền mặt) -> Chủ trọ xác nhận trên hệ thống -> Hóa đơn chuyển trạng thái "Đã thanh toán".
-6. **Kết thúc:** Khách báo trả phòng -> Chủ trọ tất toán hóa đơn cuối, trừ tiền cọc (nếu có) -> Cập nhật trạng thái phòng thành "Trống".
+1. **Đăng ký tài khoản:** Chủ nhà trọ (Admin) truy cập hệ thống, đăng ký tài khoản mới qua Email hoặc qua Google.
+2. **Thiết lập ban đầu:** Sau khi đăng nhập thành công, chủ trọ tiến hành khởi tạo dữ liệu (Tạo khu trọ mới, danh sách phòng và bảng giá dịch vụ mặc định).
+3. **Tiếp nhận khách:** Khách hàng đến xem phòng -> Nếu đồng ý thuê, Chủ trọ nhập thông tin cá nhân của khách vào hệ thống.
+4. **Lập hợp đồng & Bàn giao:** Chủ trọ chọn phòng, tạo hợp đồng (nhập ngày bắt đầu, giá tiền cọc, giá dịch vụ) -> Ghi nhận chỉ số điện nước ban đầu -> Đổi trạng thái phòng sang "Đang thuê".
+5. **Chốt số điện nước:** Cuối tháng, Chủ trọ đi xem đồng hồ và nhập chỉ số điện, nước mới vào hệ thống.
+6. **Tạo hóa đơn:** Hệ thống tự động tính toán (Số mới - Số cũ) * Đơn giá + Tiền phòng + Phụ phí -> Sinh ra hóa đơn.
+7. **Thanh toán:** Khách thuê nhận thông báo hóa đơn -> Khách đóng tiền (chuyển khoản/tiền mặt) -> Chủ trọ xác nhận trên hệ thống -> Hóa đơn chuyển trạng thái "Đã thanh toán".
+8. **Kết thúc:** Khách báo trả phòng -> Chủ trọ tất toán hóa đơn cuối, trừ tiền cọc (nếu có) -> Cập nhật trạng thái phòng thành "Trống".
 
 ### 1.5. Khảo sát thực tế (Fact Survey)
 
