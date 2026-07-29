@@ -9,6 +9,7 @@ import '../../../../features/auth/presentation/bloc/auth_state.dart';
 import '../../domain/entities/tenant.dart';
 import '../bloc/tenant_bloc.dart';
 import '../../../../features/room_management/presentation/bloc/room_bloc.dart';
+import '../../../../core/utils/export_service.dart';
 
 class TenantListPage extends StatelessWidget {
   const TenantListPage({super.key});
@@ -59,6 +60,45 @@ class TenantListPage extends StatelessWidget {
         appBar: AppBar(
           title: const Text('Khách thuê'),
           centerTitle: true,
+          actions: [
+            BlocBuilder<TenantBloc, TenantState>(
+              builder: (context, state) {
+                return IconButton(
+                  icon: const Icon(Icons.file_download_outlined),
+                  tooltip: 'Xuất file Excel',
+                  onPressed: () async {
+                    List<Tenant> tenants = [];
+                    if (state is TenantLoaded) {
+                      tenants = state.tenants;
+                    } else {
+                      final currentState = context.read<TenantBloc>().state;
+                      if (currentState is TenantLoaded) {
+                        tenants = currentState.tenants;
+                      }
+                    }
+                    if (tenants.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Không có dữ liệu để xuất')),
+                      );
+                      return;
+                    }
+                    final success = await ExportService.exportTenantsToCsv(tenants);
+                    if (context.mounted) {
+                      if (success) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Xuất file thành công!'), backgroundColor: Colors.green),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Xuất file thất bại!'), backgroundColor: Colors.red),
+                        );
+                      }
+                    }
+                  },
+                );
+              },
+            ),
+          ],
         ),
         body: BlocConsumer<TenantBloc, TenantState>(
           listener: (context, state) {
