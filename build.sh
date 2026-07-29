@@ -29,9 +29,10 @@ echo "Setting up landing page at root..."
 cp web/landing.html build/web/index.html
 cp web/landing.html build/web/landing.html
 
-# Copy favicon and icons for landing page
+# Copy favicon, icons and downloads for landing page
 cp web/favicon.png build/web/favicon.png 2>/dev/null || true
 cp -r web/icons build/web/icons 2>/dev/null || true
+cp -r web/downloads build/web/downloads 2>/dev/null || true
 
 echo ""
 echo "✅ Build complete! Final structure:"
