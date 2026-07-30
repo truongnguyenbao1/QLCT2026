@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
-import * as admin from "https://esm.sh/firebase-admin@11.10.1";
+import * as admin from "npm:firebase-admin@11.10.1";
 
 // Khởi tạo Firebase Admin (Yêu cầu cấu hình biến môi trường FIREBASE_SERVICE_ACCOUNT)
 const FIREBASE_SERVICE_ACCOUNT = Deno.env.get('FIREBASE_SERVICE_ACCOUNT');

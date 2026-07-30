@@ -11,6 +11,9 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState;
 
 import 'package:seo/seo.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'core/services/notification_service.dart';
 
 import 'core/constants/app_constants.dart';
 import 'core/di/injection.dart';
@@ -41,7 +44,13 @@ Future<void> main() async {
     publishableKey: AppConstants.supabaseAnonKey,
   );
 
+  // Khởi tạo Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
+  // Xin quyền thông báo và lấy FCM Token
+  await NotificationService().initialize();
 
   // Khởi tạo Hive (local cache)
   await Hive.initFlutter();

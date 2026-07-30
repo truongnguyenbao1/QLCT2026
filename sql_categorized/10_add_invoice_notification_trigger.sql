@@ -1,54 +1,41 @@
--- Hàm trigger gửi thông báo cho khách thuê khi chủ trọ tạo hóa đơn mới
-CREATE OR REPLACE FUNCTION notify_tenant_on_invoice_created()
+-- =========================================================================
+-- MIGRATION: Tạo Trigger gọi Webhook tới Edge Function send_notification
+-- Bằng cách sử dụng PL/pgSQL và extension pg_net (được hỗ trợ mặc định)
+-- =========================================================================
+
+-- 1. Đảm bảo extension pg_net đã được cài đặt
+CREATE EXTENSION IF NOT EXISTS pg_net;
+
+-- 2. Tạo hàm (Function) xử lý việc gọi HTTP POST
+CREATE OR REPLACE FUNCTION public.fn_hoadon_insert_notification()
 RETURNS TRIGGER AS $$
-DECLARE
-    v_room_name VARCHAR(100);
-    v_receiver_id UUID;
 BEGIN
-    -- Chỉ thông báo nếu trạng thái là UNPAID (mới tạo)
-    IF NEW.status = 'UNPAID' THEN
-        -- Lấy số phòng
-        SELECT room_number INTO v_room_name FROM public.phong WHERE id = NEW.room_id;
-        
-        -- Lấy user_id của khách thuê để gửi thông báo
-        IF NEW.tenant_id IS NOT NULL THEN
-            SELECT user_id INTO v_receiver_id FROM public.khachthue WHERE id = NEW.tenant_id;
-        ELSE
-            SELECT iduser INTO v_receiver_id 
-            FROM public.users 
-            WHERE room_id = NEW.room_id AND quyenhan = 'khách thuê' 
-            LIMIT 1;
-        END IF;
-
-        IF v_receiver_id IS NOT NULL THEN
-            INSERT INTO public.thongbao (
-                room_id, 
-                sender_id, 
-                receiver_id, 
-                title, 
-                content, 
-                status, 
-                sent_at
-            ) VALUES (
-                NEW.room_id,
-                NEW.created_by, -- Người tạo hóa đơn (chủ trọ)
-                v_receiver_id, -- Người nhận (khách thuê)
-                'Hóa đơn mới',
-                'Bạn có hóa đơn mới tháng ' || NEW.month || '/' || NEW.year || ' cho phòng ' || COALESCE(v_room_name, '') || '. Vui lòng kiểm tra và thanh toán.',
-                'UNREAD',
-                NOW()
-            );
-        END IF;
-    END IF;
+  -- Dùng net.http_post để gửi request
+  PERFORM net.http_post(
+    url := 'https://eaihqwzhfwtwzqmsrkgk.supabase.co/functions/v1/send_notification',
     
-    RETURN NEW;
+    -- THAY THẾ CHUỖI MÃ BÊN DƯỚI BẰNG ANON KEY CỦA BẠN (GIỮ NGUYÊN CHỮ Bearer)
+    headers := '{"Content-Type": "application/json", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVhaWhxd3poZnd0d3pxbXNya2drIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0ODU5MDcsImV4cCI6MjA5OTA2MTkwN30.JO7Q6yiNMbwYj3dmD5VneJ7f87NuFIIGbwEg2xPp_kg"}'::jsonb,
+    
+    -- Đóng gói dữ liệu bản ghi mới (NEW) thành JSON payload chuẩn của Supabase Webhook
+    body := jsonb_build_object(
+      'type', 'INSERT',
+      'table', 'hoadon',
+      'schema', 'public',
+      'record', row_to_json(NEW)
+    )
+  );
+  
+  RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Tạo trigger trên bảng hoadon
-DROP TRIGGER IF EXISTS trigger_notify_tenant_on_invoice_created ON public.hoadon;
+-- 3. Gắn hàm này vào Trigger của bảng hoadon
+DROP TRIGGER IF EXISTS tr_hoadon_insert_notification ON public.hoadon;
 
-CREATE TRIGGER trigger_notify_tenant_on_invoice_created
-    AFTER INSERT ON public.hoadon
-    FOR EACH ROW
-    EXECUTE FUNCTION notify_tenant_on_invoice_created();
+CREATE TRIGGER tr_hoadon_insert_notification
+AFTER INSERT ON public.hoadon
+FOR EACH ROW
+EXECUTE FUNCTION public.fn_hoadon_insert_notification();
+
+COMMENT ON TRIGGER tr_hoadon_insert_notification ON public.hoadon IS 'Gọi Webhook Push Notification qua pg_net khi có hóa đơn mới';
