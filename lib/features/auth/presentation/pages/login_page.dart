@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart' show LaunchMode;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -67,8 +68,8 @@ class _LoginPageState extends State<LoginPage> {
         sb.OAuthProvider.google,
         redirectTo: redirectTo,
         authScreenLaunchMode: (Platform.isWindows || Platform.isMacOS || Platform.isLinux)
-            ? sb.LaunchMode.externalBrowser
-            : sb.LaunchMode.platformDefault,
+            ? LaunchMode.externalApplication
+            : LaunchMode.platformDefault,
       );
     } catch (e) {
       if (mounted) {
