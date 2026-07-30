@@ -39,7 +39,7 @@ packages:
     source: hosted
     version: "6.11.0"
   app_links:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: app_links
       sha256: "5f88447519add627fe1cbcab4fd1da3d4fed15b9baf29f28b22535c95ecee3e8"
@@ -1413,6 +1413,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.14.3"
+  protocol_registry:
+    dependency: "direct main"
+    description:
+      name: protocol_registry
+      sha256: "8bc3bc5d2700dfbba65fa6ca4b6a91754ed8c851c8ed3673db71a1b1dfb03749"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.5"
   provider:
     dependency: transitive
     description:
@@ -1938,6 +1946,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.1"
+  windows_single_instance:
+    dependency: "direct main"
+    description:
+      name: windows_single_instance
+      sha256: "27ac7ef70a2930a42431d94263941c76884036f797c6d749d1ce5d9d386e66d9"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.0"
   xdg_directories:
     dependency: transitive
     description:

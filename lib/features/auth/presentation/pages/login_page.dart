@@ -60,8 +60,8 @@ class _LoginPageState extends State<LoginPage> {
         // Mobile: Dùng deep link scheme để trở về app
         redirectTo = 'io.supabase.flutter://callback';
       } else {
-        // Desktop (Windows/macOS/Linux): Dùng redirect về web app, sau đó web app detect session
-        redirectTo = 'https://trokeeper.tnb.io.vn/app/';
+        // Desktop (Windows/macOS/Linux): Dùng deep link custom scheme
+        redirectTo = 'io.supabase.trokeeper://login-callback';
       }
 
       await sb.Supabase.instance.client.auth.signInWithOAuth(

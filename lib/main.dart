@@ -10,6 +10,11 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState;
 
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:protocol_registry/protocol_registry.dart';
+import 'package:windows_single_instance/windows_single_instance.dart';
+
 import 'package:seo/seo.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -27,8 +32,39 @@ import 'shared/theme/app_theme.dart';
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 
-Future<void> main() async {
+Future<void> main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Đảm bảo chỉ mở 1 cửa sổ trên Windows và đăng ký Protocol
+  if (!kIsWeb && Platform.isWindows) {
+    try {
+      await WindowsSingleInstance.ensureSingleInstance(
+        args,
+        "trokeeper_single_instance",
+        onSecondWindow: (newArgs) {
+          if (newArgs.isNotEmpty) {
+            final uriStr = newArgs.firstWhere(
+                (e) => e.startsWith('io.supabase.trokeeper://'),
+                orElse: () => '');
+            if (uriStr.isNotEmpty) {
+              try {
+                Supabase.instance.client.auth.getSessionFromUrl(Uri.parse(uriStr));
+              } catch (_) {}
+            }
+          }
+        },
+      );
+
+      final registry = getRegistry();
+      await registry.add(ProtocolScheme(
+        scheme: 'io.supabase.trokeeper',
+        appName: 'TroKeeper',
+        appPath: Platform.resolvedExecutable,
+      ));
+    } catch (e) {
+      debugPrint('Deep link setup error: $e');
+    }
+  }
 
   // Khóa xoay màn hình (portrait only trên mobile)
   await SystemChrome.setPreferredOrientations([
