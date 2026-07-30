@@ -67,7 +67,7 @@ class _LoginPageState extends State<LoginPage> {
       await sb.Supabase.instance.client.auth.signInWithOAuth(
         sb.OAuthProvider.google,
         redirectTo: redirectTo,
-        authScreenLaunchMode: (Platform.isWindows || Platform.isMacOS || Platform.isLinux)
+        authScreenLaunchMode: (!kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux))
             ? LaunchMode.externalApplication
             : LaunchMode.platformDefault,
       );
