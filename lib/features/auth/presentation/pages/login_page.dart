@@ -47,15 +47,28 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _loginWithGoogle() async {
     try {
-      // Lưu last_login_time trước khi bị trình duyệt chuyển hướng (để hàm checkSession không đăng xuất do timeout)
+      // Lưu last_login_time trước khi bị trình duyệt chuyển hướng
       const storage = FlutterSecureStorage();
       await storage.write(key: 'last_login_time', value: DateTime.now().toIso8601String());
 
+      String? redirectTo;
+      if (kIsWeb) {
+        // Web: Supabase tự xử lý, không cần redirectTo
+        redirectTo = null;
+      } else if (Platform.isAndroid || Platform.isIOS) {
+        // Mobile: Dùng deep link scheme để trở về app
+        redirectTo = 'io.supabase.flutter://callback';
+      } else {
+        // Desktop (Windows/macOS/Linux): Dùng redirect về web app, sau đó web app detect session
+        redirectTo = 'https://trokeeper.tnb.io.vn/app/';
+      }
+
       await sb.Supabase.instance.client.auth.signInWithOAuth(
         sb.OAuthProvider.google,
-        redirectTo: kIsWeb || (!kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux))
-            ? null
-            : 'io.supabase.flutter://callback',
+        redirectTo: redirectTo,
+        authScreenLaunchMode: (Platform.isWindows || Platform.isMacOS || Platform.isLinux)
+            ? sb.LaunchMode.externalBrowser
+            : sb.LaunchMode.platformDefault,
       );
     } catch (e) {
       if (mounted) {
