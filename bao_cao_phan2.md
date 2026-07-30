@@ -462,17 +462,33 @@ Phiên bản Web là môi trường ổn định nhất, phục vụ chủ yếu
 
 | Hạng mục | Thông tin |
 |---|---|
-| **Hình thức phân phối** | APK (Debug Build - kiểm thử nội bộ) |
+| **Hình thức phân phối** | APK (Debug Build - kiểm thử nội bộ) & Google Play Store (đang xử lý) |
 | **Trạng thái** | ✅ Hoạt động cơ bản |
 | **Đăng nhập Email/Mật khẩu** | ✅ Hoạt động |
 | **Đăng nhập Google OAuth** | ✅ Hoạt động (Deep link `io.supabase.flutter://callback`) |
 | **Push Notification (FCM)** | ✅ Đã tích hợp (Firebase Cloud Messaging) |
 | **Deep Link OAuth** | ✅ Đã cấu hình trong `AndroidManifest.xml` |
+| **Phát hành Google Play Store** | 🔄 Đang trong quá trình xét duyệt |
 
 Ứng dụng Android được phân phối dưới dạng file APK để kiểm thử nội bộ. Luồng đăng nhập Google sử dụng cơ chế **Deep Link** (`io.supabase.flutter://callback`) được khai báo trong `AndroidManifest.xml`, đảm bảo sau khi người dùng chọn tài khoản Google xong, hệ thống tự động chuyển trở lại ứng dụng.
 
 Tính năng **Push Notification** đã được tích hợp hoàn chỉnh theo luồng:
 > Hóa đơn mới được tạo $\rightarrow$ SQL Trigger (pg_net) $\rightarrow$ Supabase Edge Function $\rightarrow$ Firebase Cloud Messaging $\rightarrow$ Thông báo đến điện thoại khách thuê.
+
+**Tiến trình phát hành lên Google Play Store:**
+
+Nhóm đang trong quá trình hoàn thiện các thủ tục để phát hành ứng dụng lên **Google Play Store** chính thức. Các bước đã và đang thực hiện bao gồm:
+
+| Bước | Nội dung | Trạng thái |
+|---|---|---|
+| 1 | Tạo tài khoản Google Play Developer | ✅ Hoàn tất |
+| 2 | Build bản Release APK / AAB (Android App Bundle) | 🔄 Đang thực hiện |
+| 3 | Chuẩn bị nội dung Store Listing (Mô tả, ảnh chụp màn hình, biểu tượng) | 🔄 Đang thực hiện |
+| 4 | Khai báo quyền truy cập (Permissions) & chính sách quyền riêng tư | 🔄 Đang thực hiện |
+| 5 | Nộp bản app lên Google Play Console để xét duyệt | ⏳ Chờ hoàn thành bước trên |
+| 6 | Xét duyệt và phê duyệt bởi Google | ⏳ Chờ nộp |
+
+> **Lưu ý:** Quy trình xét duyệt của Google thường mất từ **3 đến 7 ngày làm việc**. Trong thời gian chờ xét duyệt, ứng dụng được phân phối nội bộ thông qua file APK trực tiếp.
 
 #### 4.3.3. Nền tảng Desktop (Windows)
 
