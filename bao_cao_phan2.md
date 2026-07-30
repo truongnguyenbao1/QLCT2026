@@ -441,6 +441,67 @@ Dự án áp dụng **Mô hình Waterfall (Thác nước)** kết hợp linh ho�
 | **Vercel** | Triển khai (Hosting) phiên bản Web App nhanh, hỗ trợ CI/CD. |
 | **Clean Architecture** | Kiến trúc chia thành Presentation, Domain, Data layers giúp code dễ test, dễ mở rộng. |
 
+### 4.3. Tình hình Triển khai Thực tế trên các Nền tảng
+
+Tính đến thời điểm báo cáo, ứng dụng **TroKeeper** đã được triển khai và kiểm thử thực tế trên **3 nền tảng** chính với các phương thức xác thực đa dạng.
+
+#### 4.3.1. Nền tảng Web (Browser)
+
+| Hạng mục | Thông tin |
+|---|---|
+| **URL triển khai** | `https://trokeeper.tnb.io.vn/app/` |
+| **Nhà cung cấp Hosting** | Vercel (CI/CD tự động từ GitHub) |
+| **Trạng thái** | ✅ Hoạt động ổn định |
+| **Đăng nhập Email/Mật khẩu** | ✅ Hoạt động |
+| **Đăng nhập Google OAuth** | ✅ Hoạt động (Redirect trong cùng tab) |
+| **Giao diện Responsive** | ✅ Tối ưu cho màn hình Desktop & Laptop |
+
+Phiên bản Web là môi trường ổn định nhất, phục vụ chủ yếu cho **Chủ nhà trọ** thao tác quản lý trên máy tính. Quá trình CI/CD được tự động hóa: mỗi lần push code lên nhánh `main` trên GitHub, Vercel sẽ tự động build và deploy phiên bản mới.
+
+#### 4.3.2. Nền tảng Android
+
+| Hạng mục | Thông tin |
+|---|---|
+| **Hình thức phân phối** | APK (Debug Build - kiểm thử nội bộ) |
+| **Trạng thái** | ✅ Hoạt động cơ bản |
+| **Đăng nhập Email/Mật khẩu** | ✅ Hoạt động |
+| **Đăng nhập Google OAuth** | ✅ Hoạt động (Deep link `io.supabase.flutter://callback`) |
+| **Push Notification (FCM)** | ✅ Đã tích hợp (Firebase Cloud Messaging) |
+| **Deep Link OAuth** | ✅ Đã cấu hình trong `AndroidManifest.xml` |
+
+Ứng dụng Android được phân phối dưới dạng file APK để kiểm thử nội bộ. Luồng đăng nhập Google sử dụng cơ chế **Deep Link** (`io.supabase.flutter://callback`) được khai báo trong `AndroidManifest.xml`, đảm bảo sau khi người dùng chọn tài khoản Google xong, hệ thống tự động chuyển trở lại ứng dụng.
+
+Tính năng **Push Notification** đã được tích hợp hoàn chỉnh theo luồng:
+> Hóa đơn mới được tạo $\rightarrow$ SQL Trigger (pg_net) $\rightarrow$ Supabase Edge Function $\rightarrow$ Firebase Cloud Messaging $\rightarrow$ Thông báo đến điện thoại khách thuê.
+
+#### 4.3.3. Nền tảng Desktop (Windows)
+
+| Hạng mục | Thông tin |
+|---|---|
+| **Hình thức phân phối** | Executable (`.exe` - Debug Build) |
+| **Trạng thái** | ✅ Hoạt động cơ bản |
+| **Đăng nhập Email/Mật khẩu** | ✅ Hoạt động |
+| **Đăng nhập Google OAuth** | ⚠️ Hoạt động một phần (Mở trình duyệt ngoài) |
+| **Push Notification** | ❌ Chưa hỗ trợ (FCM không hỗ trợ Desktop) |
+
+Phiên bản Desktop chủ yếu phục vụ **Chủ nhà trọ** làm việc trên máy tính. Đăng nhập Google trên Windows hoạt động theo luồng: mở trình duyệt mặc định → xác thực Google → redirect về web app (`trokeeper.tnb.io.vn/app/`). Do Windows không hỗ trợ cơ chế Deep Link mặc định như điện thoại, người dùng sẽ tiếp tục sử dụng phiên bản Web sau khi đăng nhập. Đây là giới hạn kỹ thuật của nền tảng, không phải lỗi phần mềm.
+
+#### 4.3.4. Tổng hợp tình trạng tính năng theo nền tảng
+
+| Tính năng | Web | Android | Desktop |
+|---|---|---|---|
+| Đăng nhập Email/Mật khẩu | ✅ | ✅ | ✅ |
+| Đăng nhập Google OAuth | ✅ | ✅ | ⚠️ |
+| Quản lý Phòng / Khách thuê | ✅ | ✅ | ✅ |
+| Lập & Xem Hóa đơn | ✅ | ✅ | ✅ |
+| Xuất PDF Hóa đơn | ✅ | ✅ | ✅ |
+| Thống kê & Báo cáo | ✅ | ✅ | ✅ |
+| Push Notification (FCM) | ❌ | ✅ | ❌ |
+| In Bluetooth (máy in nhiệt) | ❌ | ✅ | ❌ |
+| Quét mã QR Thanh toán | ✅ | ✅ | ✅ |
+
+> **Chú thích:** ✅ Hoạt động đầy đủ &nbsp;|&nbsp; ⚠️ Hoạt động một phần / có giới hạn kỹ thuật &nbsp;|&nbsp; ❌ Không hỗ trợ trên nền tảng này
+
 ---
 
 ## CHƯƠNG V: GIAO DIỆN & CODE DEMO
