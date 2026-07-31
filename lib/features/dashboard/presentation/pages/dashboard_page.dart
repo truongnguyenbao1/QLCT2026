@@ -64,11 +64,13 @@ class _DashboardViewState extends State<_DashboardView> {
   Future<void> _checkUpdate() async {
     final updateInfo = await UpdateService.checkForUpdate();
     if (updateInfo != null && mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => _UpdateDialog(updateInfo: updateInfo),
-      );
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => _UpdateDialog(updateInfo: updateInfo),
+        );
+      });
     }
   }
 
@@ -952,25 +954,27 @@ class _UpdateDialogState extends State<_UpdateDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text('Có bản cập nhật mới!'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Phiên bản mới: ${widget.updateInfo['version']}'),
-          const SizedBox(height: 8),
-          Text(widget.updateInfo['body'] ?? '', style: const TextStyle(fontSize: 13, color: Colors.grey)),
-          const SizedBox(height: 16),
-          if (_isDownloading)
-            Column(
-              children: [
-                LinearProgressIndicator(value: _progress),
-                const SizedBox(height: 8),
-                Text('Đang tải: ${(_progress * 100).toStringAsFixed(1)}%'),
-              ],
-            ),
-          if (_error != null)
-            Text(_error!, style: const TextStyle(color: Colors.red)),
-        ],
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Phiên bản mới: ${widget.updateInfo['version']}'),
+            const SizedBox(height: 8),
+            Text(widget.updateInfo['body'] ?? '', style: const TextStyle(fontSize: 13, color: Colors.grey)),
+            const SizedBox(height: 16),
+            if (_isDownloading)
+              Column(
+                children: [
+                  LinearProgressIndicator(value: _progress),
+                  const SizedBox(height: 8),
+                  Text('Đang tải: ${(_progress * 100).toStringAsFixed(1)}%'),
+                ],
+              ),
+            if (_error != null)
+              Text(_error!, style: const TextStyle(color: Colors.red)),
+          ],
+        ),
       ),
       actions: [
         if (!_isDownloading)
