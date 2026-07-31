@@ -50,6 +50,7 @@ class PrinterService {
         printer: printer,
         onLayout: (_) async => pdfBytes,
         name: jobName,
+        usePrinterSettings: true,
       );
     } catch (e) {
       debugPrint('Lỗi in trực tiếp: $e');
