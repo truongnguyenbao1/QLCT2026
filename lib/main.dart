@@ -35,26 +35,9 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 Future<void> main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Đảm bảo chỉ mở 1 cửa sổ trên Windows và đăng ký Protocol
+  // Đảm bảo đăng ký Custom Protocol trên Windows
   if (!kIsWeb && Platform.isWindows) {
     try {
-      await WindowsSingleInstance.ensureSingleInstance(
-        args,
-        "trokeeper_single_instance",
-        onSecondWindow: (newArgs) {
-          if (newArgs.isNotEmpty) {
-            final uriStr = newArgs.firstWhere(
-                (e) => e.startsWith('io.supabase.trokeeper://'),
-                orElse: () => '');
-            if (uriStr.isNotEmpty) {
-              try {
-                Supabase.instance.client.auth.getSessionFromUrl(Uri.parse(uriStr));
-              } catch (_) {}
-            }
-          }
-        },
-      );
-
       final registry = getRegistry();
       await registry.add(ProtocolScheme(
         scheme: 'io.supabase.trokeeper',
