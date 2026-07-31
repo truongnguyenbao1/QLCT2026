@@ -131,12 +131,20 @@ class _QuanLyNhaTroAppState extends State<QuanLyNhaTroApp> with WidgetsBindingOb
   late final _router = AppRouter.createRouter(_authBloc);
   Timer? _inactivityTimer;
   DateTime _lastInteraction = DateTime.now();
+  late final StreamSubscription _authStateSubscription;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _startInactivityTimer();
+
+    _authStateSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+      final event = data.event;
+      if (event == AuthChangeEvent.signedIn || event == AuthChangeEvent.signedOut) {
+        _authBloc.add(const AuthCheckSessionEvent());
+      }
+    });
   }
 
   @override
@@ -172,6 +180,7 @@ class _QuanLyNhaTroAppState extends State<QuanLyNhaTroApp> with WidgetsBindingOb
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _inactivityTimer?.cancel();
+    _authStateSubscription.cancel();
     _authBloc.close();
     super.dispose();
   }
