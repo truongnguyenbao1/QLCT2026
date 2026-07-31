@@ -326,12 +326,27 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   // ── Private Helpers ──────────────────────────────────────────────────────
 
   Future<UserModel> _fetchUserProfile(String userId) async {
-    // Join với nhatro để lấy registration_status của chủ trọ
-    final data = await _client
-        .from(AppConstants.tableUsers)
-        .select('*, nhatro!fk_users_nhatro(registration_status)')
-        .eq('iduser', userId)
-        .single();
+    // Retry once after a delay to account for Supabase trigger delay (handle_new_user)
+    Map<String, dynamic>? data;
+    try {
+      data = await _client
+          .from(AppConstants.tableUsers)
+          .select('*, nhatro!fk_users_nhatro(registration_status)')
+          .eq('iduser', userId)
+          .single();
+    } catch (e) {
+      if (e is sb.PostgrestException && e.code == 'PGRST116') {
+        // 0 rows returned, wait and retry
+        await Future.delayed(const Duration(seconds: 1));
+        data = await _client
+            .from(AppConstants.tableUsers)
+            .select('*, nhatro!fk_users_nhatro(registration_status)')
+            .eq('iduser', userId)
+            .single();
+      } else {
+        rethrow;
+      }
+    }
 
     // Lấy thông tin gói cước để check hạn dùng thử
     final subData = await _client
@@ -341,7 +356,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         .maybeSingle();
 
     // Flatten registration_status từ nested join
-    final nhaTro = data['nhatro'] as Map<String, dynamic>?;
+    final nhaTro = data!['nhatro'] as Map<String, dynamic>?;
     final Map<String, dynamic> flatData = {
       ...data,
       if (nhaTro != null)
