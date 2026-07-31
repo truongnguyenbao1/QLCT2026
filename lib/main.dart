@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState;
 
@@ -29,8 +28,6 @@ import 'features/auth/presentation/bloc/auth_state.dart';
 import 'shared/navigation/app_router.dart';
 import 'shared/theme/app_theme.dart';
 
-final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-    FlutterLocalNotificationsPlugin();
 
 Future<void> main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -74,21 +71,6 @@ Future<void> main(List<String> args) async {
   // Khởi tạo Hive (local cache)
   await Hive.initFlutter();
 
-  // Khởi tạo Local Notifications
-  const AndroidInitializationSettings androidSettings =
-      AndroidInitializationSettings('@mipmap/ic_launcher');
-  const DarwinInitializationSettings iosSettings =
-      DarwinInitializationSettings(
-    requestAlertPermission: true,
-    requestBadgePermission: true,
-    requestSoundPermission: true,
-  );
-  await flutterLocalNotificationsPlugin.initialize(
-    const InitializationSettings(
-      android: androidSettings,
-      iOS: iosSettings,
-    ),
-  );
 
   // Khởi tạo Dependency Injection
   await configureDependencies();

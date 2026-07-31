@@ -1,7 +1,14 @@
 import 'dart:developer';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  log("Handling a background message: ${message.messageId}");
+}
 
 class NotificationService {
   // Pattern Singleton để gọi từ mọi nơi
@@ -11,15 +18,63 @@ class NotificationService {
 
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   final SupabaseClient _supabase = Supabase.instance.client;
+  final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
 
   Future<void> initialize() async {
     try {
+      if (!kIsWeb) {
+        FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+      }
+
       // 1. Xin quyền người dùng (Hiển thị popup hỏi quyền trên iOS / Android 13+)
       NotificationSettings settings = await _firebaseMessaging.requestPermission(
         alert: true,
         badge: true,
         sound: true,
       );
+
+      if (!kIsWeb) {
+        // Khởi tạo Local Notifications
+        const AndroidInitializationSettings androidSettings =
+            AndroidInitializationSettings('@mipmap/ic_launcher');
+        const DarwinInitializationSettings iosSettings =
+            DarwinInitializationSettings(
+          requestAlertPermission: true,
+          requestBadgePermission: true,
+          requestSoundPermission: true,
+        );
+        await _localNotifications.initialize(
+          const InitializationSettings(
+            android: androidSettings,
+            iOS: iosSettings,
+          ),
+        );
+
+        const AndroidNotificationChannel channel = AndroidNotificationChannel(
+          'high_importance_channel', // id
+          'High Importance Notifications', // name
+          description: 'This channel is used for important notifications.', // description
+          importance: Importance.high,
+        );
+
+        await _localNotifications
+            .resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin>()
+            ?.createNotificationChannel(channel);
+
+        await _firebaseMessaging.setForegroundNotificationPresentationOptions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
+
+        FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+          log('Got a message whilst in the foreground!');
+          if (message.notification != null) {
+            _showNotification(message, channel);
+          }
+        });
+      }
 
       if (settings.authorizationStatus == AuthorizationStatus.authorized) {
         log('User granted permission for notifications');
@@ -74,4 +129,32 @@ class NotificationService {
       log('User chưa đăng nhập, bỏ qua lưu token.');
     }
   }
+
+  void _showNotification(RemoteMessage message, AndroidNotificationChannel channel) {
+    RemoteNotification? notification = message.notification;
+    AndroidNotification? android = message.notification?.android;
+
+    if (notification != null && !kIsWeb) {
+      _localNotifications.show(
+        notification.hashCode,
+        notification.title,
+        notification.body,
+        NotificationDetails(
+          android: AndroidNotificationDetails(
+            channel.id,
+            channel.name,
+            channelDescription: channel.description,
+            icon: '@mipmap/ic_launcher',
+          ),
+          iOS: const DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+          ),
+        ),
+        payload: jsonEncode(message.data),
+      );
+    }
+  }
 }
+
