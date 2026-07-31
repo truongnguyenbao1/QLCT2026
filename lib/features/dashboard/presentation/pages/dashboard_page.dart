@@ -609,42 +609,50 @@ class _TenantDashboardContentState extends State<_TenantDashboardContent> {
               elevation: 0,
               color: colorScheme.primaryContainer.withValues(alpha: 0.3),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: colorScheme.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                onTap: _currentRoomId != null ? () {
+                  context.push('/rooms/$_currentRoomId');
+                } : null,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(Icons.home_work_rounded, color: colorScheme.primary),
                       ),
-                      child: Icon(Icons.home_work_rounded, color: colorScheme.primary),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _propertyName,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _propertyName,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Bạn đang ở: $_roomName',
-                            style: TextStyle(
-                              color: colorScheme.onSurfaceVariant,
-                              fontSize: 14,
+                            const SizedBox(height: 4),
+                            Text(
+                              'Bạn đang ở: $_roomName',
+                              style: TextStyle(
+                                color: colorScheme.onSurfaceVariant,
+                                fontSize: 14,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                      if (_currentRoomId != null)
+                        Icon(Icons.chevron_right_rounded, color: colorScheme.primary),
+                    ],
+                  ),
                 ),
               ),
             ),
