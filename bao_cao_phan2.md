@@ -112,7 +112,14 @@ Hệ thống **TroKeeper** là phần mềm quản lý nhà trọ khép kín, t�
 | UC05 | Chốt điện nước | Cập nhật chỉ số đồng hồ điện nước cuối tháng. |
 | UC06 | Quản lý hóa đơn | Sinh hóa đơn, cập nhật trạng thái thanh toán. |
 | UC07 | Xem báo cáo | Thống kê doanh thu, phòng trống. |
-| UC08 | Xem hóa đơn (Khách) | Khách thuê xem chi tiết khoản phải trả. |
+| UC08 | Cài đặt thanh toán | Quản lý thông tin tài khoản ngân hàng, mã QR VietQR. |
+| UC09 | Thông báo (Chủ trọ) | Gửi thông báo, nhắc nhở đóng tiền cho khách thuê. |
+| UC10 | Xuất/In hóa đơn | Xuất PDF hoặc in hóa đơn nhiệt để gửi cho khách. |
+| UC11 | Xem hóa đơn (Khách) | Khách thuê xem chi tiết khoản phải trả. |
+| UC12 | Lịch sử hóa đơn | Khách xem lại danh sách hóa đơn của những tháng trước. |
+| UC13 | Báo sự cố | Khách thuê tạo ticket báo sự cố (hư hỏng, mất điện/nước). |
+| UC14 | Nhận thông báo | Khách xem thông báo từ chủ nhà trọ. |
+| UC15 | Thanh toán QR | Quét mã VietQR để thanh toán tiền phòng nhanh chóng. |
 
 ---
 
@@ -158,15 +165,21 @@ flowchart LR
     Admin([Chủ nhà trọ])
     System([Hệ thống])
 
-    subgraph Finance [Tài chính & Thống kê]
+    subgraph Finance [Tài chính & Hệ thống]
         UC05([UC05: Chốt điện nước])
         UC06([UC06: Quản lý hóa đơn])
         UC07([UC07: Xem báo cáo])
+        UC08([UC08: Cài đặt thanh toán])
+        UC09([UC09: Thông báo])
+        UC10([UC10: Xuất/In hóa đơn])
     end
 
     Admin --> UC05
     Admin --> UC06
     Admin --> UC07
+    Admin --> UC08
+    Admin --> UC09
+    Admin --> UC10
     UC06 -. "Tự động tính tiền" .-> System
 ```
 
@@ -176,10 +189,18 @@ flowchart LR
     Customer([Khách thuê])
 
     subgraph Tenant [Tính năng Khách thuê]
-        UC08([UC08: Xem hóa đơn])
+        UC11([UC11: Xem hóa đơn hiện tại])
+        UC12([UC12: Xem lịch sử hóa đơn])
+        UC13([UC13: Báo sự cố])
+        UC14([UC14: Nhận thông báo])
+        UC15([UC15: Thanh toán QR])
     end
 
-    Customer --> UC08
+    Customer --> UC11
+    Customer --> UC12
+    Customer --> UC13
+    Customer --> UC14
+    Customer --> UC15
 ```
 
 **Đặc tả Use Case nổi bật: UC06 - Quản lý hóa đơn (Lập hóa đơn mới)**
@@ -531,12 +552,18 @@ Danh sách các màn hình chính đã xây dựng:
 4. **Chi tiết Phòng:** Hiển thị thông tin khách đang thuê, các chỉ số điện nước tháng trước.
 5. **Lập Hóa Đơn:** Form nhập chỉ số điện nước mới, tự động tính tổng tiền.
 6. **Lịch sử Thu chi:** Danh sách các hóa đơn đã xuất.
+7. **Cài đặt thanh toán:** Cấu hình tài khoản ngân hàng nhận tiền, tự động tạo mã QR thanh toán (VietQR).
+8. **Quản lý Thông báo:** Giao diện soạn thảo, quản lý và gửi thông báo, nhắc nhở thanh toán hoặc báo cáo sự cố.
+9. **Cấu hình Khu trọ:** Màn hình quản lý thông tin các khu nhà trọ, thêm mới/chỉnh sửa thông tin khu vực quản lý.
 
 **Phía Customer (Khách thuê):**
-1. **Màn hình Đăng nhập (Khách):** Đăng nhập bằng số điện thoại/Mã code.
-2. **Trang chủ Khách thuê:** Hiển thị số tiền cần đóng tháng này, hạn chót thanh toán.
-3. **Lịch sử thanh toán:** Danh sách các tháng đã đóng tiền.
+1. **Màn hình Đăng nhập (Khách):** Đăng nhập thông qua tài khoản khách thuê.
+2. **Trang chủ Khách thuê (Dashboard):** Hiển thị số tiền cần đóng tháng này, hạn chót thanh toán, thông tin phòng đang thuê.
+3. **Lịch sử thanh toán:** Danh sách các tháng đã đóng tiền và hóa đơn cũ.
 4. **Chi tiết hợp đồng:** Xem lại các thỏa thuận giá cả ban đầu.
+5. **Báo sự cố:** Giao diện để khách thuê báo cáo các sự cố hư hỏng (điện, nước, nội thất) cho chủ nhà trọ.
+6. **Danh sách Thông báo:** Nơi khách thuê xem các thông báo, nhắc nợ từ chủ trọ và tình trạng xử lý sự cố.
+7. **Màn hình Thanh toán:** Hiển thị mã QR VietQR để thanh toán tiền phòng nhanh chóng.
 
 ---
 
@@ -544,22 +571,50 @@ Danh sách các màn hình chính đã xây dựng:
 
 **Bảng Kiểm thử mẫu (Manual Test Cases)**
 
-| ID | Nội dung Test Case | Dữ liệu đầu vào (Inputs) | Kết quả mong đợi (Expected) | Trạng thái |
-|----|--------------------|--------------------------|-----------------------------|------------|
-| TC01 | Đăng nhập đúng thông tin | Email: `admin@abc.com`, Pass: `123456` | Đăng nhập thành công, chuyển tới Dashboard | Pass |
-| TC02 | Đăng nhập sai mật khẩu | Email: `admin@abc.com`, Pass: `sai_pass` | Thông báo "Tài khoản hoặc mật khẩu không đúng" | Pass |
-| TC03 | Thêm phòng thiếu thông tin | Tên phòng: (Trống), Giá: `2000000` | Báo lỗi ở UI "Vui lòng nhập tên phòng" | Pass |
-| TC04 | Lập hóa đơn (Chỉ số hợp lệ) | Điện cũ: 100, Điện mới: 150 | Tính đúng = (150-100)*Giá điện + Tiền phòng | Pass |
-| TC05 | Lập hóa đơn (Chỉ số lỗi) | Điện cũ: 100, Điện mới: 90 | Báo lỗi "Chỉ số mới không được nhỏ hơn chỉ số cũ" | Pass |
-| TC06 | Cập nhật phòng khi trả | Đang thuê -> Đổi sang "Trống" | Xóa khách khỏi phòng, lưu vào lịch sử, phòng chuyển trắng | Pass |
-| TC07 | RLS Security | Chủ trọ A gọi API lấy Invoices Chủ trọ B | Database từ chối trả kết quả (Mảng rỗng) | Pass |
+| ID | Chức năng / Module | Nội dung Test Case | Dữ liệu đầu vào (Inputs) | Kết quả mong đợi (Expected) | Trạng thái |
+|----|--------------------|--------------------|--------------------------|-----------------------------|------------|
+| TC01 | Xác thực (Auth) | Đăng nhập đúng thông tin | Email hợp lệ, Mật khẩu đúng | Đăng nhập thành công, chuyển tới Dashboard Chủ trọ / Khách thuê tùy role | Pass |
+| TC02 | Xác thực (Auth) | Đăng nhập sai mật khẩu | Email hợp lệ, Pass sai | Hiện thông báo lỗi "Tài khoản hoặc mật khẩu không đúng" | Pass |
+| TC03 | Xác thực (Auth) | Đăng ký tài khoản mới | Email chưa tồn tại, Pass hợp lệ | Tạo tài khoản thành công, tự động đăng nhập vào hệ thống | Pass |
+| TC04 | Quản lý Phòng | Thêm phòng hợp lệ | Tên phòng: "P.101", Giá: `2000000` | Thêm phòng thành công, danh sách cập nhật ngay lập tức | Pass |
+| TC05 | Quản lý Phòng | Thêm phòng thiếu tên | Tên phòng: (Trống), Giá: `2000000` | Báo lỗi ở giao diện "Vui lòng nhập tên phòng" | Pass |
+| TC06 | Quản lý Phòng | Xóa phòng đang có khách | Chọn phòng trạng thái "Đang thuê" -> Xóa | Báo lỗi không cho phép xóa phòng đang có người ở | Pass |
+| TC07 | Khách thuê | Thêm khách thuê mới | Tên, SĐT, Số CCCD, Tiền cọc | Gán khách vào phòng thành công, trạng thái phòng -> "Đang thuê" | Pass |
+| TC08 | Khách thuê | Trả phòng (Kết thúc hợp đồng) | Phòng đang thuê -> Bấm "Trả phòng" | Xóa khách khỏi phòng hiện tại, phòng trở về trạng thái "Trống" | Pass |
+| TC09 | Quản lý Hóa đơn | Lập hóa đơn hợp lệ | Điện cũ: 100, Điện mới: 150 | Tính đúng tổng tiền = Tiền điện + Tiền nước + Tiền phòng + Phí khác | Pass |
+| TC10 | Quản lý Hóa đơn | Lập hóa đơn (Chỉ số điện lỗi) | Điện cũ: 100, Điện mới: 90 | Hệ thống báo lỗi "Chỉ số mới không được nhỏ hơn chỉ số cũ" | Pass |
+| TC11 | Quản lý Hóa đơn | Cập nhật trạng thái thanh toán | Từ "Chờ thanh toán" -> "Đã thanh toán" | Hóa đơn hiển thị "Đã thanh toán", doanh thu cập nhật vào thống kê | Pass |
+| TC12 | Quản lý Hóa đơn | Xuất PDF & In hóa đơn | Chọn hóa đơn -> In / Xuất PDF | Ứng dụng tạo ra file PDF hóa đơn với đầy đủ thông tin chuẩn | Pass |
+| TC13 | Quản lý Hóa đơn | Gắn QR thanh toán vào hóa đơn | Có dữ liệu VietQR trong Settings | Hóa đơn xuất ra hiển thị đúng QR code VietQR (có mã tiền & ND) | Pass |
+| TC14 | Cài đặt & Hệ thống | Cập nhật thông tin VietQR | Chọn Ngân hàng, Số TK, Tên chủ TK | Tạo mã QR preview thành công, lưu thông tin vào CSDL | Pass |
+| TC15 | Báo cáo Thống kê | Kiểm tra số liệu Dashboard | Xem báo cáo tháng hiện tại | Số phòng trống, Đang thuê, Tổng doanh thu khớp với dữ liệu thực | Pass |
+| TC16 | Ứng dụng Khách thuê | Khách xem chi tiết phòng | Đăng nhập bằng quyền Khách | Hiện thông tin chi tiết phòng đang ở (nhưng ẩn nút sửa/xóa) | Pass |
+| TC17 | Ứng dụng Khách thuê | Khách vào URL phòng khác | Gõ URL `/rooms/{id_khac}` | Bị chặn, redirect về dashboard hoặc báo lỗi không có quyền truy cập | Pass |
+| TC18 | Bảo mật (RLS) | Chủ trọ A truy xuất data Chủ B | Gọi API lấy hóa đơn của Chủ B | Trả về mảng rỗng (Row Level Security từ chối truy cập) | Pass |
+| TC19 | Trải nghiệm người dùng | Chạy background task / Offline | App đang lưu Cache cục bộ | Khởi động app mượt mà, load danh sách phòng nhanh chóng từ Cache | Pass |
 
 ---
 
 ## TÀI LIỆU THAM KHẢO
 
-1. **Tài liệu Flutter chính thức:** Hướng dẫn xây dựng giao diện và quản lý state. (Link: [https://flutter.dev/docs](https://flutter.dev/docs))
-2. **Tài liệu BLoC Library:** Kiến trúc quản lý trạng thái. (Link: [https://bloclibrary.dev](https://bloclibrary.dev))
-3. **Tài liệu Supabase:** Cấu hình Authentication và Row Level Security (RLS) cho PostgreSQL. (Link: [https://supabase.com/docs](https://supabase.com/docs))
-4. **Sách:** *Clean Architecture: A Craftsman's Guide to Software Structure and Design* - Robert C. Martin (Uncle Bob).
-5. **Sách:** *Software Engineering (10th Edition)* - Ian Sommerville.
+1. **Angelov, F. (2026).** BLoC Library (Business Logic Component). (Link: [https://bloclibrary.dev/](https://bloclibrary.dev/))
+2. **Angelov, F. (2026).** Equatable: A Dart package that helps to implement value based equality. (Link: [https://pub.dev/packages/equatable](https://pub.dev/packages/equatable))
+3. **Beck, K., et al. (2001).** Manifesto for Agile Software Development. (Link: [https://agilemanifesto.org/](https://agilemanifesto.org/))
+4. **Chacon, S., & Straub, B. (2014).** Pro Git (2nd ed.). Apress. (Link: [https://git-scm.com/book/en/v2](https://git-scm.com/book/en/v2))
+5. **csells. (2026).** GoRouter: Declarative Routing for Flutter. (Link: [https://pub.dev/packages/go_router](https://pub.dev/packages/go_router))
+6. **Figma. (2026).** Figma Documentation: Collaborative interface design tool. (Link: [https://help.figma.com/](https://help.figma.com/))
+7. **Fowler, M. (2002).** Patterns of Enterprise Application Architecture. Addison-Wesley Professional.
+8. **Google. (2026).** Dart Programming Language. (Link: [https://dart.dev/](https://dart.dev/))
+9. **Google. (2026).** Flutter Documentation: Tài liệu chính thức về Flutter Framework. (Link: [https://flutter.dev/docs](https://flutter.dev/docs))
+10. **Google. (2026).** Google Play Console Help. (Link: [https://support.google.com/googleplay/android-developer](https://support.google.com/googleplay/android-developer))
+11. **Google. (2026).** Material Design 3. (Link: [https://m3.material.io/](https://m3.material.io/))
+12. **Google. (2026).** State management in Flutter. (Link: [https://docs.flutter.dev/data-and-backend/state-mgmt](https://docs.flutter.dev/data-and-backend/state-mgmt))
+13. **Jones, M., Bradley, J., & Sakimura, N. (2015).** JSON Web Token (JWT) (RFC 7519). Internet Engineering Task Force (IETF). (Link: [https://datatracker.ietf.org/doc/html/rfc7519](https://datatracker.ietf.org/doc/html/rfc7519))
+14. **Martin, R. C. (2012).** The Clean Architecture. Clean Coder Blog. (Link: [https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html))
+15. **Norman, D. A. (2013).** The Design of Everyday Things: Revised and Expanded Edition. Basic Books.
+16. **PostgreSQL Global Development Group. (2026).** PostgreSQL Documentation. (Link: [https://www.postgresql.org/docs/](https://www.postgresql.org/docs/))
+17. **Quốc hội nước CHXHCN Việt Nam. (2023).** Luật Nhà ở số 27/2023/QH15. Cơ sở dữ liệu quốc gia về văn bản pháp luật.
+18. **Reso Coder. (2020).** Flutter Clean Architecture Proposal. (Link: [https://resocoder.com/](https://resocoder.com/))
+19. **Sommerville, I. (2015).** Software Engineering (10th Edition). Pearson.
+20. **Supabase. (2026).** Supabase Docs. (Link: [https://supabase.com/docs](https://supabase.com/docs))
+21. **Vercel. (2026).** Vercel Documentation. (Link: [https://vercel.com/docs](https://vercel.com/docs))

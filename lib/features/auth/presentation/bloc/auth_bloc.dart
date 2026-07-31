@@ -12,6 +12,7 @@ import 'auth_state.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/di/injection.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../../core/security/encryption_service.dart';
 import '../../domain/entities/app_user.dart';
 
@@ -176,51 +177,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             'tenuser': event.fullName,
             'sdt': event.phone,
           }).eq('iduser', userId);
-
-          // Tạo nhà trọ với trạng thái APPROVED
-          final nhaTroRes = await sb.Supabase.instance.client
-              .from('nhatro')
-              .insert({
-                'name': event.fullName,
-                'iduser': userId,
-                'registration_status': 'APPROVED',
-              })
-              .select()
-              .single();
-
-          final propertyId = nhaTroRes['id'] as String;
-
-          await sb.Supabase.instance.client.from(AppConstants.tableUsers).update({
-            'property_id': propertyId,
-          }).eq('iduser', userId);
-
-          // Tạo subscription
-          final trialEndsAt = DateTime.now().add(const Duration(days: 7));
-          int maxRooms = 10;
-          int price = 49000;
-          String planCode = 'BASIC';
-
+          
           if (event.plan != null) {
-            if (event.plan!.contains('Tiêu chuẩn')) {
-              planCode = 'STANDARD';
-              maxRooms = 30;
-              price = 99000;
-            } else if (event.plan!.contains('Chuyên nghiệp')) {
-              planCode = 'PRO';
-              maxRooms = -1;
-              price = 199000;
-            }
+            final storage = getIt<FlutterSecureStorage>();
+            await storage.write(key: 'selected_plan', value: event.plan!);
           }
-
-          await sb.Supabase.instance.client.from('subscriptions').insert({
-            'owner_id': userId,
-            'property_id': propertyId,
-            'plan': planCode,
-            'status': 'ACTIVE',
-            'trial_ends_at': trialEndsAt.toIso8601String(),
-            'max_rooms': maxRooms,
-            'price_per_month': price,
-          });
         }
         
         // Kích hoạt check session để reload lại user

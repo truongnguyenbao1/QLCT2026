@@ -1,0 +1,34 @@
+3: ## CHƯƠNG I: MỞ ĐẦU
+5: ### 1.1. Tên đề tài
+8: ### 1.2. Lý do chọn đề tài
+17: ### 1.3. Kỹ thuật yêu cầu (Requirement Engineering)
+19: #### a) Yêu cầu chức năng
+37: #### b) Yêu cầu phi chức năng
+52: ### 1.4. Quy trình nghiệp vụ (Business Process)
+62: ### 1.5. Khảo sát thực tế (Fact Survey)
+78: ## CHƯƠNG II: MÔ TẢ CHI TIẾT
+80: ### 2.1. Đặc tả hệ thống
+85: ### 2.2. Đối tượng mục tiêu & Phạm vi dự án
+92: ### 2.3. Tính khả thi
+96: ### 2.4. Bảng Tác nhân (Actors)
+104: ### 2.5. Bảng Danh sách Use Case & Bảng Chức năng hệ thống
+119: ## CHƯƠNG III: THIẾT KẾ CHI TIẾT
+121: ### 3.1. Sơ đồ Use Case & Đặc tả Use Case
+125: #### a) Nhóm chức năng Xác thực
+139: #### b) Nhóm chức năng Quản lý Nhà trọ & Khách thuê
+155: #### c) Nhóm chức năng Tài chính & Báo cáo
+173: #### d) Nhóm chức năng dành cho Khách thuê
+244: ### 3.2. Sơ đồ Hoạt động (Activity Diagram) & Sơ đồ Tuần tự (Sequence Diagram)
+323: ### 3.3. Sơ đồ Lớp (Class Diagram)
+382: ### 3.4. Mô hình Dữ liệu Quan hệ (Relational Data Model) & Sơ đồ ERD
+425: ## CHƯƠNG IV: QUY TRÌNH THỰC TẾ
+427: ### 4.1. Mô hình vòng đời phát triển phần mềm
+434: ### 4.2. Kiến trúc & Công nghệ sử dụng
+444: ### 4.3. Tình hình Triển khai Thực tế trên các Nền tảng
+448: #### 4.3.1. Nền tảng Web (Browser)
+461: #### 4.3.2. Nền tảng Android
+493: #### 4.3.3. Nền tảng Desktop (Windows)
+505: #### 4.3.4. Tổng hợp tình trạng tính năng theo nền tảng
+523: ## CHƯƠNG V: GIAO DIỆN & CODE DEMO
+543: ## CHƯƠNG VI: KIỂM THỬ PHẦN MỀM (TEST CASE & UNIT TEST)
+571: ## TÀI LIỆU THAM KHẢO

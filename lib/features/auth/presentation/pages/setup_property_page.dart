@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/di/injection.dart';
 import '../bloc/auth_bloc.dart';
@@ -65,6 +65,7 @@ class _SetupPropertyPageState extends State<SetupPropertyPage>
             'name': _nameController.text.trim(),
             'address': _addressController.text.trim(),
             'iduser': userId,
+            'registration_status': 'APPROVED',
           })
           .select()
           .single();
@@ -76,6 +77,39 @@ class _SetupPropertyPageState extends State<SetupPropertyPage>
           .from('users')
           .update({'property_id': propertyId})
           .eq('iduser', userId);
+
+      // 2.1 Tạo subscription tùy theo gói đã chọn
+      final storage = getIt<FlutterSecureStorage>();
+      final planStr = await storage.read(key: 'selected_plan');
+      
+      final trialEndsAt = DateTime.now().add(const Duration(days: 7));
+      int maxRooms = 10;
+      int price = 49000;
+      String planCode = 'BASIC';
+
+      if (planStr != null) {
+        if (planStr.contains('Tiêu chuẩn')) {
+          planCode = 'STANDARD';
+          maxRooms = 30;
+          price = 99000;
+        } else if (planStr.contains('Chuyên nghiệp')) {
+          planCode = 'PRO';
+          maxRooms = -1;
+          price = 199000;
+        }
+      }
+
+      await client.from('subscriptions').insert({
+        'owner_id': userId,
+        'property_id': propertyId,
+        'plan': planCode,
+        'status': 'ACTIVE',
+        'trial_ends_at': trialEndsAt.toIso8601String(),
+        'max_rooms': maxRooms,
+        'price_per_month': price,
+      });
+
+      await storage.delete(key: 'selected_plan');
 
       // 3. Thông báo BLoC để chuyển sang Authenticated
       if (mounted) {

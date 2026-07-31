@@ -144,56 +144,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         });
       }
 
-      // 4. Tạo nhà trọ và subscription cho Chủ trọ mới
-      if (role == UserRole.owner) {
-        final userId = response.user!.id;
-        await Future.delayed(const Duration(milliseconds: 500));
-
-        // Tạo nhà trọ với trạng thái APPROVED (để có thể sử dụng liền 7 ngày)
-        final nhaTroRes = await _client
-            .from('nhatro')
-            .insert({
-              'name': fullName, // Tạm dùng tên chủ trọ, setup_property sẽ cập nhật sau
-              'iduser': userId,
-              'registration_status': 'APPROVED',
-            })
-            .select()
-            .single();
-
-        final propertyId = nhaTroRes['id'] as String;
-
-        // Gắn property_id vào users
-        await _client.from(AppConstants.tableUsers).update({
-          'property_id': propertyId,
-        }).eq('iduser', userId);
-
-        // Tạo subscription tùy theo gói đã chọn
-        final trialEndsAt = DateTime.now().add(const Duration(days: 7));
-        int maxRooms = 10;
-        int price = 49000;
-        String planCode = 'BASIC';
-
-        if (plan != null) {
-          if (plan.contains('Tiêu chuẩn')) {
-            planCode = 'STANDARD';
-            maxRooms = 30;
-            price = 99000;
-          } else if (plan.contains('Chuyên nghiệp')) {
-            planCode = 'PRO';
-            maxRooms = -1; // Unlimited
-            price = 199000;
-          }
-        }
-
-        await _client.from('subscriptions').insert({
-          'owner_id': userId,
-          'property_id': propertyId,
-          'plan': planCode,
-          'status': 'ACTIVE',
-          'trial_ends_at': trialEndsAt.toIso8601String(),
-          'max_rooms': maxRooms,
-          'price_per_month': price,
-        });
+      // 4. Lưu plan vào secure storage cho Chủ trọ mới để dùng bên SetupPropertyPage
+      if (role == UserRole.owner && plan != null) {
+        await _storage.write(key: 'selected_plan', value: plan);
       }
 
 

@@ -1,0 +1,4 @@
+227: ### 2.3 Sơ đồ Use Case
+644: #### Use Cases đã implement
+646: | Use Case | Chức năng |
+732: | Sơ đồ Use Case | ✅ Hoàn thành | Owner + Tenant + System |

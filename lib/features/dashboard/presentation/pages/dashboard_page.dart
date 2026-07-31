@@ -604,58 +604,66 @@ class _TenantDashboardContentState extends State<_TenantDashboardContent> {
           const SizedBox(height: 16),
           
           // Card thông tin nhà trọ
-          if (!_isLoadingInfo)
-            Card(
-              elevation: 0,
-              color: colorScheme.primaryContainer.withValues(alpha: 0.3),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              clipBehavior: Clip.antiAlias,
-              child: InkWell(
-                onTap: _currentRoomId != null ? () {
-                  context.push('/rooms/$_currentRoomId');
-                } : null,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: colorScheme.primary.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(Icons.home_work_rounded, color: colorScheme.primary),
+          Card(
+            elevation: 0,
+            color: colorScheme.primaryContainer.withValues(alpha: 0.3),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: (!_isLoadingInfo && _currentRoomId != null) ? () {
+                context.push('/rooms/$_currentRoomId');
+              } : null,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              _propertyName,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
+                      child: Icon(Icons.home_work_rounded, color: colorScheme.primary),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _propertyName,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Bạn đang ở: $_roomName',
-                              style: TextStyle(
-                                color: colorScheme.onSurfaceVariant,
-                                fontSize: 14,
-                              ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _isLoadingInfo ? 'Đang tải thông tin phòng...' : 'Bạn đang ở: $_roomName',
+                            style: TextStyle(
+                              color: colorScheme.onSurfaceVariant,
+                              fontSize: 14,
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                      if (_currentRoomId != null)
-                        Icon(Icons.chevron_right_rounded, color: colorScheme.primary),
-                    ],
-                  ),
+                    ),
+                    if (_isLoadingInfo)
+                      SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: colorScheme.primary,
+                        ),
+                      )
+                    else if (_currentRoomId != null)
+                      Icon(Icons.chevron_right_rounded, color: colorScheme.primary),
+                  ],
                 ),
               ),
             ),
+          ),
 
           const SizedBox(height: 24),
 
