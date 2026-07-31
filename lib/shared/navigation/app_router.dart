@@ -137,7 +137,11 @@ class AppRouter {
           final user = (authState as AuthAuthenticated).user;
           if (!user.isOwner) {
             final loc = state.matchedLocation;
-            if (loc.startsWith(AppRoutes.rooms) ||
+            // Cho phép khách thuê truy cập xem chi tiết phòng (ví dụ: /rooms/123)
+            // Chặn danh sách phòng (/rooms) và thêm phòng (/rooms/add)
+            final isRestrictedRoomRoute = loc == AppRoutes.rooms || loc == AppRoutes.addRoom;
+            
+            if (isRestrictedRoomRoute ||
                 loc.startsWith(AppRoutes.tenants) ||
                 loc.startsWith(AppRoutes.utilities) ||
                 loc.contains('/create') ||
@@ -220,7 +224,14 @@ class AppRouter {
                   name: 'roomDetail',
                   builder: (context, state) {
                     final roomId = state.pathParameters['roomId']!;
-                    return RoomDetailPage(roomId: roomId);
+                    final authState = context.read<AuthBloc>().state;
+                    final propertyId = authState is AuthAuthenticated
+                        ? authState.user.propertyId ?? ''
+                        : '';
+                    return BlocProvider<RoomBloc>(
+                      create: (_) => getIt<RoomBloc>()..add(LoadRoomsEvent(propertyId)),
+                      child: RoomDetailPage(roomId: roomId),
+                    );
                   },
                   routes: [
                     GoRoute(
