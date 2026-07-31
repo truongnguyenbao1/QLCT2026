@@ -55,6 +55,7 @@ class RoomDetailPage extends StatelessWidget {
     final theme = Theme.of(context);
     final authState = context.read<AuthBloc>().state;
     final propertyId = authState is AuthAuthenticated ? authState.user.propertyId ?? '' : '';
+    final isOwner = authState is AuthAuthenticated ? authState.user.isOwner : false;
     
     return BlocProvider(
       create: (context) => getIt<TenantBloc>()..add(LoadTenantsEvent(roomId: room.id, propertyId: propertyId, isActive: true)),
@@ -62,6 +63,7 @@ class RoomDetailPage extends StatelessWidget {
         appBar: AppBar(
           title: Text('Phòng ${room.roomNumber}'),
           actions: [
+            if (isOwner)
             Builder(
               builder: (context) {
                 return PopupMenuButton<String>(
@@ -154,9 +156,10 @@ class RoomDetailPage extends StatelessWidget {
               const SizedBox(height: 16),
               if (room.amenities.isNotEmpty) _buildAmenitiesCard(theme, room),
               const SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
+              if (isOwner)
+                Row(
+                  children: [
+                    Expanded(
                     child: OutlinedButton.icon(
                       onPressed: () async {
                          await context.push('/rooms/${room.id}/edit');
@@ -378,6 +381,8 @@ class RoomDetailPage extends StatelessWidget {
                   return Center(child: Text(state.message, style: const TextStyle(color: Colors.red)));
                 }
                 if (state is TenantLoaded) {
+                  final authState = context.read<AuthBloc>().state;
+                  final isOwner = authState is AuthAuthenticated ? authState.user.isOwner : false;
                   final tenants = state.tenants;
                   if (tenants.isEmpty) {
                     return const Padding(
@@ -395,7 +400,7 @@ class RoomDetailPage extends StatelessWidget {
                       ),
                       title: Text(tenant.fullName, style: const TextStyle(fontWeight: FontWeight.w500)),
                       subtitle: Text('CCCD: ${tenant.cccdNumber} - SĐT: ${tenant.phoneNumber}'),
-                      trailing: PopupMenuButton<String>(
+                      trailing: isOwner ? PopupMenuButton<String>(
                         icon: const Icon(Icons.more_vert_rounded),
                         onSelected: (value) async {
                           if (value == 'edit') {
@@ -453,7 +458,7 @@ class RoomDetailPage extends StatelessWidget {
                             child: Row(children: [Icon(Icons.delete_rounded, size: 20, color: Colors.red), SizedBox(width: 8), Text('Xóa', style: TextStyle(color: Colors.red))]),
                           ),
                         ],
-                      ),
+                      ) : null,
                     )).toList(),
                   );
                 }
