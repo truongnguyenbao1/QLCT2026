@@ -27,20 +27,26 @@ class RoomDetailPage extends StatelessWidget {
         }
 
         if (state is RoomsLoaded) {
-          final room = state.rooms.firstWhere(
-            (r) => r.id == roomId,
-            orElse: () => throw Exception('Không tìm thấy phòng'),
-          );
-          return _buildRoomDetail(context, room);
+          final roomIndex = state.rooms.indexWhere((r) => r.id == roomId);
+          if (roomIndex == -1) {
+            return Scaffold(
+              appBar: AppBar(title: const Text('Lỗi')),
+              body: const Center(child: Text('Không tìm thấy phòng.')),
+            );
+          }
+          return _buildRoomDetail(context, state.rooms[roomIndex]);
         }
         
         // Handle cases where state might be action success but we still want to show UI
         if (state is RoomActionSuccess) {
-           final room = state.rooms.firstWhere(
-            (r) => r.id == roomId,
-            orElse: () => throw Exception('Không tìm thấy phòng'),
-          );
-          return _buildRoomDetail(context, room);
+           final roomIndex = state.rooms.indexWhere((r) => r.id == roomId);
+          if (roomIndex == -1) {
+            return Scaffold(
+              appBar: AppBar(title: const Text('Lỗi')),
+              body: const Center(child: Text('Không tìm thấy phòng.')),
+            );
+          }
+          return _buildRoomDetail(context, state.rooms[roomIndex]);
         }
 
         return Scaffold(
