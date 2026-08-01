@@ -47,10 +47,10 @@ class _CreateIssuePageState extends State<CreateIssuePage> {
     }
   }
 
-  void _submit() {
+  void _submit(BuildContext ctx) {
     if (!_formKey.currentState!.validate()) return;
     
-    final authState = context.read<AuthBloc>().state;
+    final authState = ctx.read<AuthBloc>().state;
     if (authState is! AuthAuthenticated) return;
 
     final notification = NotificationModel(
@@ -66,7 +66,7 @@ class _CreateIssuePageState extends State<CreateIssuePage> {
     );
 
     String? ext = _selectedImage?.name.split('.').last;
-    context.read<NotificationBloc>().add(SendNotificationEvent(notification, imageBytes: _imageBytes, imageExt: ext));
+    ctx.read<NotificationBloc>().add(SendNotificationEvent(notification, imageBytes: _imageBytes, imageExt: ext));
   }
 
   @override
@@ -194,7 +194,7 @@ class _CreateIssuePageState extends State<CreateIssuePage> {
                     width: double.infinity,
                     height: 50,
                     child: FilledButton(
-                      onPressed: _isLoading ? null : _submit,
+                      onPressed: _isLoading ? null : () => _submit(context),
                       child: _isLoading
                           ? const CircularProgressIndicator(color: Colors.white)
                           : const Text('Gửi báo cáo'),
